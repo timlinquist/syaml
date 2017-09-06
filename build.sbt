@@ -1,4 +1,4 @@
-name := "YAML Lexer and Parser"
+name := "SYaml"
 
 scalaVersion in ThisBuild := "2.12.2"
 
