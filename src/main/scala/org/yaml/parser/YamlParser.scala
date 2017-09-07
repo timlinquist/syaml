@@ -16,35 +16,40 @@ import scala.collection.mutable.ArrayBuffer
 class YamlParser(val lexer: YamlLexer) {
   private var stack    = List(new Builder)
   private def current  = stack.head
-  private val elements = new ArrayBuffer[YamlPart]
+  private val elements = new ArrayBuffer[YPart]
   private val aliases  = mutable.Map.empty[String, YNode]
 
   class Builder {
     var metaText = ""
 
     val tokens      = new ArrayBuffer[YeastToken]
-    val parts       = new ArrayBuffer[YamlPart]
+    val parts       = new ArrayBuffer[YPart]
     val textBuilder = new StringBuilder
   }
 
-  def parse(): IndexedSeq[YamlPart] = {
+  /** Parse the Yaml and return an Indexed Seq of the Parts */
+  def parse(keepTokens: Boolean = true): IndexedSeq[YPart] = {
     while (lexer.token != EndStream) {
-      process(lexer.tokenData)
+      process(lexer.tokenData, keepTokens)
       lexer.advance()
     }
-    elements.toArray[YamlPart]
+    elements.toArray[YPart]
   }
 
-  def push(): Unit = {
-    val nc = createNonContent()
-    if (nc != null)
-      current.parts += nc
+  /** Parse the Yaml and return the list of documents */
+  def documents(): IndexedSeq[YDocument] =
+    parse(keepTokens = false) collect { case d: YDocument => d }
+
+  private def push(): Unit = {
+    addNonContent(current.parts)
     stack = new Builder :: stack
   }
 
-  private def pop(part: YamlPart): Unit = {
+  private def pop(part: => YPart): Unit = {
+    addNonContent(current.parts)
+    val p = part
     stack = stack.tail
-    current.parts += part
+    current.parts += p
   }
 
   private def getTokens: IndexedSeq[YeastToken] = {
@@ -65,64 +70,78 @@ class YamlParser(val lexer: YamlLexer) {
       r
     }
   }
-  private def getParts: IndexedSeq[YamlPart] = {
+  private def getParts: IndexedSeq[YPart] = {
     val ps = current.parts
     if (ps.isEmpty) IndexedSeq.empty
     else {
-      val r = ps.toArray[YamlPart]
+      val r = ps.toArray[YPart]
       ps.clear()
       r
     }
   }
 
-  private def createNonContent() = {
+  private def addNonContent(buffer: mutable.Buffer[YPart]) = {
     val tks = getTokens
-    if (tks.isEmpty) null else new YNonContent(tks)
+    if (tks.nonEmpty) buffer += new YNonContent(tks)
   }
 
-  private def process(td: TokenData[YamlToken]): Unit = {
+  private def process(td: TokenData[YamlToken], keepTokens: Boolean): Unit = {
     td.token match {
       case BeginDocument =>
-        val nc = createNonContent()
-        if (nc != null) elements += nc
+        if (keepTokens) {
+            addNonContent(current.parts)
+            addToken(td)
+        }
       case EndDocument =>
+        if (keepTokens) {
+          addToken(td)
+          addNonContent(current.parts)
+        }
         elements += new YDocument(getParts)
         current.parts.clear()
-      case BeginNode | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginProperties | BeginAlias |
-          BeginAnchor =>
+      case BeginNode | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias | BeginAnchor =>
         push()
+        if (keepTokens) addToken(td)
       case EndSequence =>
+        if (keepTokens) addToken(td)
         pop(new YSequence(getParts))
       case EndNode =>
+        if (keepTokens) addToken(td)
         pop(YNode(getParts, aliases))
       case EndScalar =>
+        if (keepTokens) addToken(td)
         pop(new YScalar(getText, getTokens))
       case EndMapping =>
+        if (keepTokens) addToken(td)
         pop(new YMap(getParts))
       case EndPair =>
+        if (keepTokens) addToken(td)
         pop(YMapEntry(getParts))
       case EndAlias =>
+        if (keepTokens) addToken(td)
         pop(new YAlias(current.metaText, getTokens))
       case EndAnchor =>
+        if (keepTokens) addToken(td)
         pop(new YAnchor(current.metaText, getTokens))
-      case EndProperties =>
-        pop(YProperties(getParts))
       case MetaText =>
         current.metaText = lexer.tokenString
+        if (keepTokens) addToken(td)
       case Text =>
         current.textBuilder.append(lexer.tokenText)
+        if (keepTokens) addToken(td)
       case LineFold =>
         current.textBuilder.append(' ')
+        if (keepTokens) addToken(td)
       case LineFeed =>
         current.textBuilder.append('\n')
+        if (keepTokens) addToken(td)
       case _ =>
-        addToken(td)
+        if (keepTokens) addToken(td)
     }
   }
 
-  private def addToken(td: TokenData[YamlToken]) = {
+  private def addToken(td: TokenData[YamlToken]) =
     current.tokens += YeastToken(td.token, td.start, td.end)
-  }
 }
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
