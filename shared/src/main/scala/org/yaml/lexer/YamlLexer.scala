@@ -1,6 +1,6 @@
 package org.yaml.lexer
 
-import java.io.{File, FileReader}
+import java.io.{File, FileInputStream, FileReader, InputStreamReader}
 import java.lang.Integer.MAX_VALUE
 
 import org.mulesoft.common.core.countWhile
@@ -86,10 +86,12 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     if ("#;/?:@&=+$,_.!~*'()[]".indexOf(currentChar) != -1 || isWordChar(currentChar)) {
       consume()
       true
-    } else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
+    }
+    else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
       consume(3)
       true
-    } else false
+    }
+    else false
 
   /**
     * A Tag char cannot contain the “!” character because is used to indicate the end of a named tag handle.
@@ -530,7 +532,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
             matches(breakNonContent() && emptyLine(n, c)) || consumeAndEmit(LineFold)
             indent(n)
             consumeAndEmit(countWhiteSpaces(), WhiteSpace)
-          } else {
+          }
+          else {
             inText = false
             emit(Error)
             done = true
@@ -559,7 +562,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
           if (isBBreak(lookAhead(spaces))) {
             emitText()
             consumeAndEmit(spaces, WhiteSpace)
-          } else {
+          }
+          else {
             inText = true
             consume(spaces)
           }
@@ -1081,7 +1085,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     if (t != '+') {
       if (t != '-') emit(EndScalar)
       zeroOrMore(indentLessOrEqual(n) && breakNonContent()) //strip empty
-    } else {
+    }
+    else {
       zeroOrMore(emptyLine(n, BlockIn)) // keep empty
       emit(EndScalar)
     }
@@ -1577,7 +1582,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
           else if (chr != '"' || lookAhead(i - 1) != '\\')
             charStack = charStack.tail
         }
-      } else if (chr == '"' || chr == '\'')
+      }
+      else if (chr == '"' || chr == '\'')
         charStack = chr :: charStack
       else if (chr == '{')
         charStack = '}' :: charStack
@@ -1612,7 +1618,7 @@ object YamlLexer {
   def apply(s: String): YamlLexer = YamlLexer(new CharSequenceLexerInput(s))
 
   def apply(file: File): YamlLexer = {
-    val fis    = new FileReader(file)
+    val fis    = new InputStreamReader(new FileInputStream(file), "UTF-8")
     val data   = new Array[Char](file.length.toInt)
     val length = fis.read(data)
     fis.close()
