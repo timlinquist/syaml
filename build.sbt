@@ -27,7 +27,7 @@ lazy val syaml = crossProject.in(file(".")).
         sys.env.getOrElse("NEXUS_PASS", ""))
     ),
 
-    javacOptions ++= Seq("-encoding", "UTF-8")
+    scalacOptions ++= Seq("-encoding", "utf-8")
   ).
   jvmSettings(
     // JVM-specific settings here
