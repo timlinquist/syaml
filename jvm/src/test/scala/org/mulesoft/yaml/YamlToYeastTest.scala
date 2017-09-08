@@ -12,14 +12,14 @@ import org.yaml.lexer.{YamlLexer, YamlToken}
 class YamlToYeastTest extends FunSuite with Matchers {
 
   val yeastDir  = new File("target/test/yeast")
-  val yamlDir   = new File("src/test/data/yaml")
-  val goldenDir = new File("src/test/data/yeast")
+  val yamlDir   = new File("shared/src/test/data/yaml")
+  val goldenDir = new File("shared/src/test/data/yeast")
 
   yeastDir.mkdirs()
 
   private val file  = System.getProperty("yaml")
   private val files = if (file == null) yamlDir.list() else Array(file)
-  for (yaml <- files) { //}; if !yaml.equals("simplelist.yaml")) {
+  for (yaml <- files) {
     test("Generate Yeast for " + yaml) {
       val yamlFile   = new File(yamlDir, yaml)
       val yeast      = yaml.replace(".yaml", ".yt")

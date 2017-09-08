@@ -104,11 +104,6 @@ class Diff[T <: AnyRef : ClassTag](equalsComparator: (T, T) => Boolean) {
 
 object Diff {
 
-    def main(args: Array[String]): Unit = {
-        val deltas = Diff[String]().diff(List("A", "B", "C"), List("X", "C"))
-        println(deltas)
-    }
-
     /** Creates a case insensitive diff for Strings. */
     def caseInsensitive: Diff.Str = new Str(_ equalsIgnoreCase _)
 

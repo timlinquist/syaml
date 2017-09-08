@@ -15,10 +15,10 @@ object BasicTest  {
           println(YeastData(lexer.tokenData, lexer.tokenString))
           lexer.advance()
       }
-
   }
-
 }
+
+
 
 
 

@@ -1,0 +1,10 @@
+product: syaml
+component: parser
+
+version: 0.0.1
+strategy: sbtnode
+requires:
+  db: false
+  deployment: false
+contains:
+  helmChart: false
