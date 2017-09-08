@@ -25,7 +25,9 @@ lazy val syaml = crossProject.in(file(".")).
         new java.net.URL(repository).getHost,
         sys.env.getOrElse("NEXUS_USER", ""),
         sys.env.getOrElse("NEXUS_PASS", ""))
-    )
+    ),
+
+    javacOptions ++= Seq("-encoding", "UTF-8")
   ).
   jvmSettings(
     // JVM-specific settings here
