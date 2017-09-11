@@ -16,15 +16,15 @@ lazy val syaml = crossProject.in(file(".")).
     version := "0.0.1-SNAPSHOT",
 
     libraryDependencies += "org.scalactic" %%% "scalactic" % "3.0.1",
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % "test",
+    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
 
     publishTo := Some(
       "snapshots" at s"$repository/content/repositories/ci-snapshots/"),
     credentials ++= Seq(
       Credentials("Sonatype Nexus Repository Manager",
         new java.net.URL(repository).getHost,
-        sys.env.getOrElse("NEXUS_USER", ""),
-        sys.env.getOrElse("NEXUS_PASS", ""))
+        sys.env("NEXUS_USR"),
+        sys.env("NEXUS_PSW"))
     ),
 
     scalacOptions ++= Seq("-encoding", "utf-8")
