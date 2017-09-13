@@ -141,7 +141,7 @@ class YamlParser(val lexer: YamlLexer) {
   }
 
   private def addToken(td: TokenData[YamlToken]) =
-    current.tokens += YeastToken(td.token, td.start, td.end)
+    current.tokens += YeastToken(td.token, td.start, td.end, td.range)
 }
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
