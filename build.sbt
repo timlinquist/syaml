@@ -1,38 +1,30 @@
-import sbt.Keys.{libraryDependencies, publishTo}
-
 name := "syaml"
 
-scalaVersion in ThisBuild := "2.12.2"
+val settings = Common.settings ++ Seq(
+  name := "syaml",
+  version := "0.0.1-SNAPSHOT",
 
-val repository = sys.env.getOrElse("NEXUS_REPOSITORY", "https://nexus.build.msap.io/nexus")
+  libraryDependencies ++= Seq(
+    "org.scalactic" %%% "scalactic" % "3.0.1",
+    "org.scalatest" %%% "scalatest" % "3.0.0" % Test
+  ),
 
-lazy val root = project.in(file(".")).
-  aggregate(syamlJS, syamlJVM)
+  Common.publish,
 
-lazy val syaml = crossProject.in(file(".")).
-  settings(
-    organization := "org.mulesoft",
-    name := "syaml",
-    version := "0.0.1-SNAPSHOT",
+  credentials ++= Common.credentials()
+)
 
-    libraryDependencies += "org.scalactic" %%% "scalactic" % "3.0.1",
-    libraryDependencies += "org.scalatest" %%% "scalatest" % "3.0.1" % Test,
+lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM)
 
-    publishTo := Some(
-      "snapshots" at s"$repository/content/repositories/ci-snapshots/"),
-    credentials ++= Seq(
-      Credentials("Sonatype Nexus Repository Manager",
-        new java.net.URL(repository).getHost,
-        sys.env("NEXUS_USR"),
-        sys.env("NEXUS_PSW"))
-    ),
-
-    scalacOptions ++= Seq("-encoding", "utf-8")
-  ).
-  jvmSettings(
+lazy val syaml = crossProject
+  .in(file("."))
+  .settings(
+    settings: _*
+  )
+  .jvmSettings(
     // JVM-specific settings here
-  ).
-  jsSettings(
+  )
+  .jsSettings(
     // JS-specific settings here
   )
 

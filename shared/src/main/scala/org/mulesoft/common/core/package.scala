@@ -61,7 +61,7 @@ package object core {
 
         /** Compare two Strings ignoring the spaces in each */
         def equalsIgnoreSpaces(str2: String): Boolean = {
-            def charAt(s: String, i: Int) = if (i >= s.length) '\0' else s.charAt(i)
+            def charAt(s: String, i: Int) = if (i >= s.length) '\u0000' else s.charAt(i)
 
             var i = 0
             var j = 0
