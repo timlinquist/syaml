@@ -9,7 +9,7 @@ pipeline {
     }
   }
   environment {
-    NEXUS = credentials('nexus')
+    NEXUS = credentials('exchange-nexus')
   }
   stages {
     stage('Test') {
