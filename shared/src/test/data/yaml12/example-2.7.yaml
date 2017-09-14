@@ -1,0 +1,13 @@
+%YAML 1.2
+---
+!!seq [
+  !!str "Mark McGwire",
+  !!str "Sammy Sosa",
+  !!str "Ken Griffey"
+]
+%YAML 1.2
+---
+!!seq [
+  !!str "Chicago Cubs",
+  !!str "St Louis Cardinals"
+]

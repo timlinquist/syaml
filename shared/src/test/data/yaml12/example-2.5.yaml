@@ -1,0 +1,19 @@
+%YAML 1.2
+---
+!!seq [
+  !!seq [
+    !!str "name",
+    !!str "hr",
+    !!str "avg"
+  ],
+  !!seq [
+    !!str "Mark McGwire",
+    !!int "65",
+    !!float "0.278"
+  ],
+  !!seq [
+    !!str "Sammy Sosa",
+    !!int "63",
+    !!float "0.288"
+  ]
+]

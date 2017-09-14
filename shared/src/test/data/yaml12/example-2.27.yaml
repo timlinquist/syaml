@@ -1,0 +1,57 @@
+%YAML 1.2
+---
+tag:clarkevans.com,2002:invoice {
+  ? !!str "invoice"
+  : !!int "34843",
+  ? !!str "date"
+  : !!str "2001-01-23",
+  ? !!str "bill-to"
+  : !!map &id001 {
+    ? !!str "given"
+    : !!str "Chris",
+    ? !!str "family"
+    : !!str "Dumars",
+    ? !!str "address"
+    : !!map {
+      ? !!str "lines"
+      : !!str "458 Walkman Dr.\nSuite #292\n",
+      ? !!str "city"
+      : !!str "Royal Oak",
+      ? !!str "state"
+      : !!str "MI",
+      ? !!str "postal"
+      : !!int "48046"
+    }
+  },
+  ? !!str "ship-to"
+  : *id001,
+  ? !!str "product"
+  : !!seq [
+    !!map {
+      ? !!str "sku"
+      : !!str "BL394D",
+      ? !!str "quantity"
+      : !!int "4",
+      ? !!str "description"
+      : !!str "Basketball",
+      ? !!str "price"
+      : !!float "450.00"
+    },
+    !!map {
+      ? !!str "sku"
+      : !!str "BL4438H",
+      ? !!str "quantity"
+      : !!int "1",
+      ? !!str "description"
+      : !!str "Super Hoop",
+      ? !!str "price"
+      : !!float "2392.00"
+    }
+  ],
+  ? !!str "tax"
+  : !!float "251.42",
+  ? !!str "total"
+  : !!float "4443.52",
+  ? !!str "comments"
+  : !!str "Late afternoon is best. Backup contact is Nancy Billsmer @ 338-4338."
+}

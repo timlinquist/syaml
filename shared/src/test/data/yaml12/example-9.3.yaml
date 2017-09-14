@@ -1,0 +1,6 @@
+%YAML 1.2
+---
+!!str "Bare document"
+%YAML 1.2
+---
+!!str "%!PS-Adobe-2.0 # Not the first line\n"

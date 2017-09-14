@@ -1,0 +1,8 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "plain"
+  : !!str "This unquoted scalar spans many lines.",
+  ? !!str "quoted"
+  : !!str "So does this quoted scalar.\n"
+}

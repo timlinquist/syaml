@@ -1,0 +1,9 @@
+%YAML 1.2
+---
+!!seq [
+  !!str "a",
+  !!str "b",
+  !!str &anchor "c",
+  *anchor,
+  !!str ""
+]

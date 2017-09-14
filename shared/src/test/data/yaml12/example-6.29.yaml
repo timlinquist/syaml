@@ -1,0 +1,8 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "First occurrence"
+  : !!str &anchor "Value",
+  ? !!str "Second occurrence"
+  : *anchor
+}

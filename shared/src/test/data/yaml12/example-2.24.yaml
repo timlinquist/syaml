@@ -1,0 +1,34 @@
+%YAML 1.2
+---
+!shape [
+  !circle {
+    ? !!str "center"
+    : !!map &ORIGIN {
+      ? !!str "x"
+      : !!int "73",
+      ? !!str "y"
+      : !!int "129"
+    },
+    ? !!str "radius"
+    : !!int "7"
+  },
+  !line {
+    ? !!str "start"
+    : *ORIGIN,
+    ? !!str "finish"
+    : !!map {
+      ? !!str "x"
+      : !!int "89",
+      ? !!str "y"
+      : !!int "102"
+    }
+  },
+  !label {
+    ? !!str "start"
+    : *ORIGIN,
+    ? !!str "color"
+    : !!str "0xFFEEBB",
+    ? !!str "text"
+    : !!str "Pretty vector drawing."
+  }
+]

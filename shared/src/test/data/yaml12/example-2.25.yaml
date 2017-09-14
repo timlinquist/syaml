@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+!!set {
+  ? !!str "Mark McGwire"
+  : !!null "",
+  ? !!str "Sammy Sosa"
+  : !!null "",
+  ? !!str "Ken Griff"
+  : !!null ""
+}

@@ -25,6 +25,3 @@ abstract class YAggregate(override val children: IndexedSeq[YPart]) extends YPar
 }
 
 
-class YAlias(val name: String, ts: IndexedSeq[YeastToken]) extends YTokens(ts) {
-  override def toString: String = name
-}

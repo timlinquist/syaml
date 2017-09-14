@@ -1,4 +1,4 @@
-Bom                 0,  1,  0 '\ufeff'
+Bom                 0,  1,  0 '\uFEFF'
 BeginComment        1,  1,  1 ''
 Indicator           1,  1,  1 '#'
 MetaText            2,  1,  2 ' Comment'

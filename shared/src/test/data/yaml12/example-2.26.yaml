@@ -1,0 +1,16 @@
+%YAML 1.2
+---
+!!omap [
+  !!map {
+    ? !!str "Mark McGwire"
+    : !!int "65"
+  },
+  !!map {
+    ? !!str "Sammy Sosa"
+    : !!int "63"
+  },
+  !!map {
+    ? !!str "Ken Griffy"
+    : !!int "58"
+  }
+]

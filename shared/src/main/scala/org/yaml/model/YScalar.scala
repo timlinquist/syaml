@@ -6,6 +6,6 @@ import org.mulesoft.common.core._
 /**
   * A Yaml Scalar
   */
-class YScalar(val text: String, ts: IndexedSeq[YeastToken]) extends YTokens(ts) with YValue {
+class YScalar(val text: String, val plain: Boolean, ts: IndexedSeq[YeastToken]) extends YTokens(ts) with YValue {
   override def toString: String = '"' + text.encode + '"'
 }

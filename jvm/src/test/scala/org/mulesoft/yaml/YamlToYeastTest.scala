@@ -29,7 +29,6 @@ class YamlToYeastTest extends FunSuite with Matchers {
       generate(yamlFile, yeastFile)
 
       val deltas = Diff.ignoreAllSpace.diff(yeastFile, goldenFile)
-
       assert(deltas.isEmpty, s"diff -y -W 150 $yeastFile $goldenFile\n\n${deltas.mkString}")
 
     }

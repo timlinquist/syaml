@@ -1,0 +1,14 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "hr"
+  : !!seq [
+    !!str "Mark McGwire",
+    !!str &SS "Sammy Sosa"
+  ],
+  ? !!str "rbi"
+  : !!seq [
+    *SS,
+    !!str "Ken Griffey"
+  ]
+}

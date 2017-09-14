@@ -1,0 +1,20 @@
+%YAML 1.2
+---
+!!map {
+  ? !!seq [
+    !!str "Detroit Tigers",
+    !!str "Chicago cubs"
+  ]
+  : !!seq [
+    !!str "2001-07-23"
+  ],
+  ? !!seq [
+    !!str "New York Yankees",
+    !!str "Atlanta Braves"
+  ]
+  : !!seq [
+    !!str "2001-07-02",
+    !!str "2001-08-12",
+    !!str "2001-08-14"
+  ]
+}

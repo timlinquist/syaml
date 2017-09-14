@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "not-date"
+  : !!str "2002-04-28",
+  ? !!str "picture"
+  : !!binary "R0lGODlhDAAMAIQAAP//9/X\n17unp5WZmZgAAAOfn515eXv\nPz7Y6OjuDg4J+fn5OTk6enp\n56enmleECcgggoBADs=\n",
+  ? !!str "application specific tag"
+  : !something "The semantics of the tag\nabove may be different for\ndifferent documents.\n"
+}

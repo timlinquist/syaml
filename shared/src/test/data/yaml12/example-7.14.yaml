@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+!!seq [
+  !!str "double quoted",
+  !!str "single quoted",
+  !!str "plain text",
+  !!seq [
+    !!str "nested"
+  ]
+]

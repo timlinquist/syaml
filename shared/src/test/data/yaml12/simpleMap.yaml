@@ -1,0 +1,22 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "Item 1"
+  : !!int "1",
+  ? !!str "Item 2"
+  : !!int "2",
+  ? !!str "Item 3"
+  : !!null "",
+  ? !!str "Item 4"
+  : !!str "3 with some more text",
+  ? !!str "Item 5"
+  : !!null "",
+  ? !!str "Item 6"
+  : !!str "Something Else",
+  ? !!str "Item 7"
+  : !!str "Standard",
+  ? !!str "Item 8"
+  : !!str "A More Indented Plain Literal",
+  ? !!str "Item 9"
+  : !!str "An Indented\nBlock\n Literal\n\nWith 2 empty Lines\nAnd trailing Comments\n"
+}

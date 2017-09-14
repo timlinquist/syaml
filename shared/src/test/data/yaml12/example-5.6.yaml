@@ -1,0 +1,8 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "anchored"
+  : !local &anchor "value",
+  ? !!str "alias"
+  : *anchor
+}

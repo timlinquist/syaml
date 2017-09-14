@@ -1,0 +1,18 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "Mark McGwire"
+  : !!map {
+    ? !!str "hr"
+    : !!int "65",
+    ? !!str "avg"
+    : !!float "0.278"
+  },
+  ? !!str "Sammy Sosa"
+  : !!map {
+    ? !!str "hr"
+    : !!int "63",
+    ? !!str "avg"
+    : !!float "0.288"
+  }
+}
