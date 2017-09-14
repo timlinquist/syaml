@@ -2,7 +2,7 @@ package org.yaml.parser
 
 import java.io.File
 
-import org.mulesoft.lexer.TokenData
+import org.mulesoft.lexer.{InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken, YeastToken}
 import org.yaml.model._
@@ -17,56 +17,45 @@ import scala.collection.mutable.ArrayBuffer
   */
 class YamlParser(val lexer: YamlLexer) {
 
-  private var stack      = List(new Builder)
-  private def current    = stack.head
-  private val elements   = new ArrayBuffer[YPart]
-  private val aliases    = mutable.Map.empty[String, YNode]
-  private var escaping   = false
-  private var keepTokens = false
-  private val textBuilder        = new StringBuilder
-    private val metaTextBuilder    = new StringBuilder
-    private var inHandle = false
-    private var plainScalar = false
-
-    class Builder {
-    val tokens = new ArrayBuffer[YeastToken]
-    val parts  = new ArrayBuffer[YPart]
-  }
+  private val aliases         = mutable.Map.empty[String, YNode]
+  private var escaping        = false
+  private var keepTokens      = false
+  private val textBuilder     = new StringBuilder
+  private val metaTextBuilder = new StringBuilder
+  private var inHandle        = false
+  private var plainScalar     = true
+  private var current         = new Builder
+  private var stack           = List(current)
 
   /** Parse the Yaml and return an Indexed Seq of the Parts */
   def parse(keepTokens: Boolean = true): IndexedSeq[YPart] = {
     this.keepTokens = keepTokens
-    var prev: TokenData[YamlToken] = null
+    var prev = TokenData(BeginStream, InputRange.Zero)
+    stack = List(current)
     while (lexer.token != EndStream) {
       process(lexer.tokenData, prev)
       prev = lexer.tokenData
       lexer.advance()
     }
-    elements.toArray[YPart]
+    current.addNonContent(prev)
+    current.parts.toArray[YPart]
   }
 
   /** Parse the Yaml and return the list of documents */
   def documents(): IndexedSeq[YDocument] =
     parse(keepTokens = false) collect { case d: YDocument => d }
 
-  private def push(): Unit = {
-    addNonContent(current.parts)
-    stack = new Builder :: stack
+  private def push(td: TokenData[YamlToken]): Unit = {
+    metaTextBuilder.clear()
+    textBuilder.clear()
+    current = new Builder
+    stack = current :: stack
   }
 
   private def pop(part: YPart): Unit = {
     stack = stack.tail
+    current = stack.head
     current.parts += part
-  }
-
-  private def getTokens: IndexedSeq[YeastToken] = {
-    val tks = current.tokens
-    if (tks.isEmpty) IndexedSeq.empty
-    else {
-      val r = tks.toArray[YeastToken]
-      tks.clear()
-      r
-    }
   }
 
   private def buildText(): String = {
@@ -80,98 +69,101 @@ class YamlParser(val lexer: YamlLexer) {
     r
   }
 
-  private def buildParts(): IndexedSeq[YPart] = {
-    val ps = current.parts
-    addNonContent(ps)
-    if (ps.isEmpty) IndexedSeq.empty
-    else {
-      val r = ps.toArray[YPart]
-      ps.clear()
-      r
-    }
-  }
-
-  private def addNonContent(buffer: mutable.Buffer[YPart]) = {
-    val tks = getTokens
-    if (tks.nonEmpty) buffer += new YNonContent(tks)
-  }
-
-  private def process(td: TokenData[YamlToken], prev:TokenData[YamlToken]): Unit = {
+  private def process(td: TokenData[YamlToken], prev: TokenData[YamlToken]): Unit = {
     td.token match {
       case BeginDocument =>
-        addNonContent(current.parts)
-        addToken(td)
-      case EndDocument =>
-        addToken(td)
-        elements += new YDocument(buildParts())
-        current.parts.clear()
+        aliases.clear()
+        current.addNonContent(prev)
+        push(td)
       case BeginNode | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias | BeginAnchor | BeginTag =>
-        plainScalar = true
-        metaTextBuilder.clear()
-        push()
-        addToken(td)
+        current.addNonContent(prev)
+        push(td)
+      case EndDocument =>
+        pop(new YDocument(current.buildParts(td)))
+        return
       case EndSequence =>
-        addToken(td)
-        pop(new YSequence(buildParts()))
+        pop(new YSequence(current.buildParts(td)))
+        return
       case EndNode =>
-        addToken(td)
-        pop(YNode(buildParts(), aliases))
+        pop(YNode(current.buildParts(td), aliases))
+        return
       case EndScalar =>
-        addToken(td)
-        pop(new YScalar(buildText(), plainScalar, getTokens))
+        pop(new YScalar(buildText(), plainScalar, current.first rangeTo td, current.buildTokens(td)))
+        plainScalar = true
+        return
       case EndMapping =>
-        addToken(td)
-        pop(new YMap(buildParts()))
+        pop(new YMap(current.buildParts(td)))
+        return
       case EndPair =>
-        addToken(td)
-        pop(YMapEntry(buildParts()))
+        pop(YMapEntry(current.buildParts(td)))
+        return
       case EndAlias =>
-        addToken(td)
-        pop(new YAlias(buildMetaText(), getTokens))
+        pop(new YAlias(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+        return
       case EndAnchor =>
-        addToken(td)
-        pop(new YAnchor(buildMetaText(), getTokens))
+        pop(new YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+        return
       case EndTag =>
-        addToken(td)
-        pop(YTag(buildMetaText(), getTokens))
-      case Text =>
-        textBuilder.append(lexer.tokenText)
-        addToken(td)
-      case LineFold =>
-        textBuilder.append(' ')
-        addToken(td)
-      case LineFeed =>
-        textBuilder.append('\n')
-        addToken(td)
-      case BeginEscape =>
-        addToken(td)
-        escaping = true
-      case BeginHandle =>
-          addToken(td)
-          inHandle = true
-      case EndHandle =>
-          addToken(td)
-          inHandle = false
+        pop(YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+        return
+      case Text        => textBuilder.append(lexer.tokenText)
+      case MetaText    => metaTextBuilder.append(lexer.tokenText)
+      case LineFold    => textBuilder.append(' ')
+      case LineFeed    => textBuilder.append('\n')
+      case BeginEscape => escaping = true
+      case BeginHandle => inHandle = true
+      case EndHandle   => inHandle = false
       case Indicator =>
-        addToken(td)
         if (escaping || inHandle) metaTextBuilder.append(lexer.tokenText)
         else if (prev.token == BeginScalar) plainScalar = false
-      case MetaText =>
-        metaTextBuilder.append(lexer.tokenText)
-        addToken(td)
       case EndEscape =>
-        addToken(td)
         textBuilder.append(buildMetaText().decode(ignoreErrors = true))
         escaping = false
       case LineBreak =>
-        addToken(td)
         if (escaping) metaTextBuilder.clear()
       case _ =>
-        addToken(td)
     }
+    current += td
   }
 
-  private def addToken(td: TokenData[YamlToken]) = current.tokens += YeastToken(td.token, td.start, td.end, td.range)
+  class Builder {
+    var first: TokenData[YamlToken] = _
+    val tokens                      = new ArrayBuffer[YeastToken]
+    val parts                       = new ArrayBuffer[YPart]
+
+    def +=(td: TokenData[YamlToken]): Unit = if (keepTokens) {
+      tokens += YeastToken(td.token, td.start, td.end)
+      if (first == null) first = td
+    }
+
+    def buildTokens(td: TokenData[YamlToken] = null): IndexedSeq[YeastToken] = {
+      if (td != null) this += td
+      if (tokens.isEmpty) IndexedSeq.empty
+      else {
+        val r = tokens.toArray[YeastToken]
+        tokens.clear()
+        first = null
+        r
+      }
+    }
+    def buildParts(td: TokenData[YamlToken]): IndexedSeq[YPart] = {
+      this += td
+      addNonContent(td)
+      if (parts.isEmpty) IndexedSeq.empty
+      else {
+        val r = parts.toArray[YPart]
+        parts.clear()
+        r
+      }
+    }
+    def addNonContent(td: TokenData[YamlToken]): Unit = if (tokens.nonEmpty) {
+      val range = first rangeTo td
+      val tks = buildTokens()
+      parts += new YIgnorable(range, tks)
+    }
+
+  }
+
 }
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)

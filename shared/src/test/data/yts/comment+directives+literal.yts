@@ -1,0 +1,10 @@
+File: comment+directives+literal.yaml
+YI  C I t c b b                                    [1,0..3,0]
+YD                                                 [3,0..13,0]
+  YI  O D I t w t d b b C I t c b K                [3,0..6,3]
+  YN                                               [6,3..13,0]
+    YI  N b                                        [6,3..7,0]
+    YS  S I w C I t c b i T L i T L i T L s        [7,0..11,0]
+    YI  b C I t c b n                              [11,0..13,0]
+  YI  o                                            [13,0..13,0]
+49 tokens dumped.

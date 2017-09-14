@@ -1,0 +1,17 @@
+File: simpleMultiDocument.yaml
+YD                                                 [1,0..2,0]
+  YI  O                                            [1,0..1,0]
+  YN                                               [1,0..1,5]
+    YI  N                                          [1,0..1,0]
+    YS  S T s                                      [1,0..1,5]
+    YI  n                                          [1,5..1,5]
+  YI  b o                                          [1,5..2,0]
+YI  k b                                            [2,0..3,0]
+YD                                                 [3,0..3,8]
+  YI  O                                            [3,0..3,0]
+  YN                                               [3,0..3,8]
+    YI  N                                          [3,0..3,0]
+    YS  S T s                                      [3,0..3,8]
+    YI  n                                          [3,8..3,8]
+  YI  o                                            [3,8..3,8]
+17 tokens dumped.

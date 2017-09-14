@@ -1,0 +1,9 @@
+File: example-8.8.yaml
+YD                                                 [1,0..11,0]
+  YI  O                                            [1,0..1,0]
+  YN                                               [1,0..11,0]
+    YI  N                                          [1,0..1,0]
+    YS  S I b i L i T L i T L i T L i T L i T L s  [1,0..8,0]
+    YI  b C I t c b b n                            [8,0..11,0]
+  YI  o                                            [11,0..11,0]
+32 tokens dumped.

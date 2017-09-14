@@ -1,0 +1,10 @@
+File: literal.yaml
+YI  C I t c b                                      [1,0..2,0]
+YD                                                 [2,0..8,0]
+  YI  O                                            [2,0..2,0]
+  YN                                               [2,0..8,0]
+    YI  N                                          [2,0..2,0]
+    YS  S I b L i T L i T L i L i T L s            [2,0..8,0]
+    YI  n                                          [8,0..8,0]
+  YI  o                                            [8,0..8,0]
+25 tokens dumped.

@@ -1,0 +1,9 @@
+File: literalQuoted.yaml
+YD                                                 [1,0..23,0]
+  YI  O                                            [1,0..1,0]
+  YN                                               [1,0..22,1]
+    YI  N                                          [1,0..1,0]
+    YS  S I T l E I t e T E I t e T l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I t e l T E I I t e l T E I I t e l T E I I t e l I s [1,0..22,1]
+    YI  n                                          [22,1..22,1]
+  YI  b o                                          [22,1..23,0]
+139 tokens dumped.

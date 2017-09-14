@@ -1,0 +1,9 @@
+File: literalPlain-2.yaml
+YD                                                 [1,0..3,0]
+  YI  O                                            [1,0..1,0]
+  YN                                               [1,0..2,10]
+    YI  N                                          [1,0..1,0]
+    YS  S T l T s                                  [1,0..2,10]
+    YI  n                                          [2,10..2,10]
+  YI  w C I t c b o                                [2,10..3,0]
+15 tokens dumped.

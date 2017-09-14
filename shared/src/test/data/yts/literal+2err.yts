@@ -1,0 +1,9 @@
+File: literal+2err.yaml
+YD                                                 [1,0..4,0]
+  YI  O                                            [1,0..1,0]
+  YN                                               [1,0..4,0]
+    YI  N                                          [1,0..1,0]
+    YS  S I I I ! b i T L i T L s                  [1,0..4,0]
+    YI  n                                          [4,0..4,0]
+  YI  o                                            [4,0..4,0]
+17 tokens dumped.

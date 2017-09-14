@@ -1,0 +1,10 @@
+File: example-9.1.yaml
+YI  U C I t c b C I t c b                          [1,0..3,0]
+YD                                                 [3,0..4,0]
+  YI  O                                            [3,0..3,0]
+  YN                                               [3,0..3,8]
+    YI  N                                          [3,0..3,0]
+    YS  S T s                                      [3,0..3,8]
+    YI  n                                          [3,8..3,8]
+  YI  b o                                          [3,8..4,0]
+19 tokens dumped.

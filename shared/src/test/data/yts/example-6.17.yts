@@ -1,0 +1,13 @@
+File: example-6.17.yaml
+YD                                                 [1,0..4,0]
+  YI  O D I t w H I h w                            [1,0..1,7]
+  YT  G I t g                                      [1,7..1,11]
+  YI  d b D I t w H I h w                          [1,11..2,7]
+  YT  G I t g                                      [2,7..2,11]
+  YI  d b                                          [2,11..3,0]
+  YN                                               [3,0..3,3]
+    YI  N                                          [3,0..3,0]
+    YS  S T s                                      [3,0..3,3]
+    YI  n                                          [3,3..3,3]
+  YI  b o                                          [3,3..4,0]
+36 tokens dumped.

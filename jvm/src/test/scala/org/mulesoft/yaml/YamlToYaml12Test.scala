@@ -1,6 +1,6 @@
 package org.mulesoft.yaml
 
-import java.io.{File, FileWriter, OutputStreamWriter}
+import java.io.{File, FileWriter}
 
 import org.mulesoft.common.ext.Diff
 import org.mulesoft.yaml.dumper.Yaml12Dumper

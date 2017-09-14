@@ -1,0 +1,10 @@
+File: directives.yaml
+YI  C I t c b b                                    [1,0..3,0]
+YD                                                 [3,0..8,3]
+  YI  O D I t w t d b b C I t c b b D I t w t w t d b K [3,0..8,3]
+  YN                                               [8,3..8,3]
+    YI  N                                          [8,3..8,3]
+    YS  S s                                        [8,3..8,3]
+    YI  n                                          [8,3..8,3]
+  YI  o                                            [8,3..8,3]
+36 tokens dumped.
