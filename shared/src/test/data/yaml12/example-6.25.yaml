@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
 !!seq [
-  !!str "foo",
+  ! "foo",
   $:? "bar"
 ]

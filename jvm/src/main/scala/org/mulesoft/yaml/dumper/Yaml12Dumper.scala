@@ -25,8 +25,10 @@ class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
           pw println "%YAML 1.2"
           pw println "---"
           dump(n)
-          pw println
+          pw.println()
+
       }
+      case _ =>
     }
     pw.flush()
     pw.close()
