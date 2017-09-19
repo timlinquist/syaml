@@ -2,11 +2,7 @@
 
 pipeline {
   agent {
-    docker {
-      image 'mulesoft/maelstrom-sbtnode-builder:v0.2.3'
-      registryUrl 'https://devdocker.mulesoft.com:18078'
-      registryCredentialsId 'quay-docker-registry'
-    }
+    dockerfile true
   }
   environment {
     NEXUS = credentials('exchange-nexus')
