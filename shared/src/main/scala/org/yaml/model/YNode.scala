@@ -1,6 +1,6 @@
 package org.yaml.model
 
-import org.yaml.model.YTag.{Empty, Seq, Str, Unknown, forScalar}
+import org.yaml.model.YType._
 
 import scala.collection.mutable
 
@@ -20,19 +20,19 @@ object YNode {
   def apply(parts: IndexedSeq[YPart], aliases: mutable.Map[String, YNode]): YNode = {
     var value: YValue           = null
     var ref: Option[YReference] = None
-    var tag                     = Empty
-    var defaultTag              = Str
+    var tag: YTag               = null
+    var defaultType: YType      = Str
 
     for (p <- parts) p match {
       case s: YSequence =>
         value = s
-        defaultTag = Seq
+        defaultType = Seq
       case m: YMap =>
         value = m
-        defaultTag = YTag.Map
+        defaultType = Map
       case s: YScalar =>
         value = s
-        if (tag == Empty && s.plain) tag = Unknown
+        if (tag == null && s.plain) tag = YTag.forScalar(value.asInstanceOf[YScalar].text)
       case a: YAnchor => ref = Some(a)
       case t: YTag    => tag = t
       case a: YAlias =>
@@ -42,12 +42,7 @@ object YNode {
         tag = target.tag
       case _ =>
     }
-    val t = tag match {
-      case Empty   => defaultTag
-      case Unknown => forScalar(value.asInstanceOf[YScalar].text)
-      case _            => tag
-    }
-
+    val t = if (tag == null) defaultType.tag else if (tag.tagType == Empty) tag.changeType(defaultType) else tag
     val node = new YNode(value, t, ref, parts)
     for (n <- ref) aliases += n.name -> node
     node
