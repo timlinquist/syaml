@@ -1,3 +1,4 @@
 File: example-5.5.yaml
-YI  C I t c b                                      [1,0..2,0]
+YC  C I t c                                        [1,0..1,15]
+YI  b                                              [1,15..2,0]
 5 tokens dumped.

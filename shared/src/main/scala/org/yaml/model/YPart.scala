@@ -20,6 +20,9 @@ abstract class YTokens(val range:InputRange, val tokens: IndexedSeq[YeastToken])
 /** Non Content Yaml Tokens */
 class YIgnorable(range:InputRange, ts: IndexedSeq[YeastToken]) extends YTokens(range, ts)
 
+/** Yaml Comment Part */
+class YComment(val metaText: String, range:InputRange, ts: IndexedSeq[YeastToken]) extends YTokens(range, ts)
+
 abstract class YAggregate(override val children: IndexedSeq[YPart]) extends YPart {
   override val range: InputRange = children.head.range.extent(children.last.range)
 

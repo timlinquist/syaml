@@ -1,5 +1,10 @@
 File: example-2.26.yaml
-YI  C I t c b C I t c b C I t c b                  [1,0..4,0]
+YC  C I t c                                        [1,0..1,33]
+YI  b                                              [1,33..2,0]
+YC  C I t c                                        [2,0..2,30]
+YI  b                                              [2,30..3,0]
+YC  C I t c                                        [3,0..3,29]
+YI  b                                              [3,29..4,0]
 YD                                                 [4,0..8,0]
   YI  O K                                          [4,0..4,3]
   YN                                               [4,3..8,0]

@@ -5,5 +5,7 @@ YD                                                 [1,0..3,0]
     YI  N                                          [1,0..1,0]
     YS  S T l T s                                  [1,0..2,10]
     YI  n                                          [2,10..2,10]
-  YI  w C I t c b o                                [2,10..3,0]
+  YI  w                                            [2,10..2,11]
+  YC  C I t c                                      [2,11..2,17]
+  YI  b o                                          [2,17..3,0]
 15 tokens dumped.

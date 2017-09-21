@@ -9,5 +9,7 @@ YD                                                 [1,0..4,0]
     YI  p w                                        [3,5..3,6]
     YS  S T s                                      [3,6..3,11]
     YI  n                                          [3,11..3,11]
-  YI  w C I t c b o                                [3,11..4,0]
+  YI  w                                            [3,11..3,12]
+  YC  C I t c                                      [3,12..3,35]
+  YI  b o                                          [3,35..4,0]
 39 tokens dumped.

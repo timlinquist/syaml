@@ -75,11 +75,14 @@ class YamlParser(val lexer: YamlLexer) {
         aliases.clear()
         current.addNonContent(prev)
         push(td)
-      case BeginNode | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias | BeginAnchor | BeginTag =>
+      case BeginComment | BeginNode | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias | BeginAnchor | BeginTag =>
         current.addNonContent(prev)
         push(td)
       case EndDocument =>
         pop(new YDocument(current.buildParts(td)))
+        return
+      case EndComment =>
+        pop(new YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
         return
       case EndSequence =>
         pop(new YSequence(current.buildParts(td)))

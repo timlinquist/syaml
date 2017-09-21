@@ -1,5 +1,6 @@
 File: example-6.28.yaml
-YI  C I t c b                                      [1,0..2,0]
+YC  C I t c                                        [1,0..1,35]
+YI  b                                              [1,35..2,0]
 YD                                                 [2,0..5,0]
   YI  O                                            [2,0..2,0]
   YN                                               [2,0..5,0]
