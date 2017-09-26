@@ -21,13 +21,11 @@ class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
 
   def dump(): Unit = {
     parts foreach {
-      case doc: YDocument => for (n <- doc.node) {
+      case doc: YDocument =>
           pw println "%YAML 1.2"
           pw println "---"
-          dump(n)
+          dump(doc.node)
           pw.println()
-
-      }
       case _ =>
     }
     pw.flush()
@@ -62,8 +60,9 @@ class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
   private def printEntries[T](prefix: String, seq: IndexedSeq[T], suffix: String, pf: T => Unit) = {
     pw println prefix
     indent += " " * indentation
+    var first = true
     for (e <- seq) {
-      if (e != seq.head) pw println ","
+      if (!first) pw println "," else first = false
       pf(e)
     }
     pw.println()

@@ -6,7 +6,7 @@ import org.mulesoft.lexer.{InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken, YeastToken}
 import org.yaml.model._
-import org.mulesoft.common.core._
+import org.mulesoft.common.core.Strings
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -79,32 +79,32 @@ class YamlParser(val lexer: YamlLexer) {
         current.addNonContent(prev)
         push(td)
       case EndDocument =>
-        pop(new YDocument(current.buildParts(td)))
+        pop(YDocument(current.buildParts(td)))
         return
       case EndComment =>
-        pop(new YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+        pop(YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
         return
       case EndSequence =>
-        pop(new YSequence(current.buildParts(td)))
+        pop(YSequence(current.buildParts(td)))
         return
       case EndNode =>
         pop(YNode(current.buildParts(td), aliases))
         return
       case EndScalar =>
-        pop(new YScalar(buildText(), plainScalar, current.first rangeTo td, current.buildTokens(td)))
+        pop(YScalar(buildText(), plainScalar, current.first rangeTo td, current.buildTokens(td)))
         plainScalar = true
         return
       case EndMapping =>
-        pop(new YMap(current.buildParts(td)))
+        pop(YMap(current.buildParts(td)))
         return
       case EndPair =>
         pop(YMapEntry(current.buildParts(td)))
         return
       case EndAlias =>
-        pop(new YAlias(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+        pop(YAlias(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
         return
       case EndAnchor =>
-        pop(new YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+        pop(YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
         return
       case EndTag =>
         pop(YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))

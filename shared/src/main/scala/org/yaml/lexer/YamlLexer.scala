@@ -748,7 +748,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * | [\[flowNode ns-flow-node(n,c)]\]
     */
   def flowSequenceEntry(n: Int, ctx: YamlContext): Boolean = {
-    matches(emit(BeginMapping, BeginPair) && flowPair(n, ctx) && emit(EndPair, EndMapping)) ||
+    matches(
+        emit(BeginNode) && emit(BeginMapping, BeginPair) &&
+          flowPair(n, ctx) &&
+          emit(EndPair, EndMapping) && emit(EndNode)) ||
     matches(emit(BeginNode) && flowNode(n, ctx) && emit(EndNode))
   }
 

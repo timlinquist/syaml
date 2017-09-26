@@ -2,12 +2,24 @@
 ---
 !!seq [
   !!seq [
-
+    !!map {
+      ? !!str "YAML"
+      : !!str "separate"
+    }
   ],
   !!seq [
-
+    !!map {
+      ? !!null ""
+      : !!str "empty key entry"
+    }
   ],
   !!seq [
-
+    !!map {
+      ? !!map {
+        ? !!str "JSON"
+        : !!str "like"
+      }
+      : !!str "adjacent"
+    }
   ]
 ]

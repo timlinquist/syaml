@@ -6,5 +6,9 @@
   !!str "plain text",
   !!seq [
     !!str "nested"
-  ]
+  ],
+  !!map {
+    ? !!str "single"
+    : !!str "pair"
+  }
 ]

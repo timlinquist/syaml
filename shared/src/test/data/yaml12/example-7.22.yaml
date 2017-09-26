@@ -1,5 +1,9 @@
 %YAML 1.2
 ---
 !!seq [
-  !!str "foo bar"
+  !!str "foo bar",
+  !!map {
+    ? !!str "foo...>1K characters...bar"
+    : !!str "invalid"
+  }
 ]

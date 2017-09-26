@@ -3,6 +3,9 @@
 !!map {
   ? !!str "implicit block key"
   : !!seq [
-
+    !!map {
+      ? !!str "implicit flow key"
+      : !!str "value"
+    }
   ]
 }
