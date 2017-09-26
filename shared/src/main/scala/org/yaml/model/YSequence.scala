@@ -12,7 +12,7 @@ class YSequence private(c: IndexedSeq[YPart]) extends YAggregate(c) with YValue 
 
   @deprecated("Work with nodes", since = "0.0.2")
   def values: IndexedSeq[YValue] = nodes.map(_.value)
-    
+
   override def hashCode(): Int = nodes.hashCode
 
   override def equals(obj: scala.Any): Boolean = obj match {
