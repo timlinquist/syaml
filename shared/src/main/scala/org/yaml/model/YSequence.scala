@@ -10,6 +10,9 @@ class YSequence private(c: IndexedSeq[YPart]) extends YAggregate(c) with YValue 
   /** The Sequence nodes */
   val nodes: IndexedSeq[YNode] = c.collect { case a: YNode => a }.toArray[YNode]
 
+  @deprecated("Work with nodes", since = "0.0.2")
+  def values: IndexedSeq[YValue] = nodes.map(_.value)
+    
   override def hashCode(): Int = nodes.hashCode
 
   override def equals(obj: scala.Any): Boolean = obj match {

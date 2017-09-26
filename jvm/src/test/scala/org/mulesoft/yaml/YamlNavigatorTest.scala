@@ -11,13 +11,13 @@ class YamlNavigatorTest extends FunSuite with Matchers {
 
   val address = YNode(
       YMap(
-          "given"  -> "Chris",
-          "family" -> "Dumars",
-          "address" -> YMap(
-              "lines"  -> "458 Walkman Dr.\nSuite #292",
-              "city"   -> "Royal Oak",
-              "state"  -> "MI",
-              "postal" -> 48046
+          "given"  --> "Chris",
+          "family" --> "Dumars",
+          "address" --> YMap(
+              "lines"  --> "458 Walkman Dr.\nSuite #292",
+              "city"   --> "Royal Oak",
+              "state"  --> "MI",
+              "postal" --> 48046
           )
       ),
       YType.Map,
@@ -27,27 +27,27 @@ class YamlNavigatorTest extends FunSuite with Matchers {
   val doc = YDocument(
       "Example 2.27 Invoice",
       YMap(
-          "invoice" -> 34843,
-          "date"    -> "2001-01-23",
-          "billto"  -> address,
-          "shipTo"  -> address.alias(),
-          "product" -> YSequence(
+          "invoice" --> 34843,
+          "date"    --> "2001-01-23",
+          "billto"  --> address,
+          "shipTo"  --> address.alias(),
+          "product" --> YSequence(
               YMap(
-                  "sku"         -> "BL394D",
-                  "quantity"    -> 4,
-                  "description" -> "Basketball",
-                  "price"       -> 450.00
+                  "sku"         --> "BL394D",
+                  "quantity"    --> 4,
+                  "description" --> "Basketball",
+                  "price"       --> 450.00
               ),
               YMap(
-                  "sku"         -> "BL4438H",
-                  "quantity"    -> 1,
-                  "description" -> "Super Hoop",
-                  "price"       -> 2392.00
+                  "sku"         --> "BL4438H",
+                  "quantity"    --> 1,
+                  "description" --> "Super Hoop",
+                  "price"       --> 2392.00
               )
           ),
-          "tax"      -> 251.42,
-          "total"    -> 4443.52,
-          "comments" -> "Late afternoon is best."
+          "tax"      --> 251.42,
+          "total"    --> 4443.52,
+          "comments" --> "Late afternoon is best."
       )
   )
 

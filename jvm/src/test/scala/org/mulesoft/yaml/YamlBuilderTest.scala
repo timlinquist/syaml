@@ -92,10 +92,10 @@ class YamlBuilderTest extends FunSuite with Matchers {
     val doc2 = YDocument(
         "A Map",
         YMap(
-            "String" -> "Value1",
-            "Int"    -> 120,
-            "List"   -> YSequence(1, 2),
-            "Map"    -> YMap(YMapEntry(1, "One"), YMapEntry(2, "Two")),
+            "String" --> "Value1",
+            "Int"    --> 120,
+            "List"   --> YSequence(1, 2),
+            "Map"    --> YMap(YMapEntry(1, "One"), YMapEntry(2, "Two")),
             YMapEntry(YSequence("a", "b"), YSequence(1, 2))
         )
     )
@@ -109,9 +109,9 @@ class YamlBuilderTest extends FunSuite with Matchers {
     val doc = YDocument(
         "A Map with references",
         YMap(
-            "a" -> node,
-            "b" -> 120,
-            "c" -> node.alias()
+            "a" --> node,
+            "b" --> 120,
+            "c" --> node.alias()
         )
     )
     val map: Map[YNode, YNode] = doc.node
