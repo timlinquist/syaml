@@ -1,9 +1,8 @@
 package org.mulesoft.yaml
 
-import java.io.{File, FileWriter, PrintWriter}
+import java.io.{File, PrintWriter}
 
 import org.mulesoft.common.ext.Diff
-import org.mulesoft.yaml.dumper.Yaml12Dumper
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model.{YPart, YTokens}
 import org.yaml.parser.YamlParser

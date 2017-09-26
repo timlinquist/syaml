@@ -10,6 +10,9 @@ class YDocument private (c: IndexedSeq[YPart]) extends YAggregate(c) {
   /** The Main Document Node */
   val node: YNode = c collectFirst { case a: YNode => a } getOrElse YNode.Null
 
+  @deprecated(message = "Use node and node conversions", since = "0.0.2")
+  def value: Option[YValue] = if (node == YNode.Null) None else Some(node.value)
+
   val headComment: String = c collectFirst {
     case c: YComment => c.metaText
     case a: YNode    => ""
