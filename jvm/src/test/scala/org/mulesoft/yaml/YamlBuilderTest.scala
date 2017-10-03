@@ -1,6 +1,7 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
+import org.yaml.model.YMap.obj
 import org.yaml.model.YType._
 import org.yaml.model._
 
@@ -11,7 +12,7 @@ class YamlBuilderTest extends FunSuite with Matchers {
 
   test("Build Simple Scalar") {
     val doc1 = YDocument(_.scalar("A Document"))
-    doc1.tag shouldBe Str.tag
+    doc1.tagType shouldBe Str
     val s: String = doc1.node
     s shouldBe "A Document"
     doc1.headComment shouldBe ""
@@ -22,12 +23,12 @@ class YamlBuilderTest extends FunSuite with Matchers {
     }
     doc2.headComment shouldBe "A Comment"
     doc2.tagType shouldBe Int
-    doc2.node.asInt shouldBe 100
+    doc2.node.as[Int] shouldBe 100
 
     // Short way when you don;t need a Builder
     val doc3 = YDocument(headComment = "Example", mainNode = 100)
     doc3.headComment shouldBe "Example"
-    doc3.node.asInt shouldBe 100
+    doc3.node.as[Int] shouldBe 100
   }
 
   test("Build Simple List") {
@@ -39,12 +40,10 @@ class YamlBuilderTest extends FunSuite with Matchers {
       }
     }
     doc.tagType shouldBe Seq
-    val seq: IndexedSeq[YNode] = doc.node
-    seq(0).tagType shouldBe Str
+    val seq = doc.node.as[Seq[YNode]]
     seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool)
 
-    val b: Boolean = seq(2)
-    b shouldBe true
+    doc.asObj(2).as[Boolean] shouldBe true
 
     // Short way when you don't need a Builder
     val doc2 = YDocument("", YSequence("Line 1", "Line 2", true))
@@ -55,15 +54,15 @@ class YamlBuilderTest extends FunSuite with Matchers {
     val doc = YDocument { b =>
       b comment "A Map"
       b map { b =>
-        b.complexEntry(_.scalar("String"), _.scalar("Value1"))
-        b.entry("Int", 120)
-        b.entry("List", _.list { b =>
+        b.complexEntry(_.scalar("aString"), _.scalar("Value1"))
+        b.entry("anInt", 120)
+        b.entry("aList", _.list { b =>
           b.scalar(1)
           b.scalar(2)
         })
-        b.entry("Map", _.map { b =>
-          b.entry(1, "One")
-          b.entry(2, "Two")
+        b.entry("aMap", _.map { b =>
+          b.entry("One", 1)
+          b.entry("Two", 2)
         })
         b.complexEntry(_.list { b =>
           b.scalar("a")
@@ -75,32 +74,47 @@ class YamlBuilderTest extends FunSuite with Matchers {
       }
     }
 
-    val map: Map[YNode, YNode] = doc.node
-    val types                  = for (e <- doc.node.asMapEntries) yield (e.key.tagType, e.value.tagType)
+    val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
     types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
-    map("Int").asInt shouldBe 120
-    val m: Map[YNode, YNode] = map("Map")
-    m(1).asString shouldBe "One"
-    m(2).asString shouldBe "Two"
-    map("List").asSeq.map(_.asInt) should contain theSameElementsInOrderAs List(1, 2)
 
-    val l: Seq[YNode] = map(YSequence("a", "b"))
+    doc.asObj.anInt.as[Int] shouldBe 120
+    val m = doc.asObj.aMap
+    m("One").as[Int] shouldBe 1
+    m("Two").as[Int] shouldBe 2
+    doc.asObj.aList.asSeq.map(_.as[Int]) should contain theSameElementsInOrderAs List(1, 2)
 
-    l.map(_.asInt) should contain theSameElementsInOrderAs List(1, 2)
+    doc.asObj(YSequence("a", "b")).asSeq.map(_.as[Int]) should contain theSameElementsInOrderAs List(1, 2)
 
     // Short way when you don't need a Builder
     val doc2 = YDocument(
         "A Map",
         YMap(
-            "String" --> "Value1",
-            "Int"    --> 120,
-            "List"   --> YSequence(1, 2),
-            "Map"    --> YMap(YMapEntry(1, "One"), YMapEntry(2, "Two")),
+            YMapEntry("aString", "Value1"),
+            YMapEntry("anInt", 120),
+            YMapEntry("aList", YSequence(1, 2)),
+            YMapEntry("aMap", YMap(YMapEntry("One", 1), YMapEntry("Two", 2))),
             YMapEntry(YSequence("a", "b"), YSequence(1, 2))
         )
     )
 
     doc2 shouldBe doc
+
+    // Nicer using dynamic when keys are String
+    val doc3 = YDocument(
+        "A Map",
+        obj(
+            aString = "Value1",
+            anInt = 120,
+            aList = YSequence(1, 2),
+            anotherList = YSequence("One", "Two"),
+            aMap = obj(one = 1, two = 2)
+        )
+    )
+
+    doc3.asObj.aMap.one.as[Int] shouldBe 1
+    doc3.asObj.anotherList(0).to[String].getOrElse("") shouldBe "One"
+    doc3.asObj.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
+    doc3.asObj.anotherList.asSeq.map(_.as[String]) should contain theSameElementsInOrderAs List("One", "Two")
   }
 
   test("References") {
@@ -108,13 +122,13 @@ class YamlBuilderTest extends FunSuite with Matchers {
 
     val doc = YDocument(
         "A Map with references",
-        YMap(
-            "a" --> node,
-            "b" --> 120,
-            "c" --> node.alias()
+        obj(
+            a = node,
+            b = 120,
+            c = node.alias()
         )
     )
-    val map: Map[YNode, YNode] = doc.node
-    map("c").asString shouldBe "Value1"
+
+    doc.asObj.c.as[String] shouldBe "Value1"
   }
 }

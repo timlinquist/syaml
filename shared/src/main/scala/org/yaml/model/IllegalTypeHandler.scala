@@ -4,24 +4,22 @@ package org.yaml.model
   * Handles IllegalType requests from nodes
   */
 abstract class IllegalTypeHandler {
-  def handle[T](value: YNode, expectedType: YType, defaultValue: T): T
+  def handle[T](error: YError, defaultValue: T): T
 }
 
 object IllegalTypeHandler {
 
   /** Constructor of the handler from a Function */
-  def apply(f: (YNode, YType) => Unit): IllegalTypeHandler = new IllegalTypeHandler() {
-    override def handle[T](value: YNode, expectedType: YType, defaultValue: T): T = {
-      f(value, expectedType)
+  def apply(f: YError => Unit): IllegalTypeHandler = new IllegalTypeHandler() {
+    override def handle[T](error: YError, defaultValue: T): T = {
+      f(error)
       defaultValue
     }
   }
 
   /** The Default implementation throws an IllegalArgumentException */
-  implicit val illegalValueHandler: IllegalTypeHandler = IllegalTypeHandler { (v, t) =>
-    throw new IllegalArgumentException(s"Illegal Type: '${v.tagType} Expecting a : '$t'")
-  }
+  implicit val illegalValueHandler: IllegalTypeHandler = IllegalTypeHandler { e => e.throwIt }
 
   /** And implementation that ignores the error and returns the default value */
-  val returnDefault = IllegalTypeHandler((_, _) => {})
+  val returnDefault = IllegalTypeHandler(_ => {})
 }

@@ -36,6 +36,5 @@ object YScalar {
             ts: IndexedSeq[YeastToken] = IndexedSeq.empty): YScalar = new YScalar(text, text, plain, range, ts)
 
   def apply(value: Any) = new YScalar(value, String.valueOf(value), true, Zero, IndexedSeq.empty)
-
   val Null = YScalar("")
 }

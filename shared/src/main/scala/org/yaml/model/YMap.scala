@@ -1,5 +1,6 @@
 package org.yaml.model
 
+import scala.language.dynamics
 import scala.collection.{GenSeq, immutable}
 
 /**
@@ -31,10 +32,22 @@ class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
 }
 
 object YMap {
-  def apply(c: IndexedSeq[YPart]): YMap = new YMap(c)
-  def apply(elems: YMapEntry*): YMap    =
-      YMap(elems.toArray)
-  val empty                             = YMap(IndexedSeq.empty)
+    def apply(c: IndexedSeq[YPart]): YMap = new YMap(c)
+
+    def apply(elems: YMapEntry*): YMap =
+        YMap(elems.toArray)
+
+    val empty = YMap(IndexedSeq.empty)
+
+    /** Build using dynamic when all keys are Strings */
+    object obj  extends Dynamic {
+       def applyDynamicNamed(method: String)(args: (String, YNode)*):YMap = method match {
+            case "apply" =>
+                val a = args map { t => YMapEntry(t._1, t._2) }
+                new YMap(a.toArray[YPart])
+        }
+    }
+
 }
 
 class YMapEntry private (val key: YNode, val value: YNode, children_ : IndexedSeq[YPart])
@@ -56,5 +69,4 @@ object YMapEntry {
     new YMapEntry(kv(0), kv(1), parts)
   }
   def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, Array(k, v))
-
 }

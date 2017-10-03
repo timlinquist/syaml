@@ -9,57 +9,16 @@ import language.implicitConversions
   * A Yaml Node, it has a Value plus Properties
   */
 final class YNode private (val value: YValue, val tag: YTag, val ref: Option[YReference], c: IndexedSeq[YPart])
-    extends YAggregate(c) {
+    extends YAggregate(c)
+    with YNodeLike {
 
   assert(value != null)
   val tagType: YType = tag.tagType
 
-  /** Converts to an String, used by the implicit conversion */
-  def asString(implicit iv: IllegalTypeHandler): String = tagType match {
-    case YType.Str => value.asInstanceOf[YScalar].text
-    case _         => iv.handle(this, YType.Str, "")
-  }
-
-  /** Converts to an Integer, used by the implicit conversion */
-  def asInt(implicit iv: IllegalTypeHandler): Int = tagType match {
-    case YType.Int => value.asInstanceOf[YScalar].value.asInstanceOf[Int]
-    case _         => iv.handle(this, YType.Int, 0)
-  }
-
-  /** Converts to a Boolean, used by the implicit conversion */
-  def asBoolean(implicit iv: IllegalTypeHandler): Boolean = tagType match {
-    case YType.Bool => value.asInstanceOf[YScalar].value.asInstanceOf[Boolean]
-    case _          => iv.handle(this, YType.Bool, false)
-  }
-
-  /** Converts to a Double, used by the implicit conversion */
-  def asDouble(implicit iv: IllegalTypeHandler): Double = tagType match {
-    case YType.Float => value.asInstanceOf[YScalar].value.asInstanceOf[Double]
-    case _           => iv.handle(this, YType.Float, 0.0)
-  }
-
-  /** Converts to a Sequence of Nodes used by the implicit conversion */
-  def asSeq(implicit iv: IllegalTypeHandler): IndexedSeq[YNode] = value match {
-    case s: YSequence => s.nodes
-    case _            => iv.handle(this, YType.Seq, YSequence.empty).nodes
-  }
-
-  /** Converts to a Map of Nodes used by the implicit conversion */
-  def asMap(implicit iv: IllegalTypeHandler): Map[YNode, YNode] = value match {
-    case s: YMap => s.map
-    case _       => iv.handle(this, YType.Map, YMap.empty).map
-  }
-
-  /** Converts to a Sequence of Map entries used by the implicit conversion */
-  def asMapEntries(implicit iv: IllegalTypeHandler): IndexedSeq[YMapEntry] = value match {
-    case s: YMap => s.entries
-    case _       => iv.handle(this, YType.Map, YMap.empty).entries
-  }
-
   override def equals(obj: scala.Any): Boolean = obj match {
     case n: YNode =>
-        this.tagType == n.tagType && this.value == n.value
-    case _        => false
+      this.tagType == n.tagType && this.value == n.value
+    case _ => false
   }
 
   override def hashCode(): Int = tagType.hashCode * 31 + value.hashCode
@@ -71,6 +30,9 @@ final class YNode private (val value: YValue, val tag: YTag, val ref: Option[YRe
     case Some(a: YAnchor) => YNode(value, tagType, YAlias(a.name))
     case _                => throw new IllegalStateException("Node does not have an Anchor")
   }
+
+  override def to[T](implicit conversion: YRead[T]): Either[YError, T] = conversion.read(this)
+  override def asObj: YObj                                             = YSuccess(this)
 }
 
 object YNode {
@@ -127,13 +89,10 @@ object YNode {
 
   // Implicit conversions
 
-  implicit def toString(node: YNode): String                    = node.asString
-  implicit def toInt(node: YNode): Int                          = node.asInt
-  implicit def toBoolean(node: YNode): Boolean                  = node.asBoolean
-  implicit def toDouble(node: YNode): Double                    = node.asDouble
-  implicit def toSeq(node: YNode): IndexedSeq[YNode]            = node.asSeq
-  implicit def toMap(node: YNode): Map[YNode, YNode]            = node.asMap
-  implicit def toMapEntries(node: YNode): IndexedSeq[YMapEntry] = node.asMapEntries
+  implicit def toString(node: YNode): String   = node.as[String]
+  implicit def toInt(node: YNode): Int         = node.as[Int]
+  implicit def toBoolean(node: YNode): Boolean = node.as[Boolean]
+  implicit def toDouble(node: YNode): Double   = node.as[Double]
 
   implicit def fromString(str: String): YNode    = YNode(str)
   implicit def fromInt(int: Int): YNode          = YNode(int)
