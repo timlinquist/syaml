@@ -2,11 +2,11 @@ package org.yaml.parser
 
 import java.io.File
 
+import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.{InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken, YeastToken}
 import org.yaml.model._
-import org.mulesoft.common.core.Strings
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -33,8 +33,7 @@ class YamlParser(val lexer: YamlLexer) {
     var prev = TokenData(BeginStream, InputRange.Zero)
     stack = List(current)
     while (lexer.token != EndStream) {
-      process(lexer.tokenData, prev)
-      prev = lexer.tokenData
+      prev = process(lexer.tokenData, prev)
       lexer.advance()
     }
     current.addNonContent(prev)
@@ -69,46 +68,26 @@ class YamlParser(val lexer: YamlLexer) {
     r
   }
 
-  private def process(td: TokenData[YamlToken], prev: TokenData[YamlToken]): Unit = {
+  private def process(td: TokenData[YamlToken], prev: TokenData[YamlToken]): TokenData[YamlToken] = {
     td.token match {
       case BeginDocument =>
         aliases.clear()
         current.addNonContent(prev)
         push(td)
-      case BeginComment | BeginNode | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias | BeginAnchor | BeginTag =>
+      case BeginNode | BeginComment | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias |
+          BeginAnchor | BeginTag =>
         current.addNonContent(prev)
         push(td)
-      case EndDocument =>
-        pop(YDocument(current.buildParts(td)))
-        return
-      case EndComment =>
-        pop(YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
-        return
-      case EndSequence =>
-        pop(YSequence(current.buildParts(td)))
-        return
-      case EndNode =>
-        pop(YNode(current.buildParts(td), aliases))
-        return
-      case EndScalar =>
-        pop(YScalar(buildText(), plainScalar, current.first rangeTo td, current.buildTokens(td)))
-        plainScalar = true
-        return
-      case EndMapping =>
-        pop(YMap(current.buildParts(td)))
-        return
-      case EndPair =>
-        pop(YMapEntry(current.buildParts(td)))
-        return
-      case EndAlias =>
-        pop(YAlias(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
-        return
-      case EndAnchor =>
-        pop(YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
-        return
-      case EndTag =>
-        pop(YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
-        return
+      case EndDocument => pop(YDocument(current.buildParts(td))); return td
+      case EndComment  => return createComment(td)
+      case EndSequence => return createSequence(td)
+      case EndNode     => return createNode(td)
+      case EndScalar   => return createScalar(td)
+      case EndMapping  => return createMap(td)
+      case EndPair     => return createPair(td)
+      case EndAlias    => return createAlias(td)
+      case EndAnchor   => return createAnchor(td)
+      case EndTag      => return createTag(td)
       case Text        => textBuilder.append(lexer.tokenText)
       case MetaText    => metaTextBuilder.append(lexer.tokenText)
       case LineFold    => textBuilder.append(' ')
@@ -127,15 +106,93 @@ class YamlParser(val lexer: YamlLexer) {
       case _ =>
     }
     current += td
+    td
   }
 
-  class Builder {
+  private def createComment(td: TokenData[YamlToken]) = {
+    pop(YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+    td
+  }
+
+  private def createTag(td: TokenData[YamlToken]) = {
+    val t = YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    pop(t)
+    current.tag = t
+    td
+  }
+
+  private def createAnchor(td: TokenData[YamlToken]) = {
+    val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    pop(anchor)
+    current.ref = Some(anchor)
+    td
+  }
+
+  private def createPair(td: TokenData[YamlToken]) = {
+    pop(YMapEntry(current.buildParts(td)))
+    td
+  }
+
+  private def createSequence(td: TokenData[YamlToken]) = {
+    val v = YSequence(current.buildParts(td))
+    pop(v)
+    current.value = v
+    current.tag = tagFor(current.tag, YType.Seq)
+    td
+  }
+
+  private def createNode(td: TokenData[YamlToken]) = {
+    val node = new YNode(current.value, current.tag, current.ref, current.buildParts(td))
+    for (n <- current.ref) aliases += ((n.name, node))
+    pop(node)
+    td
+  }
+
+  private def createMap(td: TokenData[YamlToken]) = {
+    val v = YMap(current.buildParts(td))
+    pop(v)
+    current.value = v
+    current.tag = tagFor(current.tag, YType.Map)
+    td
+  }
+
+  private def createAlias(td: TokenData[YamlToken]) = {
+    val alias = YAlias(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    pop(alias)
+    val target = aliases(alias.name)
+    current.value = target.value
+    current.tag = target.tag
+    current.ref = Some(alias)
+    td
+  }
+
+  private def createScalar(td: TokenData[YamlToken]): TokenData[YamlToken] = {
+    stack = stack.tail
+    val c = stack.head
+
+    val b = new YScalar.Builder(buildText(), c.tag, plainScalar, current.first rangeTo td, current.buildTokens(td))
+    c.value = b.scalar
+    c.tag = b.tag
+    c.parts += b.scalar
+
+    current = c
+
+    plainScalar = true
+    td
+  }
+  private def tagFor(tag: YTag, defaultType: YType) =
+    if (tag == null) defaultType.tag else if (tag.tagType == YType.Empty) tag.changeType(defaultType) else tag
+
+  private class Builder {
     var first: TokenData[YamlToken] = _
     val tokens                      = new ArrayBuffer[YeastToken]
     val parts                       = new ArrayBuffer[YPart]
+    var ref: Option[YReference]     = None
+    var tag: YTag                   = _
+    var value: YValue               = _
 
-    def +=(td: TokenData[YamlToken]): Unit = if (keepTokens) {
-      tokens += YeastToken(td.token, td.start, td.end)
+    def +=(td: TokenData[YamlToken]): Unit = {
+      if (keepTokens) tokens += YeastToken(td.token, td.start, td.end)
       if (first == null) first = td
     }
 
@@ -161,13 +218,14 @@ class YamlParser(val lexer: YamlLexer) {
     }
     def addNonContent(td: TokenData[YamlToken]): Unit = if (tokens.nonEmpty) {
       val range = first rangeTo td
-      val tks = buildTokens()
+      val tks   = buildTokens()
       parts += new YIgnorable(range, tks)
     }
 
   }
 
 }
+
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
   def apply(file: File): YamlParser       = new YamlParser(YamlLexer(file))

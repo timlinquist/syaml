@@ -10,5 +10,5 @@
   ? !!str "negative infinity"
   : !!float "-.inf",
   ? !!str "not a number"
-  : !!str ".NaN"
+  : !!float ".NaN"
 }

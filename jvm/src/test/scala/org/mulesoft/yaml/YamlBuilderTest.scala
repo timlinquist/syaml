@@ -111,10 +111,11 @@ class YamlBuilderTest extends FunSuite with Matchers {
         )
     )
 
-    doc3.asObj.aMap.one.as[Int] shouldBe 1
-    doc3.asObj.anotherList(0).to[String].getOrElse("") shouldBe "One"
-    doc3.asObj.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
-    doc3.asObj.anotherList.asSeq.map(_.as[String]) should contain theSameElementsInOrderAs List("One", "Two")
+    val o = doc3.asObj
+    o.aMap.one.as[Int] shouldBe 1
+    o.anotherList(0).to[String].getOrElse("") shouldBe "One"
+    o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
+    o.anotherList.asSeq.map(_.as[String]) should contain theSameElementsInOrderAs List("One", "Two")
   }
 
   test("References") {

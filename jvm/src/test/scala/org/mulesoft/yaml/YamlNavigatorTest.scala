@@ -73,4 +73,13 @@ class YamlNavigatorTest extends FunSuite with Matchers {
     badNode.as[Double] shouldBe 251.42
   }
 
+    test("Scalar") {
+        val doc = YDocument(
+            """
+              | - 100
+              | - 123456789012345678
+            """.stripMargin)
+        val s = doc.asSeq.map(_.as[Long])
+        s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
+    }
 }

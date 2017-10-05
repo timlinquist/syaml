@@ -1,5 +1,7 @@
 package org.yaml.model
 
+import org.yaml.parser.YamlParser
+
 import scala.collection.mutable.ArrayBuffer
 
 /**
@@ -52,6 +54,9 @@ object YDocument {
 
     /** Constructor from a Head Comment and a map */
     def apply(headComment: String, map: YMap): YDocument = YDocument(headComment, YNode(map))
+
+    /** Constructor from Yaml text, keep the first document */
+    def apply(text: String): YDocument = YamlParser(text).documents()(0)
 
     abstract class BaseBuilder {
         private[YDocument] val builder = new ArrayBuffer[YPart]

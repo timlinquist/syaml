@@ -3,6 +3,7 @@ package org.mulesoft.yaml.dumper
 import java.io.{PrintWriter, Writer}
 
 import org.yaml.model._
+import org.mulesoft.common.core._
 
 /**
   * A Dumper to Yam 1.2 expanded Format
@@ -46,7 +47,8 @@ class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
     }
 
     node.value match {
-      case scalar: YScalar => pw print scalar
+      case scalar: YScalar =>
+          pw print '"' + scalar.text.encode + '"'
       case seq: YSequence  => printEntries[YNode]("[", seq.nodes, "]", dump(_))
       case map: YMap =>
         printEntries[YMapEntry]("{", map.entries, "}", e => {

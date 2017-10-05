@@ -54,7 +54,14 @@ object YRead {
   /**
     * Deserializer for Int types.
     */
-  implicit object IntYRead extends ScalarYRead(YType.Int, 0)
+  implicit object IntYRead extends ScalarYRead(YType.Int, 0) {
+      override def read(node: YNode): Either[YError, Int] = LongYRead.read(node).map(_.asInstanceOf[Int])
+  }
+
+  /**
+    * Deserializer for Long types.
+    */
+  implicit object LongYRead extends ScalarYRead(YType.Int, 0L)
 
   /**
     * Deserializer for Double types.

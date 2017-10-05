@@ -27,7 +27,7 @@
     ? !!str "start"
     : *ORIGIN,
     ? !!str "color"
-    : !!str "0xFFEEBB",
+    : !!int "0xFFEEBB",
     ? !!str "text"
     : !!str "Pretty vector drawing."
   }

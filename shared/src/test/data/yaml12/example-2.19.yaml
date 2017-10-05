@@ -4,9 +4,9 @@
   ? !!str "canonical"
   : !!int "12345",
   ? !!str "decimal"
-  : !!str "+12345",
+  : !!int "+12345",
   ? !!str "octal"
-  : !!str "0o14",
+  : !!int "0o14",
   ? !!str "hexadecimal"
-  : !!str "0xC"
+  : !!int "0xC"
 }
