@@ -98,7 +98,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * In addition, the “[”, “]”, “{”, “}” and “,” characters are excluded
     * because they would cause ambiguity with flow collection structures.<p>
     *
-    * [40] ns-tag-char ::= [\[uriChar ns-uri-char]\] - “!” - [\[isFlowIndicator c-flow-indicator]\]
+    * [40] ns-tag-char ::= [[uriChar ns-uri-char]] - “!” - [[isFlowIndicator c-flow-indicator]]
     */
   @failfast private def tagChar() = currentChar != '|' && !isFlowIndicator(currentChar) && uriChar()
 
@@ -169,7 +169,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * If a line break is followed by an empty line, it is trimmed.
     * The first line break is discarded and the rest are retained as content.<p>
-    * [71]	b-l-trimmed(n,c)	::=	[\[breakNonContent b-non-content]\] [\[emptyLine l-empty(n,c)]\]+
+    * [71]	b-l-trimmed(n,c)	::=	[[breakNonContent b-non-content]] [[emptyLine l-empty(n,c)]]+
     */
   private def trimmed(n: Int, ctx: YamlContext): Boolean = matches(breakNonContent() && oneOrMore(emptyLine(n, ctx)))
 
@@ -181,7 +181,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * A folded non-empty line may end with either of the above line breaks.<p>
-    * [73]	b-l-folded(n,c)	::=	[\[trimmed b-l-trimmed(n,c)]\] | [\[breakAsSpace b-as-space]\]
+    * [73]	b-l-folded(n,c)	::=	[[trimmed b-l-trimmed(n,c)]] | [[breakAsSpace b-as-space]]
     */
   private def folded(n: Int, ctx: YamlContext): Boolean =
     isBBreak(currentChar) && (matches(trimmed(n, ctx)) || breakAsSpace())
@@ -191,9 +191,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * empty lines are interpreted as line feeds,
     * and text can be freely more-indented without affecting the content information<p>
     *
-    * [74]	s-flow-folded(n)	::=	[\[separateInLine s-separate-in-line]\]?
-    * [\[folded b-l-folded(n,flow-in)]\]
-    * [\[linePrefix s-flow-line-prefix(n)]\]
+    * [74]	s-flow-folded(n)	::=	[[separateInLine s-separate-in-line]]?
+    * [[folded b-l-folded(n,flow-in)]]
+    * [[linePrefix s-flow-line-prefix(n)]]
     */
   private def flowFolded(n: Int): Boolean =
     matches({
@@ -218,7 +218,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   }
 
   /**
-    * [76]	b-comment	::=	[\[breakNonContent b-non-content]\] | EofChar
+    * [76]	b-comment	::=	[[breakNonContent b-non-content]] | EofChar
     */
   def breakComment(): Boolean = currentChar == EofChar || breakNonContent()
 
@@ -235,7 +235,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * [78]	l-comment	::=	s-separate-in-line c-nb-comment-text? b-comment
     *
     * Actually refactored to:
-    * [\[separateInLine s-separate-in-line]\] ([\[breakComment b-non-content]\] | [\[commentText]\])
+    * [[separateInLine s-separate-in-line]] ([[breakComment b-non-content]] | [[commentText]])
     * </blockquote></pre>
     *
     */
@@ -266,9 +266,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * Directives are instructions to the YAML processor.
     * [82]	l-directive	::=	“%”
-    * ( [\[yamlDirective ns-yaml-directive]\]
-    * | [\[tagDirective ns-tag-directive]\]
-    * | [\[reservedDirective ns-reserved-directive]\] )
+    * ( [[yamlDirective ns-yaml-directive]]
+    * | [[tagDirective ns-tag-directive]]
+    * | [[reservedDirective ns-reserved-directive]] )
     * s-l-comments
     */
   private def directive() =
@@ -323,10 +323,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * Each “TAG” directive associates a handle with a prefix.
     * This allows for compact and readable tag notation.<p>
     * [88]	ns-tag-directive	::=	“T” “A” “G”
-    * [\[separateInLine s-separate-in-line]\]
-    * [\[tagHandle c-tag-handle]\]
-    * [\[separateInLine s-separate-in-line]\]
-    * [\[tagPrefix ns-tag-prefix]\]
+    * [[separateInLine s-separate-in-line]]
+    * [[tagHandle c-tag-handle]]
+    * [[separateInLine s-separate-in-line]]
+    * [[tagPrefix ns-tag-prefix]]
     */
   private def tagDirective() =
     if (!consume("TAG")) false
@@ -384,10 +384,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * <blockquote><pre>
     *
     * [96]	c-ns-properties(n,c)	::=
-    * ( [\[tagProperty c-ns-tag-property]\]
-    * ( [\[separate s-separate(n,c)]\] [\[anchorProperty c-ns-anchor-property]\] )? )
-    * |  ( [\[anchorProperty c-ns-anchor-property]\]
-    * ( [\[separate s-separate(n,c)]\] [\[tagProperty c-ns-tag-property]\] )? )
+    * ( [[tagProperty c-ns-tag-property]]
+    * ( [[separate s-separate(n,c)]] [[anchorProperty c-ns-anchor-property]] )? )
+    * |  ( [[anchorProperty c-ns-anchor-property]]
+    * ( [[separate s-separate(n,c)]] [[tagProperty c-ns-tag-property]] )? )
     * </blockquote></pre>
     */
   private def nodeProperties(n: Int, c: YamlContext) = matches {
@@ -407,8 +407,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * <blockquote><pre>
     *
     * [97]	c-ns-tag-property	::=	  c-verbatim-tag | c-ns-shorthand-tag | c-non-specific-tag
-    * [98]	c-verbatim-tag	    ::=	“!” “<” [\[uriChar ns-uri-char]\]+ “>”
-    * [99]	c-ns-shorthand-tag	::=	[\[tagHandle c-tag-handle]\] [\[tagChar ns-tag-char]\]+
+    * [98]	c-verbatim-tag	    ::=	“!” “<” [[uriChar ns-uri-char]]+ “>”
+    * [99]	c-ns-shorthand-tag	::=	[[tagHandle c-tag-handle]] [[tagChar ns-tag-char]]+
     * [100]	c-ns-shorthand-tag	::=	“!”
     *
     * </blockquote></pre>
@@ -442,7 +442,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * An alias node can then be used to indicate additional inclusions of the anchored node.
     * An anchored node need not be referenced by any alias nodes; in particular, it is valid for all nodes to be anchored.<p>
     *
-    * [101]	c-ns-anchor-property	::=	“&” [\[anchorName ns-anchor-name]\]
+    * [101]	c-ns-anchor-property	::=	“&” [[anchorName ns-anchor-name]]
     *
     * </blockquote></pre>
     *
@@ -451,12 +451,12 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     currentChar == '&' && isNsAnchorChar(lookAhead(1)) &&
       emit(BeginAnchor) && emitIndicator() && anchorName() && emit(EndAnchor)
 
-  /** [102]	ns-anchor-char	::=	[\[isNsChar ns-char]\] - [\[isFlowIndicator c-flow-indicator]\] */
+  /** [102]	ns-anchor-char	::=	[[isNsChar ns-char]] - [[isFlowIndicator c-flow-indicator]] */
   private def isNsAnchorChar(c: Int) = isNsChar(c) && !isFlowIndicator(c)
 
   /**
     * An anchor name<p>
-    * [103]	ns-anchor-name	::=	[\[isNsAnchorChar ns-anchor-char]\]+
+    * [103]	ns-anchor-name	::=	[[isNsAnchorChar ns-anchor-char]]+
     */
   private def anchorName() = {
     consumeWhile(isNsAnchorChar)
@@ -467,7 +467,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * An alias node is denoted by the “*” indicator.
     * The alias refers to the most recent preceding node having the same anchor.<p>
     *
-    * [104]	c-ns-alias-node	::=	“*” [\[anchorName ns-anchor-name]\]
+    * [104]	c-ns-alias-node	::=	“*” [[anchorName ns-anchor-name]]
     *
     */
   @failfast private def aliasNode() =
@@ -698,7 +698,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * Flow sequence content is denoted by surrounding “[” and “]” characters.<p>
     *
     * [137]	c-flow-sequence(n,c)	::=	“[”
-    * [\[separate s-separate(n,c)]\]?
+    * [[separate s-separate(n,c)]]?
     * [\[flowSequenceEntries ns-s-flow-seq-entries(n,in-flow(c))]\]?
     * “]”
     */
@@ -712,11 +712,11 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * Sequence entries are separated by a “,” character.<p>
     *
-    * [138]	ns-s-flow-seq-entries(n,c)	::=	[\[flowSequenceEntry ns-flow-seq-entry(n,c)]\]
-    * [\[separate s-separate(n,c)]\]?
+    * [138]	ns-s-flow-seq-entries(n,c)	::=	[[flowSequenceEntry ns-flow-seq-entry(n,c)]]
+    * [[separate s-separate(n,c)]]?
     * ( “,”
-    * [\[separate s-separate(n,c)]\]?
-    * [\[flowSequenceEntries ns-s-flow-seq-entries(n,c)]\]?
+    * [[separate s-separate(n,c)]]?
+    * [[flowSequenceEntries ns-s-flow-seq-entries(n,c)]]?
     * )?
     */
   @tailrec private def flowSequenceEntries(n: Int, ctx: YamlContext): Boolean = currentChar != ']' && {
@@ -759,8 +759,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * Flow mappings are denoted by surrounding “{” and “}” characters.<p>
     *
     * [140]	c-flow-mapping(n,c)	::=	“{”
-    * [\[separate s-separate(n,c)]\]?
-    * [\[flowMapEntries ns-s-flow-map-entries(n,in-flow(c))]\]?
+    * [[separate s-separate(n,c)]]?
+    * [[flowMapEntries ns-s-flow-map-entries(n,in-flow(c))]]?
     * “}”
     */
   private def flowMapping(n: Int, c: YamlContext) = currentChar == '{' && matches {
@@ -791,10 +791,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * If the optional “?” mapping key indicator is specified, the rest of the entry may be completely empty.<p>
     *
     * <blockquote><pre>
-    * [142]	ns-flow-map-entry(n,c)	::=	  ( “?” [\[separate s-separate(n,c)]\]
-    * [\[flowMapExplicitEntry ns-flow-map-explicit-entry(n,c)]\]
+    * [142]	ns-flow-map-entry(n,c)	::=	  ( “?” [[separate s-separate(n,c)]]
+    * [[flowMapExplicitEntry ns-flow-map-explicit-entry(n,c)]]
     * )
-    * | [\[flowMapImplicitEntry ns-flow-map-implicit-entry(n,c)]\]
+    * | [[flowMapImplicitEntry ns-flow-map-implicit-entry(n,c)]]
     *
     * </blockquote></pre>
     */
@@ -805,8 +805,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     } && emit(EndPair)
 
   /**
-    * [143]	ns-flow-map-explicit-entry(n,c)	::=	  [\[flowMapImplicitEntry ns-flow-map-implicit-entry(n,c)]\]
-    * |   ( [\[emptyNode e-node]\] [\[emptyNode e-node]\])
+    * [143]	ns-flow-map-explicit-entry(n,c)	::=	  [[flowMapImplicitEntry ns-flow-map-implicit-entry(n,c)]]
+    * |   ( [[emptyNode e-node]] [[emptyNode e-node]])
     */
   private def flowMapExplicitEntry(n: Int, c: YamlContext) = {
     (currentChar == ',' || currentChar == '}') && emptyNode() && emptyNode() || flowMapImplicitEntry(n, c)
@@ -815,13 +815,13 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * <blockquote><pre>
     * [144]	ns-flow-map-implicit-entry(n,c)	   ::=	ns-flow-map-yaml-key-entry(n,c)
-    * |  [\[flowMapEmptyKeyEntry c-ns-flow-map-empty-key-entry(n,c)]\]
-    * |  [\[flowMapJsonKeyEntry c-ns-flow-map-json-key-entry(n,c)]\]
+    * |  [[flowMapEmptyKeyEntry c-ns-flow-map-empty-key-entry(n,c)]]
+    * |  [[flowMapJsonKeyEntry c-ns-flow-map-json-key-entry(n,c)]]
     *
-    * [145]	ns-flow-map-yaml-key-entry(n,c)	   ::=	[\[flowYamlNode ns-flow-yaml-node(n,c)]\]
-    * ( ([\[separate s-separate(n,c)]\]?
-    * [\[flowMapSeparateValue c-ns-flow-map-separate-value(n,c)]\])
-    * |  [\[emptyNode e-node]\]
+    * [145]	ns-flow-map-yaml-key-entry(n,c)	   ::=	[[flowYamlNode ns-flow-yaml-node(n,c)]]
+    * ( ([[separate s-separate(n,c)]]?
+    * [[flowMapSeparateValue c-ns-flow-map-separate-value(n,c)]])
+    * |  [[emptyNode e-node]]
     * )
     *
     * </blockquote></pre>
@@ -838,17 +838,17 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     } || flowMapEmptyKeyEntry(n, c) || flowMapJsonKeyEntry(n, c)
 
   /**
-    * [146]	c-ns-flow-map-empty-key-entry(n,c)	::=	[\[emptyNode e-node]\]
-    * [\[flowMapSeparateValue c-ns-flow-map-separate-value(n,c)]\]
+    * [146]	c-ns-flow-map-empty-key-entry(n,c)	::=	[[emptyNode e-node]]
+    * [[flowMapSeparateValue c-ns-flow-map-separate-value(n,c)]]
     */
   private def flowMapEmptyKeyEntry(n: Int, c: YamlContext) = matches {
     emptyNode() && flowMapSeparateValue(n, c)
   }
 
   /**
-    * [147]	c-ns-flow-map-separate-value(n,c)	::=	“:” (Not followed by an [\[isPlainSafe ns-plain-safe(c)]\] )
-    * ( ( [\[separate s-separate(n,c)]\] [\[flowNode ns-flow-node(n,c)]\])
-    * | [\[emptyNode() e-node]\]
+    * [147]	c-ns-flow-map-separate-value(n,c)	::=	“:” (Not followed by an [[isPlainSafe ns-plain-safe(c)]] )
+    * ( ( [[separate s-separate(n,c)]] [[flowNode ns-flow-node(n,c)]])
+    * | [[emptyNode() e-node]]
     * )
     */
   private def flowMapSeparateValue(n: Int, c: YamlContext) =
@@ -861,11 +861,11 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
       emptyNode())
 
   /**
-    * [148]	c-ns-flow-map-json-key-entry(n,c)	::=	[\[flowJsonNode c-flow-json-node(n,c)]\]
-    * ( ( [\[separate s-separate(n,c)]\]?
-    * [\[flowMapAdjacentValue c-ns-flow-map-adjacent-value(n,c)]\]
+    * [148]	c-ns-flow-map-json-key-entry(n,c)	::=	[[flowJsonNode c-flow-json-node(n,c)]]
+    * ( ( [[separate s-separate(n,c)]]?
+    * [[flowMapAdjacentValue c-ns-flow-map-adjacent-value(n,c)]]
     * )
-    * | [\[emptyNode e-node]\]
+    * | [[emptyNode e-node]]
     * )
     */
   private def flowMapJsonKeyEntry(n: Int, c: YamlContext) = matches {
@@ -876,9 +876,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   }
 
   /**
-    * [149]	c-ns-flow-map-adjacent-value(n,c)	::=	“:” ( ( [\[separate s-separate(n,c)]\]?
-    * [\[flowNode ns-flow-node(n,c)]\] )
-    * | [\[emptyNode e-node]\]
+    * [149]	c-ns-flow-map-adjacent-value(n,c)	::=	“:” ( ( [[separate s-separate(n,c)]]?
+    * [[flowNode ns-flow-node(n,c)]] )
+    * | [[emptyNode e-node]]
     * )
     */
   private def flowMapAdjacentValue(n: Int, c: YamlContext) = indicator(':') && (
@@ -893,10 +893,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * If the “?” indicator is explicitly specified, parsing is unambiguous,
     * and the syntax is identical to the general case. <p>
     *
-    * [150]	ns-flow-pair(n,c)	::=	  ( “?” [\[separate s-separate(n,c)]\]
-    * [\[flowMapExplicitEntry ns-flow-map-explicit-entry(n,c)]\]
+    * [150]	ns-flow-pair(n,c)	::=	  ( “?” [[separate s-separate(n,c)]]
+    * [[flowMapExplicitEntry ns-flow-map-explicit-entry(n,c)]]
     * )
-    * | [\[flowPairEntry ns-flow-pair-entry(n,c)]\]
+    * | [[flowPairEntry ns-flow-pair-entry(n,c)]]
     */
   private def flowPair(n: Int, c: YamlContext): Boolean =
     indicator('?') && separate(n, c) && flowMapExplicitEntry(n, c) || flowPairEntry(n, c)
@@ -904,14 +904,14 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * <blockquote><pre>
     * [151]	ns-flow-pair-entry(n,c)	::=	  ns-flow-pair-yaml-key-entry(n,c)
-    * | [\[flowMapEmptyKeyEntry c-ns-flow-map-empty-key-entry(n,c)]\]
+    * | [[flowMapEmptyKeyEntry c-ns-flow-map-empty-key-entry(n,c)]]
     * | c-ns-flow-pair-json-key-entry(n,c)
     *
-    * [152]	ns-flow-pair-yaml-key-entry(n,c)	::=	[\[implicitYamlKey ns-s-implicit-yaml-key(flow-key)]\]
-    * [\[flowMapSeparateValue c-ns-flow-map-separate-value(n,c)]\]
+    * [152]	ns-flow-pair-yaml-key-entry(n,c)	::=	[[implicitYamlKey ns-s-implicit-yaml-key(flow-key)]]
+    * [[flowMapSeparateValue c-ns-flow-map-separate-value(n,c)]]
     *
-    * [153]	c-ns-flow-pair-json-key-entry(n,c)	::=	[\[implicitJsonKey c-s-implicit-json-key(flow-key)]\]
-    * [\[flowMapAdjacentValue c-ns-flow-map-adjacent-value(n,c)]\]
+    * [153]	c-ns-flow-pair-json-key-entry(n,c)	::=	[[implicitJsonKey c-s-implicit-json-key(flow-key)]]
+    * [[flowMapAdjacentValue c-ns-flow-map-adjacent-value(n,c)]]
     *
     * </blockquote></pre>
     */
@@ -940,10 +940,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * JSON-like flow styles all have explicit start and end indicators.<p>
     * <blockquote><pre>
     * [157] c-flow-json-content(n,c)	::=
-    * [\[flowSequence c-flow-sequence(n,c)]\]
-    * | [\[flowMapping c-flow-mapping(n,c)]\]
-    * | [\[quotedScalar c-single-quoted(n,c)]\]
-    * | [\[quotedScalar c-double-quoted(n,c)]\]
+    * [[flowSequence c-flow-sequence(n,c)]]
+    * | [[flowMapping c-flow-mapping(n,c)]]
+    * | [[quotedScalar c-single-quoted(n,c)]]
+    * | [[quotedScalar c-double-quoted(n,c)]]
     * </blockquote></pre>
     */
   @failfast def flowJsonContent(n: Int, ctx: YamlContext): Boolean = currentChar match {
@@ -963,8 +963,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * [159]	ns-flow-yaml-node(n,c)	::=	  [\[aliasNode c-ns-alias-node]\]
     * |   [\[flowYamlContent ns-flow-yaml-content(n,c)]\]
     * | ( [\[nodeProperties c-ns-properties(n,c)]\]
-    * ( ( [\[separate s-separate(n,c)]\] [\[flowYamlContent ns-flow-yaml-contt(n,c)]\] )
-    * | [\[emptyScalar e-scalar]\] )
+    * ( ( [[separate s-separate(n,c)]] [\[flowYamlContent ns-flow-yaml-contt(n,c)]\] )
+    * | [[emptyScalar e-scalar]] )
     * )
     */
   def flowYamlNode(n: Int, c: YamlContext): Boolean =
@@ -985,11 +985,11 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * A complete flow node also has optional node properties,
     * except for alias nodes which refer to the anchored node properties.<p>
     *
-    * [161] ns-flow-node(n,c)	::=	  [\[aliasNode c-ns-alias-node]\]
-    * |    [\[flowContent ns-flow-content(n,c)]\]
-    * |  ( [\[nodeProperties c-ns-properties(n,c)]\]
-    * ( ( [\[separate s-separate(n,c)]\] [\[flowContent ns-flow-content(n,c) )]\])
-    * | [\[emptyScalar e-scalar]\]
+    * [161] ns-flow-node(n,c)	::=	  [[aliasNode c-ns-alias-node]]
+    * |    [[flowContent ns-flow-content(n,c)]]
+    * |  ( [[nodeProperties c-ns-properties(n,c)]]
+    * ( ( [[separate s-separate(n,c)]] [[flowContent ns-flow-content(n,c) )]])
+    * | [[emptyScalar e-scalar]]
     * )
     */
   private def flowNode(n: Int, c: YamlContext): Boolean = {
@@ -1077,11 +1077,11 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * t = clip     ⇒ l-strip-empty(n)
     * t = keep (+) ⇒ l-keep-empty(n)
     *
-    * [167]	l-strip-empty(n)	::=	([\[indentLessOrEqual s-indent(≤n)]\] [\[breakNonContent b-non-content]\])*
-    * [\[trailComments l-trail-comments(n)]\]?
+    * [167]	l-strip-empty(n)	::=	([[indentLessOrEqual s-indent(≤n)]] [[breakNonContent b-non-content]])*
+    * [[trailComments l-trail-comments(n)]]?
     *
-    * [168]	l-keep-empty(n)	    ::=	[\[emptyLine l-empty(n,block-in)]\]*
-    * [\[trailComments l-trail-comments(n)]\]?
+    * [168]	l-keep-empty(n)	    ::=	[[emptyLine l-empty(n,block-in)]]*
+    * [[trailComments l-trail-comments(n)]]?
     * </blockquote></pre>
     */
   def chompedEmpty(n: Int, t: Char): Boolean = {
@@ -1103,14 +1103,14 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * Additional comment lines, if any, are not so restricted.
     * This is the only case where the indentation of comment lines is constrained.<p>
     *
-    * [169]	l-trail-comments(n)	::=	[\[indentLess s-indent(&lt;n)]\]
-    * [\[commentText c-nb-comment-text b-comment]\]
-    * [\[lineComment l-comment]\]*
+    * [169]	l-trail-comments(n)	::=	[[indentLess s-indent(&lt;n)]]
+    * [[commentText c-nb-comment-text b-comment]]
+    * [[lineComment l-comment]]*
     */
   def trailComments(n: Int): Boolean = matches(indentLess(n) && commentText() && zeroOrMore(lineComment()))
 
   /**
-    * [170]	c-l+literal(n)	::=	 “|” [\[blockHeader c-b-block-header(m,t)]\] [\[literalContent l-literal-content(n+m,t)]\]
+    * [170]	c-l+literal(n)	::=	 “|” [[blockHeader c-b-block-header(m,t)]] [[literalContent l-literal-content(n+m,t)]]
     *
     */
   def literalScalar(n: Int): Boolean =
@@ -1136,13 +1136,13 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * <blockquote><pre>
     * [173]	l-literal-content(n,t)	::=
-    * ( [\[literalContentLine l-nb-literal-text(n)]\]
+    * ( [[literalContentLine l-nb-literal-text(n)]]
     * b-nb-literal-next(n) *
-    * [\[chompedLast b-chomped-last(t)]\]
+    * [[chompedLast b-chomped-last(t)]]
     * )?
-    * [\[chompedEmpty l-chomped-empty(n,t)]\]
+    * [[chompedEmpty l-chomped-empty(n,t)]]
     *
-    * [172]	b-nb-literal-next(n) ::= [\[breakAsLineFeed b-as-line-feed]\] [\[literalContentLine l-nb-literal-text(n)]\]
+    * [172]	b-nb-literal-next(n) ::= [[breakAsLineFeed b-as-line-feed]] [[literalContentLine l-nb-literal-text(n)]]
     *
     * </blockquote></pre>
     */
@@ -1157,7 +1157,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * The folded style is denoted by the “>” indicator.
     * It is similar to the literal style; however, folded scalars are subject to line folding.<p>
-    * [174]	c-l+folded(n)	::=	“>” [\[blockHeader c-b-block-header(m,t)]\]
+    * [174]	c-l+folded(n)	::=	“>” [[blockHeader c-b-block-header(m,t)]]
     * [\[foldedContent l-folded-content(n+m,t)]\]
     */
   def foldedScalar(n: Int): Boolean = currentChar == '>' && emit(BeginScalar) && emitIndicator() && {
@@ -1167,7 +1167,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * Folding allows long lines to be broken anywhere a single space character separates two non-space characters.<p>
-    * [175]	s-nb-folded-text(n)	  ::=	[\[indent s-indent(n)]\] [\[isNsChar ns-char]\] [\[isNBChar nb-char]\]*
+    * [175]	s-nb-folded-text(n)	  ::=	[[indent s-indent(n)]] [[isNsChar ns-char]] [[isNBChar nb-char]]*
     */
   private def foldedText(n: Int) =
     if (countSpaces() != n || !isNsChar(lookAhead(n + 1))) false
@@ -1178,8 +1178,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     }
 
   /**
-    * [176]	l-nb-folded-lines(n)  ::=	[\[foldedText s-nb-folded-text(n)]\]
-    * ([\[folded b-l-folded(n,block-in)]\] [\[foldedText s-nb-folded-text(n)]\] )*
+    * [176]	l-nb-folded-lines(n)  ::=	[[foldedText s-nb-folded-text(n)]]
+    * ([[folded b-l-folded(n,block-in)]] [[foldedText s-nb-folded-text(n)]] )*
     */
   private def foldedLines(n: Int) = {
     val b1 = foldedText(n)
@@ -1188,7 +1188,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * Lines starting with white space characters (more-indented lines) are not folded.<p>
-    * [177]	s-nb-spaced-text(n)	::=	[\[indent s-indent(n)]\] [\[isWhite s-white]\] [\[isNBChar nb-char]\]*
+    * [177]	s-nb-spaced-text(n)	::=	[[indent s-indent(n)]] [[isWhite s-white]] [[isNBChar nb-char]]*
     */
   private def spacedText(n: Int): Boolean = {
     val m = countSpaces()
@@ -1202,9 +1202,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * <blockquote><pre>
-    * [178]	b-l-spaced(n)	::=	[\[breakAsLineFeed b-as-line-feed]\] [\[emptyLine l-empty(n,block-in)]\]*
-    * [179]	l-nb-spaced-lines(n)	::=	[\[spacedText s-nb-spaced-text(n)]\]
-    * ( b-l-spaced(n) [\[spacedText s-nb-spaced-text(n)]\] )*
+    * [178]	b-l-spaced(n)	::=	[[breakAsLineFeed b-as-line-feed]] [[emptyLine l-empty(n,block-in)]]*
+    * [179]	l-nb-spaced-lines(n)	::=	[[spacedText s-nb-spaced-text(n)]]
+    * ( b-l-spaced(n) [[spacedText s-nb-spaced-text(n)]] )*
     * </blockquote></pre>
     */
   private def spacedLines(n: Int) = {
@@ -1214,9 +1214,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * Line breaks and empty lines separating folded and more-indented lines are also not folded.<p>
-    * [180]	l-nb-same-lines(n)	::=	[\[emptyLine l-empty(n,block-in)]\]*
-    * ( [\[foldedLines l-nb-folded-lines(n)]\]
-    * | [\[spacedLines l-nb-spaced-lines(n)]\]
+    * [180]	l-nb-same-lines(n)	::=	[[emptyLine l-empty(n,block-in)]]*
+    * ( [[foldedLines l-nb-folded-lines(n)]]
+    * | [[spacedLines l-nb-spaced-lines(n)]]
     * )
     */
   private def sameLines(n: Int) = nonEndOfDocument && {
@@ -1227,8 +1227,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   /**
     * The final line break, and trailing empty lines if any, are subject to chomping and are never folded.<p>
     * <blockquote><pre>
-    * [181]	l-nb-diff-lines(n)	    ::=	[\[sameLines l-nb-same-lines(n)]\]
-    * ( [\[breakAsLineFeed b-as-line-feed]\] [\[sameLines l-nb-same-lines(n)]\])*
+    * [181]	l-nb-diff-lines(n)	    ::=	[[sameLines l-nb-same-lines(n)]]
+    * ( [[breakAsLineFeed b-as-line-feed]] [[sameLines l-nb-same-lines(n)]])*
     *
     * [182]	l-folded-content(n,t)	::=	( l-nb-diff-lines(n) b-chomped-last(t) )? l-chomped-empty(n,t)
     *
@@ -1249,7 +1249,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * in a plain scalar if followed by a non-space character (e.g. “-1”).<p>
     *
     * <blockquote><pre>
-    * [183]	l+block-sequence(n)	::=	( [\[indent s-indent(n+m)]\] [\[blockSeqEntry c-l-block-seq-entry(n+m)]\] )+
+    * [183]	l+block-sequence(n)	::=	( [[indent s-indent(n+m)]] [[blockSeqEntry c-l-block-seq-entry(n+m)]] )+
     * (For some fixed auto-detected m > 0)
     * </blockquote></pre>
     */
@@ -1271,7 +1271,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * [184]	c-l-block-seq-entry(n)	::=	“-” (Not followed by an ns-char)
-    * [\[blockIndented s-l+block-indented(n,block-in)]\]
+    * [[blockIndented s-l+block-indented(n,block-in)]]
     * </blockquote></pre>
     */
   private def blockSeqEntry(n: Int) = indicator('-') && blockIndented(n, BlockIn)
@@ -1282,13 +1282,13 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     *
     * <blockquote><pre>
     * [185]	s-l+block-indented(n,c)	 ::=
-    * ([\[indent s-indent(m)]\]
-    * ( [\[compactSequence ns-l-compact-sequence(n+1+m)]\]
-    * | [\[compactMapping  ns-l-compact-mapping(n+1+m)]\]
+    * ([[indent s-indent(m)]]
+    * ( [[compactSequence ns-l-compact-sequence(n+1+m)]]
+    * | [[compactMapping  ns-l-compact-mapping(n+1+m)]]
     * )
     * )
-    * | [\[blockNode s-l+block-node(n,c) ]\]
-    * | ( [\[emptyNode e-node]\] [\[multilineComment s-l-comments]\] )
+    * | [[blockNode s-l+block-node(n,c) ]]
+    * | ( [[emptyNode e-node]] [[multilineComment s-l-comments]] )
     *
     * </blockquote></pre>
     */
@@ -1310,8 +1310,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   }
 
   /**
-    * [186]	ns-l-compact-sequence(n) ::=	[\[blockSeqEntry c-l-block-seq-entry(n)]\]
-    * ( [\[indent s-indent(n)]\] [\[blockSeqEntry c-l-block-seq-entry(n)]\] )*
+    * [186]	ns-l-compact-sequence(n) ::=	[[blockSeqEntry c-l-block-seq-entry(n)]]
+    * ( [[indent s-indent(n)]] [[blockSeqEntry c-l-block-seq-entry(n)]] )*
     */
   private def compactSequence(n: Int): Boolean =
     emit(BeginSequence) && blockSeqEntry(n) && zeroOrMore(indent(n) && blockSeqEntry(n)) && emit(EndSequence)
@@ -1323,8 +1323,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * A Block mapping is a series of entries, each presenting a key: value pair.<p>
-    * [187]	l+block-mapping(n)	    ::= ( [\[indent s-indent(n+m)]\]
-    * [\[blockMapEntry ns-l-block-map-entry(n+m)]\]
+    * [187]	l+block-mapping(n)	    ::= ( [[indent s-indent(n+m)]]
+    * [[blockMapEntry ns-l-block-map-entry(n+m)]]
     * )+
     * <p> For some fixed auto-detected m greater than 0
     */
@@ -1337,8 +1337,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * [188]	ns-l-block-map-entry(n)	::=
-    * [\[mapExplicitEntry c-l-block-map-explicit-entry(n)]\]
-    * | [\[mapImplicitEntry ns-l-block-map-implicit-entry(n)]\]
+    * [[mapExplicitEntry c-l-block-map-explicit-entry(n)]]
+    * | [[mapImplicitEntry ns-l-block-map-implicit-entry(n)]]
     */
   @failfast def blockMapEntry(n: Int): Boolean = {
     val explicit = currentChar == '?'
@@ -1356,9 +1356,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * Explicit map entries are denoted by the “?” mapping key indicator<p>
     * <blockquote><pre>
     * [189]	c-l-block-map-explicit-entry(n)	::=	c-l-block-map-explicit-key(n)
-    * ( l-block-map-explicit-value(n) | [\[emptyNode e-node]\] )
+    * ( l-block-map-explicit-value(n) | [[emptyNode e-node]] )
     *
-    * [190]	c-l-block-map-explicit-key(n)	::=	“?” [\[blockIndented s-l+block-indented(n,block-out)]\]
+    * [190]	c-l-block-map-explicit-key(n)	::=	“?” [[blockIndented s-l+block-indented(n,block-out)]]
     *
     * </blockquote></pre>
     */
@@ -1370,7 +1370,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   }
 
   /**
-    * [191]	l-block-map-explicit-value(n)	::=	[\[indent s-indent(n)]\] “:”
+    * [191]	l-block-map-explicit-value(n)	::=	[[indent s-indent(n)]] “:”
     * [\[blockIndented s-l+block-indented(n,block-out)]\]
     */
   def mapExplicitValue(n: Int): Boolean = matches {
@@ -1383,11 +1383,11 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * <blockquote><pre>
     *
     * [192]	ns-l-block-map-implicit-entry(n) ::=
-    * ( ns-s-block-map-implicit-key | [\[emptyNode e-node]\] )
-    * [\[mapImplicitValue c-l-block-map-implicit-value(n)]\]
+    * ( ns-s-block-map-implicit-key | [[emptyNode e-node]] )
+    * [[mapImplicitValue c-l-block-map-implicit-value(n)]]
     *
-    * [193]	ns-s-block-map-implicit-key	::=	  [\[implicitJsonKey c-s-implicit-json-key(block-key)]\]
-    * |   [\[implicitYamlKey ns-s-implicit-yaml-key(block-key)]\]
+    * [193]	ns-s-block-map-implicit-key	::=	  [[implicitJsonKey c-s-implicit-json-key(block-key)]]
+    * |   [[implicitYamlKey ns-s-implicit-yaml-key(block-key)]]
     *
     *
     * </blockquote></pre>
@@ -1399,8 +1399,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * [194] c-l-block-map-implicit-value(n)	::=	“:”
-    * ( [\[blockNode s-l+block-node(n,block-out)]\]
-    * | ( [\[emptyNode e-node]\] [\[multilineComment s-l-comments]\] )
+    * ( [[blockNode s-l+block-node(n,block-out)]]
+    * | ( [\[emptyNode e-node]\] [[multilineComment s-l-comments]] )
     * )
     */
   def mapImplicitValue(n: Int): Boolean = indicator(':') && {
@@ -1409,8 +1409,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
   }
 
   /**
-    * [195]	ns-l-compact-mapping(n)	::=	[\[blockMapEntry ns-l-block-map-entry(n)]\]
-    * ( [\[indent s-indent(n)]\] [\[blockMapEntry ns-l-block-map-entry(n)]\] )*
+    * [195]	ns-l-compact-mapping(n)	::=	[[blockMapEntry ns-l-block-map-entry(n)]]
+    * ( [[indent s-indent(n)]] [[blockMapEntry ns-l-block-map-entry(n)]] )*
     */
   def compactMapping(n: Int): Boolean =
     emit(BeginMapping) && blockMapEntry(n) && zeroOrMore(indent(n) && blockMapEntry(n)) && emit(EndMapping)
@@ -1433,9 +1433,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
 
   /**
     * A Block Scalar Node<p>
-    * [199]	s-l+block-scalar(n,c)	::=	[\[separate s-separate(n+1,c)]\]
-    * ([\[nodeProperties c-ns-properties(n+1,c)]\] [\[separate s-separate(n+1,c)]\])?
-    * ( [\[literalScalar c-l+literal(n)]\] | [\[foldedScalar c-l+folded(n)]\] )
+    * [199]	s-l+block-scalar(n,c)	::=	[[separate s-separate(n+1,c)]]
+    * ([[nodeProperties c-ns-properties(n+1,c)]] [[separate s-separate(n+1,c)]])?
+    * ( [[literalScalar c-l+literal(n)]] | [[foldedScalar c-l+folded(n)]] )
     */
   private def blockScalar(n: Int, ctx: YamlContext) = matches {
     separate(n + 1, ctx) && {
@@ -1448,10 +1448,10 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     *
     * A nested Block Collection<p>
     * <blockquote><pre>
-    * [200]	s-l+block-collection(n,c)	::=	( [\[separate s-separate(n+1,c)]\] c-ns-properties(n+1,c) )?
-    * [\[multilineComment s-l-comments]\]
-    * ( [\[blockSequence l+block-sequence(seq-spaces(n,c))]\]
-    * | [\[blockMapping]\] l+block-mapping(n) )
+    * [200]	s-l+block-collection(n,c)	::=	( [[separate s-separate(n+1,c)]] c-ns-properties(n+1,c) )?
+    * [[multilineComment s-l-comments]]
+    * ( [[blockSequence l+block-sequence(seq-spaces(n,c))]]
+    * | [[blockMapping]] l+block-mapping(n) )
     *
     * [201]	seq-spaces(n,c)	::=
     * c = block-out ⇒ n-1
@@ -1505,9 +1505,9 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * Since the existence of the document is indicated by this marker, the document itself may be completely empty.<p>
     *
     * [208]	l-explicit-document	::=
-    * [\[isDirectivesEnd c-directives-end]\]
-    * ( [\[bareDocument l-bare-document]\]
-    * | ( [\[emptyNode e-node]\] [\[multilineComment s-l-comments]\] )
+    * [[isDirectivesEnd c-directives-end]]
+    * ( [[bareDocument l-bare-document]]
+    * | ( [[emptyNode e-node]] [[multilineComment s-l-comments]] )
     * )
     */
   private def explicitDocument() = isDirectivesEnd && matches {
@@ -1539,8 +1539,8 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * <blockquote><pre>
     *
     * [211]	l-yaml-stream	::=
-    * [\[documentPrefix l-document-prefix]\]*
-    * [\[anyDocument l-any-document]\]?
+    * [[documentPrefix l-document-prefix]]*
+    * [[anyDocument l-any-document]]?
     * (
     * l-document-suffix+ l-document-prefix* l-any-document?
     * | l-document-prefix* l-explicit-document?

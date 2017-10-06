@@ -5,7 +5,7 @@ import scala.language.dynamics
 /**
   * Represents a value of one of two possible types (a disjoint union.)
   * An instance of `YObj` is an instance of either [[YFail]] or [[YSuccess]] that is a wrapper of a [[YNode]].
-  * It extends [[Dynamic]] to 'simulate' a Dynamic Object
+  * It extends Dynamic to 'simulate' a Dynamic Object
   *
   */
 sealed abstract class YObj extends Product with Dynamic with YNodeLike {
@@ -20,7 +20,7 @@ sealed abstract class YObj extends Product with Dynamic with YNodeLike {
 
     /**
       * Dereference the node as a Map it not a YMap or the key is not found it returns an YError
-      * Use [[YObj.apply]] when the name of the field clashes with methods of this class
+      * Use YObj.apply when the name of the field clashes with methods of this class
       */
     def selectDynamic(key: String): YObj
 
