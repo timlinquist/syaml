@@ -23,13 +23,14 @@ object YType {
   }
   private val knownTypes = new mutable.HashMap[String, YType]
 
-  val Seq: YType     = forName("!!seq")
-  val Map: YType     = forName("!!map")
-  val Str: YType     = forName("!!str")
-  val Float: YType   = forName("!!float")
-  val Int: YType     = forName("!!int")
-  val Bool: YType    = forName("!!bool")
-  val Null: YType    = forName("!!null")
-  val Unknown: YType = forName("?")
-  val Empty: YType   = forName("!")
+  val Seq: YType       = forName("!!seq")
+  val Map: YType       = forName("!!map")
+  val Str: YType       = forName("!!str")
+  val Float: YType     = forName("!!float")
+  val Int: YType       = forName("!!int")
+  val Bool: YType      = forName("!!bool")
+  val Timestamp: YType = forName("!!timestamp")
+  val Null: YType      = forName("!!null")
+  val Unknown: YType   = forName("?")
+  val Empty: YType     = forName("!")
 }

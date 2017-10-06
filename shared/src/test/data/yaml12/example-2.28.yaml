@@ -2,7 +2,7 @@
 ---
 !!map {
   ? !!str "Time"
-  : !!str "2001-11-23 15:01:42 -5",
+  : !!timestamp "2001-11-23 15:01:42 -5",
   ? !!str "User"
   : !!str "ed",
   ? !!str "Warning"
@@ -12,7 +12,7 @@
 ---
 !!map {
   ? !!str "Time"
-  : !!str "2001-11-23 15:02:31 -5",
+  : !!timestamp "2001-11-23 15:02:31 -5",
   ? !!str "User"
   : !!str "ed",
   ? !!str "Warning"
@@ -22,7 +22,7 @@
 ---
 !!map {
   ? !!str "Date"
-  : !!str "2001-11-23 15:03:17 -5",
+  : !!timestamp "2001-11-23 15:03:17 -5",
   ? !!str "User"
   : !!str "ed",
   ? !!str "Fatal"

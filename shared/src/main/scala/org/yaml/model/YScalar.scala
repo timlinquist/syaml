@@ -1,13 +1,13 @@
 package org.yaml.model
 
 import java.lang.Long.parseLong
+import java.time.ZonedDateTime
 
-import org.mulesoft.common.core.Strings
+import org.mulesoft.common.core.{DateTimeOps, Strings}
 import org.mulesoft.lexer.InputRange
 import org.mulesoft.lexer.InputRange.Zero
 import org.yaml.lexer.YeastToken
-import org.yaml.model.YType.{Bool, Empty, Float, Int, Str}
-import org.yaml.model.YType.{Null => tNull}
+import org.yaml.model.YType.{Bool, Empty, Float, Int, Str, Timestamp, Null => tNull}
 
 import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 
@@ -65,9 +65,10 @@ object YScalar {
             case floatRegex() if typeIs(tt, Float)                        => (text.toDouble, Float)
             case infinity(s) if typeIs(tt, Float)                         => (if (s == "-") NegInf else Inf, Float)
             case ".nan" | ".NaN" | ".NAN" if typeIs(tt, Float)            => (NaN, Float)
+            case DateTimeOps(dateTime) if tt == Timestamp || tt == Empty  => (dateTime, Timestamp)
             case _ if tt == Empty                                         => (text, Str)
             case _ =>
-              if (tt == tNull || tt == Bool || tt == Int || tt == Float) error = Some(tt)
+              if (tt == tNull || tt == Bool || tt == Int || tt == Float || tt == Timestamp) error = Some(tt)
               (text, tt)
           }
 
@@ -83,10 +84,9 @@ object YScalar {
   private def typeIs(tt: YType, t: YType) =
     tt == Empty || tt == t
 
-  private val intRegex   = "[-+]?[0-9]+".r
+  private val intRegex   = "[-+]?\\d+".r
   private val octRegex   = "0o([0-7]+)".r
   private val hexRegex   = "0x([0-9a-fA-F]+)".r
-  private val floatRegex = "-?(?:0|[1-9][0-9]*)(?:\\.[0-9]*)?(?:[eE][-+]?[0-9]+)?".r
+  private val floatRegex = "-?(?:0|[1-9]\\d*)(?:\\.\\d*)?(?:[eE][-+]?\\d+)?".r
   private val infinity   = "([-+])?(?:\\.inf|\\.Inf|\\.INF)".r
-
 }

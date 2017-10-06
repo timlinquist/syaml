@@ -13,7 +13,7 @@ final class YNode(val value: YValue, val tag: YTag, val ref: Option[YReference],
     with YNodeLike {
 
   assert(value != null)
-  val tagType: YType = tag.tagType
+  override val tagType: YType = tag.tagType
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case n: YNode =>
@@ -31,8 +31,8 @@ final class YNode(val value: YValue, val tag: YTag, val ref: Option[YReference],
     case _                => throw new IllegalStateException("Node does not have an Anchor")
   }
 
-  override def to[T](implicit conversion: YRead[T]): Either[YError, T] = conversion.read(this)
   override def asObj: YObj                                             = YSuccess(this)
+  override protected def thisNode: YNode = this
 }
 
 object YNode {

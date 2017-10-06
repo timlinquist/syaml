@@ -105,7 +105,7 @@ class YamlBuilderTest extends FunSuite with Matchers {
         obj(
             aString = "Value1",
             anInt = 120,
-            aList = YSequence(1, 2),
+            aList = YSequence(1, 2, 100),
             anotherList = YSequence("One", "Two"),
             aMap = obj(one = 1, two = 2)
         )
@@ -116,6 +116,8 @@ class YamlBuilderTest extends FunSuite with Matchers {
     o.anotherList(0).to[String].getOrElse("") shouldBe "One"
     o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
     o.anotherList.asSeq.map(_.as[String]) should contain theSameElementsInOrderAs List("One", "Two")
+
+
   }
 
   test("References") {

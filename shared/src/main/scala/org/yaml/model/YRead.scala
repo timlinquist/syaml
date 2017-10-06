@@ -1,5 +1,7 @@
 package org.yaml.model
 
+import java.time.{Instant, ZoneOffset, ZonedDateTime}
+
 import org.yaml.model.YRead.error
 
 import scala.annotation.implicitNotFound
@@ -49,13 +51,13 @@ abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
   * Default deserializer type classes.
   */
 object YRead {
-  def error(node: YNode, err: String) = Left(new YError(node, err))
+  def error(node: YNode, err: String) = Left(YError(node, err))
 
   /**
     * Deserializer for Int types.
     */
   implicit object IntYRead extends ScalarYRead(YType.Int, 0) {
-      override def read(node: YNode): Either[YError, Int] = LongYRead.read(node).map(_.asInstanceOf[Int])
+    override def read(node: YNode): Either[YError, Int] = LongYRead.read(node).map(_.asInstanceOf[Int])
   }
 
   /**
@@ -77,6 +79,16 @@ object YRead {
     * Deserializer for String types.
     */
   implicit object StringYRead extends ScalarYRead(YType.Str, "")
+
+  /**
+    * Deserializer for ZonedDateTime
+    */
+  implicit object ZDateTimeYRead extends ScalarYRead(YType.Timestamp, Epoch)
+  implicit object InstantYRead extends ScalarYRead(YType.Timestamp, Instant.EPOCH) {
+      override def read(node: YNode): Either[YError, Instant] = ZDateTimeYRead.read(node).map(_.toInstant)
+  }
+
+  private val Epoch = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
 
   /**
     * Deserializer for Seq[YNode]

@@ -20,9 +20,34 @@ trait YNodeLike {
   }
 
   /**
-    * Tries to convert the node and return Either the value converted or an [[YError]]
+    * Tries to convert the node into a T, throwing an exception if it can't. An implicit YRead[T] must be defined.
+    * An additional validation can be provided
     */
-  def to[T](implicit conversion: YRead[T]): Either[YError, T]
+  def as[T](validation: T => Option[String])(implicit conversion: YRead[T], iv: IllegalTypeHandler): T =
+      validate(validation) match {
+          case Right(value) => value
+          case Left(err)    => iv.handle(err, conversion.defaultValue)
+      }
+
+  /**
+    * Tries to convert the node and return [[Either]] the value converted or an [[YError]]
+    */
+  def to[T](implicit conversion: YRead[T]): Either[YError, T] = conversion.read(thisNode)
+
+  /**
+    * Tries to convert the node,
+    * then if successful performs an additional validation that must return Some(errorMessage) or None.
+    * Finally return [[Either]] the value converted or an [[YError]]
+    */
+  def validate[T](validation: T => Option[String])(implicit conversion: YRead[T]): Either[YError, T] =
+    to(conversion) match {
+      case r @ Right(value) =>
+        validation(value) match {
+          case None      => r
+          case Some(err) => Left(YError(thisNode, err))
+        }
+      case l @ Left(_) => l
+    }
 
   /**
     * Returns the Node as an YObj
@@ -36,4 +61,6 @@ trait YNodeLike {
   def asSeq: Seq[YObj] = asObj.asSeq
 
   val tagType: YType
+
+  protected def thisNode: YNode
 }

@@ -1,5 +1,7 @@
 package org.mulesoft.yaml
 
+import java.time.{Instant, ZonedDateTime}
+
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model._
 
@@ -81,5 +83,26 @@ class YamlNavigatorTest extends FunSuite with Matchers {
             """.stripMargin)
         val s = doc.asSeq.map(_.as[Long])
         s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
+
+        val range = (n:Long) => if (n < 1000) None else Some("Out of Range")
+
+        doc.asObj(0).validate(range).getOrElse(-1) shouldBe 100
+        doc.asObj(1).validate(range).getOrElse(-1) shouldBe -1
+
+        doc.asObj(0).as[Long](range) shouldBe 100
+        an[YException] should be thrownBy {
+            doc.asObj(1).as[Long](range) shouldBe 1
+        }
+
+        val doc2 = YDocument(
+            """
+              | - 123456789012345678
+              | - 2001-01-01 10:00:00
+            """.stripMargin)
+
+        doc2.asObj(0).as[Long] shouldBe 123456789012345678L
+        doc2.asObj(1).as[ZonedDateTime].toString shouldBe "2001-01-01T10:00Z"
+        doc2.asObj(1).as[Instant].toEpochMilli shouldBe 978343200000L
+
     }
 }

@@ -62,8 +62,6 @@ case class YSuccess(node: YNode) extends YObj {
 
     override def isError: Boolean = false
 
-    override def to[T](implicit conversion: YRead[T]): Either[YError, T] = conversion.read(node)
-
     override val tagType: YType = node.tagType
 
     override def asSeq: Seq[YObj] = node.value match {
@@ -77,6 +75,7 @@ case class YSuccess(node: YNode) extends YObj {
         case None => YFail(node, s"Key: $key not found")
     }
 
+    override protected def thisNode: YNode = node
 }
 
 /**
@@ -90,19 +89,22 @@ case class YFail(error: YError) extends YObj {
     override def to[T](implicit c: YRead[T]): Either[YError, T] = Left(error)
     override val tagType: YType = YType.Unknown
     override def asSeq: Seq[YObj] = List(this)
+    override protected def thisNode: YNode = throw new IllegalStateException()
 }
 
 object YFail {
-    def apply(node: YNodeLike, err: => String): YFail = YFail(new YError(node, err))
+    def apply(node: YNodeLike, err: => String): YFail = YFail(YError(node, err))
 }
 
 /**
   * An Error Message usually associated with a failure
   */
-class YError(val node: YNodeLike, err: => String) {
+class YError private(val node: YNodeLike, err: => String) {
     def error: String = err
-
     def throwIt: Nothing = throw new YException(this)
+}
+object YError {
+    def apply(node: YNodeLike, err: => String): YError = new YError(node, err)
 }
 
 /** An Exception that contains an YError */
