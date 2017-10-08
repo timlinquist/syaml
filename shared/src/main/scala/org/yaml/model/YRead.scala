@@ -57,7 +57,11 @@ object YRead {
     * Deserializer for Int types.
     */
   implicit object IntYRead extends ScalarYRead(YType.Int, 0) {
-    override def read(node: YNode): Either[YError, Int] = LongYRead.read(node).map(_.asInstanceOf[Int])
+    override def read(node: YNode): Either[YError, Int] = LongYRead.read(node) match {
+        case l@Left(_) => l.asInstanceOf[Either[YError, Int]]
+        case Right(v) if v >= Integer.MIN_VALUE && v <= Integer.MAX_VALUE => Right(v.asInstanceOf[Int])
+        case _ => error(node, "Out of range")
+    }
   }
 
   /**

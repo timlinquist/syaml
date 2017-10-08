@@ -24,7 +24,7 @@ trait YNodeLike {
     * An additional validation can be provided
     */
   def as[T](validation: T => Option[String])(implicit conversion: YRead[T], iv: IllegalTypeHandler): T =
-      validate(validation) match {
+      to(validation) match {
           case Right(value) => value
           case Left(err)    => iv.handle(err, conversion.defaultValue)
       }
@@ -39,7 +39,7 @@ trait YNodeLike {
     * then if successful performs an additional validation that must return Some(errorMessage) or None.
     * Finally return either the value converted or an [[YError]]
     */
-  def validate[T](validation: T => Option[String])(implicit conversion: YRead[T]): Either[YError, T] =
+  def to[T](validation: T => Option[String])(implicit conversion: YRead[T]): Either[YError, T] =
     to(conversion) match {
       case r @ Right(value) =>
         validation(value) match {

@@ -102,6 +102,7 @@ object YFail {
 class YError private(val node: YNodeLike, err: => String) {
     def error: String = err
     def throwIt: Nothing = throw new YException(this)
+    override def toString: String = error + "@" + node
 }
 object YError {
     def apply(node: YNodeLike, err: => String): YError = new YError(node, err)

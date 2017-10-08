@@ -75,7 +75,7 @@ class YamlNavigatorTest extends FunSuite with Matchers {
     badNode.as[Double] shouldBe 251.42
   }
 
-    test("Scalar") {
+    test("Scalar Validation") {
         val doc = YDocument(
             """
               | - 100
@@ -84,16 +84,23 @@ class YamlNavigatorTest extends FunSuite with Matchers {
         val s = doc.asSeq.map(_.as[Long])
         s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
 
-        val range = (n:Long) => if (n < 1000) None else Some("Out of Range")
+        val s2 = doc.asSeq.map(_.to[Int])
+        s2(0) shouldBe Right(100)
+        s2(1).left.get.error shouldBe "Out of range"
 
-        doc.asObj(0).validate(range).getOrElse(-1) shouldBe 100
-        doc.asObj(1).validate(range).getOrElse(-1) shouldBe -1
+        // Use validation
+
+        val range = (n: Long) => if (n < 1000) None else Some("Out of Range")
+
+        doc.asObj(0).to(range).getOrElse(-1) shouldBe 100
+        doc.asObj(1).to(range).getOrElse(-1) shouldBe -1
 
         doc.asObj(0).as[Long](range) shouldBe 100
         an[YException] should be thrownBy {
             doc.asObj(1).as[Long](range) shouldBe 1
         }
-
+    }
+    test("Scalar Types") {
         val doc2 = YDocument(
             """
               | - 123456789012345678
