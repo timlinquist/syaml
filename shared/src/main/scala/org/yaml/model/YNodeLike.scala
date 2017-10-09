@@ -3,7 +3,7 @@ package org.yaml.model
 import org.yaml.convert.YRead
 
 /**
-  * A trait that represents Node like values that can be converted using [[YRead]]
+  * A trait that represents Node like values that can be converted using YRead
   */
 trait YNodeLike {
 
