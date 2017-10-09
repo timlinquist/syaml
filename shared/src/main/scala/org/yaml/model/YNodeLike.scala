@@ -30,14 +30,14 @@ trait YNodeLike {
       }
 
   /**
-    * Tries to convert the node and return [[Either]] the value converted or an [[YError]]
+    * Tries to convert the node and return either the value converted or an [[YError]]
     */
   def to[T](implicit conversion: YRead[T]): Either[YError, T] = conversion.read(thisNode)
 
   /**
     * Tries to convert the node,
     * then if successful performs an additional validation that must return Some(errorMessage) or None.
-    * Finally return [[Either]] the value converted or an [[YError]]
+    * Finally return either the value converted or an [[YError]]
     */
   def validate[T](validation: T => Option[String])(implicit conversion: YRead[T]): Either[YError, T] =
     to(conversion) match {
