@@ -109,4 +109,4 @@ object YError {
 }
 
 /** An Exception that contains an YError */
-class YException(val e: YError) extends RuntimeException(e.error)
+class YException(val yError: YError) extends RuntimeException(yError.error)

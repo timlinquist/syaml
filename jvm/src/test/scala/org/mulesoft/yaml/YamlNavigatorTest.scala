@@ -81,7 +81,7 @@ class YamlNavigatorTest extends FunSuite with Matchers {
               | - 100
               | - 123456789012345678
             """.stripMargin)
-        val s = doc.asSeq.map(_.as[Long])
+        val s = doc.as[Seq[Long]]
         s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
 
         val s2 = doc.asSeq.map(_.to[Int])
@@ -110,6 +110,10 @@ class YamlNavigatorTest extends FunSuite with Matchers {
         doc2.asObj(0).as[Long] shouldBe 123456789012345678L
         doc2.asObj(1).as[ZonedDateTime].toString shouldBe "2001-01-01T10:00Z"
         doc2.asObj(1).as[Instant].toEpochMilli shouldBe 978343200000L
+        val seq = doc2.asObj.as[Seq[Any]]
+        seq should contain theSameElementsAs List(123456789012345678L,  ZonedDateTime.parse("2001-01-01T10:00Z"))
+        val list = doc2.asObj.as[List[Any]]
+        list should contain theSameElementsInOrderAs seq
 
     }
 }

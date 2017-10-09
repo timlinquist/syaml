@@ -115,8 +115,7 @@ class YamlBuilderTest extends FunSuite with Matchers {
     o.aMap.one.as[Int] shouldBe 1
     o.anotherList(0).to[String].getOrElse("") shouldBe "One"
     o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
-    o.anotherList.asSeq.map(_.as[String]) should contain theSameElementsInOrderAs List("One", "Two")
-
+    o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List("One", "Two")
 
   }
 
