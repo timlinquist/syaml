@@ -1,5 +1,7 @@
 package org.yaml.model
 
+import org.yaml.convert.YRead
+
 /**
   * A trait that represents Node like values that can be converted using [[YRead]]
   */
@@ -24,10 +26,10 @@ trait YNodeLike {
     * An additional validation can be provided
     */
   def as[T](validation: T => Option[String])(implicit conversion: YRead[T], iv: IllegalTypeHandler): T =
-      to(validation) match {
-          case Right(value) => value
-          case Left(err)    => iv.handle(err, conversion.defaultValue)
-      }
+    to(validation) match {
+      case Right(value) => value
+      case Left(err)    => iv.handle(err, conversion.defaultValue)
+    }
 
   /**
     * Tries to convert the node and return either the value converted or an [[YError]]
@@ -52,13 +54,7 @@ trait YNodeLike {
   /**
     * Returns the Node as an YObj
     */
-  def asObj: YObj
-
-  /**
-    * Returns the Node as a Seq[YObj]
-    * If the node is not a Sequence then a List(YError) will be returned
-    */
-  def asSeq: Seq[YObj] = asObj.asSeq
+  def obj: YObj
 
   val tagType: YType
 

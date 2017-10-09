@@ -4,6 +4,7 @@ import java.time.{Instant, ZonedDateTime}
 
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model._
+import org.yaml.render.YamlRender
 
 /**
   * Test Extractors and exception Handling
@@ -81,10 +82,10 @@ class YamlNavigatorTest extends FunSuite with Matchers {
               | - 100
               | - 123456789012345678
             """.stripMargin)
-        val s = doc.asSeq.map(_.as[Long])
+        val s = doc.as[Seq[Long]]
         s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
 
-        val s2 = doc.asSeq.map(_.to[Int])
+        val s2 = doc.as[Seq[YNode]].map(_.to[Int])
         s2(0) shouldBe Right(100)
         s2(1).left.get.error shouldBe "Out of range"
 
@@ -92,12 +93,12 @@ class YamlNavigatorTest extends FunSuite with Matchers {
 
         val range = (n: Long) => if (n < 1000) None else Some("Out of Range")
 
-        doc.asObj(0).to(range).getOrElse(-1) shouldBe 100
-        doc.asObj(1).to(range).getOrElse(-1) shouldBe -1
+        doc.obj(0).to(range).getOrElse(-1) shouldBe 100
+        doc.obj(1).to(range).getOrElse(-1) shouldBe -1
 
-        doc.asObj(0).as[Long](range) shouldBe 100
+        doc.obj(0).as[Long](range) shouldBe 100
         an[YException] should be thrownBy {
-            doc.asObj(1).as[Long](range) shouldBe 1
+            doc.obj(1).as[Long](range) shouldBe 1
         }
     }
     test("Scalar Types") {
@@ -107,9 +108,13 @@ class YamlNavigatorTest extends FunSuite with Matchers {
               | - 2001-01-01 10:00:00
             """.stripMargin)
 
-        doc2.asObj(0).as[Long] shouldBe 123456789012345678L
-        doc2.asObj(1).as[ZonedDateTime].toString shouldBe "2001-01-01T10:00Z"
-        doc2.asObj(1).as[Instant].toEpochMilli shouldBe 978343200000L
+        doc2.obj(0).as[Long] shouldBe 123456789012345678L
+        doc2.obj(1).as[ZonedDateTime].toString shouldBe "2001-01-01T10:00Z"
+        doc2.obj(1).as[Instant].toEpochMilli shouldBe 978343200000L
+        val seq = doc2.obj.as[Seq[Any]]
+        seq should contain theSameElementsAs List(123456789012345678L,  ZonedDateTime.parse("2001-01-01T10:00Z"))
+        val list = doc2.obj.as[List[Any]]
+        list should contain theSameElementsInOrderAs seq
 
     }
 }

@@ -1,5 +1,7 @@
 package org.yaml.model
 
+import org.yaml.convert.YRead
+
 import scala.language.dynamics
 
 /**
@@ -36,7 +38,7 @@ sealed abstract class YObj extends Product with Dynamic with YNodeLike {
     /** Dereference the node as a Map and then as an Array */
     final def applyDynamic(key: String)(index: Int): YObj = selectDynamic(key)(index)
 
-    override def asObj: YObj = this
+    override def obj: YObj = this
 }
 
 case class YSuccess(node: YNode) extends YObj {
@@ -64,11 +66,6 @@ case class YSuccess(node: YNode) extends YObj {
 
     override val tagType: YType = node.tagType
 
-    override def asSeq: Seq[YObj] = node.value match {
-        case s: YSequence => s.nodes.map(YSuccess)
-        case _ => List(YFail(node, "Not a Sequence"))
-    }
-
 
     private def get(yMap: YMap, key: YNode) = yMap.map.get(key) match {
         case Some(v) => YSuccess(v)
@@ -88,7 +85,6 @@ case class YFail(error: YError) extends YObj {
     override def apply(key: YNode): YObj = this
     override def to[T](implicit c: YRead[T]): Either[YError, T] = Left(error)
     override val tagType: YType = YType.Unknown
-    override def asSeq: Seq[YObj] = List(this)
     override protected def thisNode: YNode = throw new IllegalStateException()
 }
 
@@ -109,4 +105,4 @@ object YError {
 }
 
 /** An Exception that contains an YError */
-class YException(val e: YError) extends RuntimeException(e.error)
+class YException(val yError: YError) extends RuntimeException(yError.error)

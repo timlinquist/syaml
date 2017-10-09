@@ -37,9 +37,9 @@ class YScalar private (val value: Any,
 
 object YScalar {
 
-  def apply(value: Int) = new YScalar(value.asInstanceOf[Long], String.valueOf(value), true, Zero, IndexedSeq.empty)
-  def apply(value: Any) = new YScalar(value, String.valueOf(value), true, Zero, IndexedSeq.empty)
-  val Null              = YScalar(null, "", true, Zero, IndexedSeq.empty)
+  def apply(value: Int): YScalar = YScalar(value.asInstanceOf[Long])
+  def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value), true, Zero, IndexedSeq.empty)
+  val Null                       = YScalar(null, "")
 
   class Builder(text: String,
                 t: YTag,

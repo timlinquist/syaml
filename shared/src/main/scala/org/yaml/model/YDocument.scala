@@ -1,5 +1,6 @@
 package org.yaml.model
 
+import org.yaml.convert.YRead
 import org.yaml.parser.YamlParser
 
 import scala.collection.mutable.ArrayBuffer
@@ -31,8 +32,8 @@ class YDocument private(c: IndexedSeq[YPart]) extends YAggregate(c) with YNodeLi
     override def hashCode(): Int = children.hashCode()
     override def toString: String = "Document: " + node.toString
 
-    override def to[T](implicit conversion: YRead[T]): Either[YError, T] = asObj.to(conversion)
-    override def asObj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
+    override def to[T](implicit conversion: YRead[T]): Either[YError, T] = obj.to(conversion)
+    override def obj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
     override protected def thisNode: YNode = node
 }
 

@@ -31,7 +31,7 @@ final class YNode(val value: YValue, val tag: YTag, val ref: Option[YReference],
     case _                => throw new IllegalStateException("Node does not have an Anchor")
   }
 
-  override def asObj: YObj                                             = YSuccess(this)
+  override def obj: YObj                                             = YSuccess(this)
   override protected def thisNode: YNode = this
 }
 

@@ -43,7 +43,7 @@ class YamlBuilderTest extends FunSuite with Matchers {
     val seq = doc.node.as[Seq[YNode]]
     seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool)
 
-    doc.asObj(2).as[Boolean] shouldBe true
+    doc.obj(2).as[Boolean] shouldBe true
 
     // Short way when you don't need a Builder
     val doc2 = YDocument("", YSequence("Line 1", "Line 2", true))
@@ -77,13 +77,13 @@ class YamlBuilderTest extends FunSuite with Matchers {
     val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
     types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
 
-    doc.asObj.anInt.as[Int] shouldBe 120
-    val m = doc.asObj.aMap
+    doc.obj.anInt.as[Int] shouldBe 120
+    val m = doc.obj.aMap
     m("One").as[Int] shouldBe 1
     m("Two").as[Int] shouldBe 2
-    doc.asObj.aList.asSeq.map(_.as[Int]) should contain theSameElementsInOrderAs List(1, 2)
+    doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
-    doc.asObj(YSequence("a", "b")).asSeq.map(_.as[Int]) should contain theSameElementsInOrderAs List(1, 2)
+    doc.obj(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
     // Short way when you don't need a Builder
     val doc2 = YDocument(
@@ -111,12 +111,11 @@ class YamlBuilderTest extends FunSuite with Matchers {
         )
     )
 
-    val o = doc3.asObj
+    val o = doc3.obj
     o.aMap.one.as[Int] shouldBe 1
     o.anotherList(0).to[String].getOrElse("") shouldBe "One"
     o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
-    o.anotherList.asSeq.map(_.as[String]) should contain theSameElementsInOrderAs List("One", "Two")
-
+    o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List("One", "Two")
 
   }
 
@@ -132,6 +131,6 @@ class YamlBuilderTest extends FunSuite with Matchers {
         )
     )
 
-    doc.asObj.c.as[String] shouldBe "Value1"
+    doc.obj.c.as[String] shouldBe "Value1"
   }
 }
