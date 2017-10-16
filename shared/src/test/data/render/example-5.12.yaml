@@ -1,0 +1,6 @@
+# Tabs and spaces
+  quoted : "Quoted \t"
+  block : |
+    void main() {
+    	printf("Hello, world!\n");
+    }

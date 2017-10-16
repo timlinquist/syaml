@@ -1,6 +1,6 @@
 %YAML 1.2
 ---
-tag:clarkevans.com,2002:invoice {
+!<tag:clarkevans.com,2002:invoice> {
   ? !!str "invoice"
   : !!int "34843",
   ? !!str "date"

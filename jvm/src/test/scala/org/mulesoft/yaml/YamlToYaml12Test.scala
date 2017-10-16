@@ -23,23 +23,24 @@ class YamlToYaml12Test extends FunSuite with Matchers {
   private val files = if (file == null) yamlDir.list() else Array(file)
   for (yaml <- files) {
     test("Generate Yaml 1.2 for " + yaml) {
-      val yamlFile   = new File(yamlDir, yaml)
-      val yaml12File = new File(modelDir, yaml)
-      val goldenFile = new File(goldenDir, yaml)
-
-      generate(yamlFile, yaml12File)
-
-      val deltas = Diff.ignoreAllSpace.diff(yaml12File, goldenFile)
-
-      assert(deltas.isEmpty, s"diff -y -W 150 $yaml12File $goldenFile\n\n${deltas.mkString}")
+      YamlToYaml12.test(yaml, yamlDir, modelDir, goldenDir)
 
     }
   }
+}
 
-  private def generate(yamlFile: File, yaml12File: File) = {
+object YamlToYaml12 {
+  def test(yaml: String, yamlDir: File, modelDir: File, goldenDir: File): Unit = {
+    val yamlFile   = new File(yamlDir, yaml)
+    val yaml12File = new File(modelDir, yaml)
+    val goldenFile = new File(goldenDir, yaml)
+
     val elements: IndexedSeq[YPart] = YamlParser(yamlFile).parse()
-    val dumper                      = new Yaml12Dumper(elements, new FileWriter(yaml12File))
-    dumper.dump()
+    new Yaml12Dumper(elements, new FileWriter(yaml12File)).dump()
+
+    val deltas = Diff.ignoreAllSpace.diff(yaml12File, goldenFile)
+
+    assert(deltas.isEmpty, s"diff -y -W 150 $yaml12File $goldenFile\n\n${deltas.mkString}")
   }
 
 }

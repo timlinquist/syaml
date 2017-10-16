@@ -1,13 +1,9 @@
 package org.yaml.model
 
 import java.lang.Long.parseLong
-import java.time.ZonedDateTime
 
 import org.mulesoft.common.core.{DateTimeOps, Strings}
-import org.mulesoft.lexer.InputRange
-import org.mulesoft.lexer.InputRange.Zero
-import org.yaml.lexer.YeastToken
-import org.yaml.model.YType.{Bool, Empty, Float, Int, Str, Timestamp, Null => tNull}
+import org.yaml.model.YType.{Bool, Empty, Float, Int, Str, Timestamp, Unknown, Null => tNull}
 
 import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 
@@ -16,10 +12,9 @@ import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
   */
 class YScalar private (val value: Any,
                        val text: String,
-                       val plain: Boolean,
-                       range: InputRange,
-                       ts: IndexedSeq[YeastToken])
-    extends YTokens(range, ts)
+                       val plain: Boolean = true,
+                       c: IndexedSeq[YPart] = IndexedSeq.empty)
+    extends YAggregate(c)
     with YValue {
 
   override def equals(obj: Any): Boolean = obj match {
@@ -27,30 +22,30 @@ class YScalar private (val value: Any,
     case _          => false
   }
 
-  override def hashCode(): Int = value.hashCode
-
-  override def toString: String = value match {
-    case s: String => '"' + s.encode + '"'
-    case _         => text
-  }
+  override def hashCode(): Int  = value.hashCode
+  override def toString: String = if (plain) text else '"' + text.encode + '"'
 }
 
 object YScalar {
 
   def apply(value: Int): YScalar = YScalar(value.asInstanceOf[Long])
-  def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value), true, Zero, IndexedSeq.empty)
-  val Null                       = YScalar(null, "")
+  def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value))
+  val Null: YScalar              = YScalar.apply(null, "null")
 
-  class Builder(text: String,
-                t: YTag,
-                plain: Boolean = true,
-                range: InputRange = Zero,
-                ts: IndexedSeq[YeastToken] = IndexedSeq.empty) {
+  class Builder(text: String, t: YTag, mark: String = "", parts: IndexedSeq[YPart] = IndexedSeq.empty) {
     var tag: YTag            = _
     var error: Option[YType] = None
 
     val scalar: YScalar = {
-      val tt = if (t == null || t.tagType == Empty) if (plain) Empty else Str else t.tagType
+      var plain = mark.isEmpty
+      val tt = if (t != null) {
+        if (t.tagType != Empty) t.tagType else {
+            plain = false
+            Str
+        }
+      }
+      else if (plain) Unknown
+      else Str
 
       val valType: (Any, YType) =
         if (tt == Str) (text, Str)
@@ -65,8 +60,8 @@ object YScalar {
             case floatRegex() if typeIs(tt, Float)                        => (text.toDouble, Float)
             case infinity(s) if typeIs(tt, Float)                         => (if (s == "-") NegInf else Inf, Float)
             case ".nan" | ".NaN" | ".NAN" if typeIs(tt, Float)            => (NaN, Float)
-            case DateTimeOps(dateTime) if tt == Timestamp || tt == Empty  => (dateTime, Timestamp)
-            case _ if tt == Empty                                         => (text, Str)
+            case DateTimeOps(dateTime) if typeIs(tt, Timestamp)           => (dateTime, Timestamp)
+            case _ if tt == Unknown                                       => (text, Str)
             case _ =>
               if (tt == tNull || tt == Bool || tt == Int || tt == Float || tt == Timestamp) error = Some(tt)
               (text, tt)
@@ -74,15 +69,14 @@ object YScalar {
 
       tag =
         if (t == null) valType._2.tag
-        else if (t.tagType == Empty) t.changeType(valType._2)
+        else if (t.tagType == Empty) t.copy(tagType = valType._2)
         else t
 
-      new YScalar(valType._1, text, plain, range, ts)
+      new YScalar(valType._1, if (mark == "'") text.replace("''", "'") else text, plain, parts)
     }
 
   }
-  private def typeIs(tt: YType, t: YType) =
-    tt == Empty || tt == t
+  private def typeIs(tt: YType, t: YType) = tt == Unknown || tt == t
 
   private val intRegex   = "[-+]?\\d+".r
   private val octRegex   = "0o([0-7]+)".r

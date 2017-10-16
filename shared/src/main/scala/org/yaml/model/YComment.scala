@@ -4,8 +4,10 @@ import org.mulesoft.lexer.InputRange
 import org.yaml.lexer.YeastToken
 
 /** Yaml Comment Part */
-class YComment private (val metaText: String, range: InputRange, ts: IndexedSeq[YeastToken])
-    extends YIgnorable(range, ts) {
+case class YComment(metaText: String,
+                    override val range: InputRange = InputRange.Zero,
+                    override val tokens: IndexedSeq[YeastToken] = IndexedSeq.empty)
+    extends YIgnorable(range, tokens) {
 
   override def hashCode(): Int = metaText.hashCode
 
@@ -18,12 +20,6 @@ class YComment private (val metaText: String, range: InputRange, ts: IndexedSeq[
   override def toString: String = metaText
 }
 
-object YComment {
-
-  /** Default Constructor */
-  def apply(metaText: String,
-            range: InputRange = InputRange.Zero,
-            ts: IndexedSeq[YeastToken] = IndexedSeq.empty): YComment =
-    new YComment(metaText, range, ts)
-
-}
+/** Non Content (Whitespace, Indentation and Indicators) */
+case class YNonContent(override val range: InputRange, override val tokens: IndexedSeq[YeastToken])
+    extends YIgnorable(range, tokens)

@@ -13,11 +13,12 @@ class YType {
 }
 
 object YType {
-  def apply(tag: String): YType = knownTypes.getOrElse(tag, Unknown)
+  def apply(tag: String): YType =
+      knownTypes.getOrElse(tag, Unknown)
 
   private def forName(tagName: String): YType = {
     val t = new YType()
-    t.tag_ = new YTag(tagName, t)
+    t.tag_ = YTag(tagName, t)
     knownTypes.put(tagName, t)
     t
   }

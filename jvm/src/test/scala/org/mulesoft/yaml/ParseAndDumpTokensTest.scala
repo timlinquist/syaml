@@ -3,8 +3,9 @@ package org.mulesoft.yaml
 import java.io.{File, PrintWriter}
 
 import org.mulesoft.common.ext.Diff
+import org.mulesoft.lexer.InputRange
 import org.scalatest.{FunSuite, Matchers}
-import org.yaml.model.{YPart, YTokens}
+import org.yaml.model._
 import org.yaml.parser.YamlParser
 
 /**
@@ -42,16 +43,26 @@ class ParseAndDumpTokensTest extends FunSuite with Matchers {
 
   private def dump(elements: IndexedSeq[YPart], writer: PrintWriter, indent: String): Int = {
     var n = 0
+
+    def dumpTokens(cc: String, ts: YTokens, range: InputRange) = {
+      val str = indent + cc + "  " + ts.tokens.map(_.tokenType.abbreviation).mkString(" ")
+      writer.printf("%-50s %s%n", str, range)
+      n += ts.tokens.size
+    }
+
+    def dumpParts(cc: String, children: IndexedSeq[YPart], range: InputRange) = {
+      writer.printf("%-50s %s%n", indent + cc, range)
+      n += dump(children, writer, indent + "  ")
+    }
+
     for (e <- elements) {
-      val prefix = indent + e.getClass.getSimpleName.substring(0, 2)
+      val cc = e.getClass.getSimpleName.substring(0, 2)
       e match {
-        case ts: YTokens =>
-          val str = prefix + "  " + ts.tokens.map(_.tokenType.abbreviation).mkString(" ")
-          writer.printf("%-50s %s%n", str, e.range)
-          n += ts.tokens.size
-        case _ =>
-          writer.printf("%-50s %s%n", prefix, e.range)
-          n += dump(e.children, writer, indent + "  ")
+        case s: YScalar if s.children.size == 1 => dumpTokens(cc, e.children.head.asInstanceOf[YTokens], e.range)
+        case nc: YNonContent                    => dumpTokens("YI", nc, e.range)
+        case ts: YTokens                        => dumpTokens(cc, ts, e.range)
+        case yd: YDirective                     => dumpParts("Yd", e.children, e.range)
+        case _                                  => dumpParts(cc, e.children, e.range)
       }
     }
     n

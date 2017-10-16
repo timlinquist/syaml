@@ -41,9 +41,10 @@ class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
             pw print a
             return
         case Some(a:YAnchor) =>
-            pw print node.tag + " " + a + " "
+            printTag(node)
+            pw print a + " "
         case _ =>
-            pw print node.tag + " "
+            printTag(node)
     }
 
     node.value match {
@@ -59,7 +60,13 @@ class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
     }
   }
 
-  private def printEntries[T](prefix: String, seq: IndexedSeq[T], suffix: String, pf: T => Unit) = {
+    private def printTag(node: YNode) = {
+        var tag = node.tag
+        if (tag.text == "!") tag = tag.tagType.tag
+        pw print tag + " "
+    }
+
+    private def printEntries[T](prefix: String, seq: IndexedSeq[T], suffix: String, pf: T => Unit) = {
     pw println prefix
     indent += " " * indentation
     var first = true

@@ -1,6 +1,9 @@
 File: example-6.13.yaml
 YD                                                 [1,0..4,0]
-  YI  O D I t w t w t w t w t w t w t d b w        [1,0..2,15]
+  YI  O                                            [1,0..1,0]
+  Yd                                               [1,0..1,33]
+    YI  D I t w t w t w t w t w t w t d            [1,0..1,33]
+  YI  b w                                          [1,33..2,15]
   YC  C I t c                                      [2,15..2,32]
   YI  b K w                                        [2,32..3,4]
   YN                                               [3,4..3,9]

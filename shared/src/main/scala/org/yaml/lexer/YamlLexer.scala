@@ -1,6 +1,6 @@
 package org.yaml.lexer
 
-import java.io.{File, FileInputStream, FileReader, InputStreamReader}
+import java.io.{File, FileInputStream, InputStreamReader}
 import java.lang.Integer.MAX_VALUE
 
 import org.mulesoft.common.core.countWhile

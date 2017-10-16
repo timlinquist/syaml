@@ -10,7 +10,7 @@
   ? !!str "single"
   : !!str "\"Howdy!\" he cried.",
   ? !!str "quoted"
-  : !!str " # Not a ''comment''.",
+  : !!str " # Not a 'comment'.",
   ? !!str "tie-fighter"
   : !!str "|\\-*-/|"
 }

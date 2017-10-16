@@ -1,12 +1,13 @@
 package org.mulesoft.lexer
 
-import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
+import org.mulesoft.lexer.LexerInput.Mark
 
 import scala.collection.mutable.ListBuffer
 
 abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
-    private val tokenBuffer = ListBuffer.empty[TokenData[T]]
+    type TD = TokenData[T]
+    private val tokenBuffer = ListBuffer.empty[TD]
     private var mark = input.position
 
     private var _tokenData: TokenData[T] = _
@@ -14,31 +15,6 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
     /** initialize the stack and the current _tokenData (may be invoking advance) */
     initialize()
-
-    /** Get the current state of the Lexer */
-  //  override def state: S = stack.head
-
-    /** Set (replace) the current state of the Lexer */
-//    protected def state_=(newState: S): Unit = {
-//        state.end()
-//        stack = newState :: stack.tail
-//        newState.begin()
-//    }
-//
-//    /** Push a new Lexer State */
-//    def pushState(newState: S): Unit = {
-//        newState.begin()
-//        stack = newState :: stack
-//    }
-//
-//    /** Pop an older Lexer State */
-//    def popState(): S = {
-//        val r = stack.head
-//        stack = stack.tail
-//        r.end()
-//        if (stack.nonEmpty) stack.head.restore()
-//        r
-//    }
 
     /** Check if there are emitted tokens if the specified state exists in the stack */
     def nonTokenEmitted: Boolean = tokenBuffer.isEmpty
@@ -50,10 +26,13 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
     override def token: T = _tokenData.token
 
     /** All the token data.  */
-    override def tokenData: TokenData[T] = _tokenData
+    override def tokenData: TD = _tokenData
+
+    /** Get the specified Token Char Sequence.  */
+    def tokenText(td: TD): CharSequence = input.subSequence(td.start, td.end)
 
     /** Get the current Token Char Sequence.  */
-    override def tokenText: CharSequence = input.subSequence(_tokenData.start, _tokenData.end)
+    override def tokenText: CharSequence = tokenText(_tokenData)
 
     /** Emit a Token */
     @failfast def emit(token: T): Boolean = {
