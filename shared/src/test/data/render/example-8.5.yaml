@@ -1,12 +1,10 @@
- # Strip
-  # Comments:
+# Strip
+# Comments:
 strip: "# text" # Clip
-  # comments:
+# comments:
 clip: |
   # text
- # Keep
-  # comments:
-keep: |
-  # text
- # Trail
-  # comments.
+# Keep
+# comments:
+keep: "# text\n\n" # Trail
+# comments.

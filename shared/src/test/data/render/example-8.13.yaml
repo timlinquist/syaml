@@ -1,15 +1,10 @@
->
- folded
- line
+|
+  folded line
+  next line
+    * bullet
 
- next
- line
-   * bullet
+    * list
+    * line
 
-   * list
-   * line
-
- last
- line
-
+  last line
 # Comment

@@ -1,5 +1,5 @@
-? explicit key # Empty value
-? |
-  block key
-: - one # Explicit compact
+explicit key: # Empty value
+  
+"block key\n":
+  - one # Explicit compact
   - two # block value

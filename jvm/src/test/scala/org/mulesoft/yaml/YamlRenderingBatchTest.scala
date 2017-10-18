@@ -47,9 +47,9 @@ class YamlRenderingBatchTest extends FunSuite with Matchers {
 
       generate(yamlFile, output, keepTokens = false)
 
-//      val deltas = Diff.ignoreAllSpace.diff(output, goldenFile)
-//
-//      assert(deltas.isEmpty, s"diff -w -y -W 150 $output $goldenFile\n\n${deltas.mkString}")
+      val deltas = Diff.ignoreAllSpace.diff(output, goldenFile)
+
+      assert(deltas.isEmpty, s"diff -y -W 150 $output $goldenFile\n\n${deltas.mkString}")
 
       // Now convert the generated one to yaml12 to check that semantic is preserved
 

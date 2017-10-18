@@ -1,3 +1,7 @@
-- sun: yellow
-- ? earth: blue
-  : moon: white
+-
+  sun: yellow
+-
+  ?
+    earth: blue
+  :
+    moon: white

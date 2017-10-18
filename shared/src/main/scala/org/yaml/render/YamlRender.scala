@@ -13,7 +13,7 @@ class YamlRender() {
   private val builder           = new StringBuilder
   override def toString: String = builder.toString
 
-  private var indentation    = 0
+  private var indentation    = -2
   private def indent(): Unit = indentation += 2
   private def dedent(): Unit = indentation -= 2
   private def renderIndent(): YamlRender = {
@@ -147,6 +147,7 @@ class YamlRender() {
 
   private def renderAsLiteral(scalar: YScalar) = {
     val text = scalar.text
+    if (indentation < 0) indentation = 0
     render("|")
     indent()
 
@@ -155,7 +156,7 @@ class YamlRender() {
     if (text(l - 1) != '\n') render("-")
     else if (l > 1 && text(l - 2) == '\n') render("+")
 
-    render(scalar.children.collectFirst { case YComment(txt, _, _) => s" # $txt" }.getOrElse(""))
+    render(scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse(""))
     var start = 0
     var end   = 0
     do {

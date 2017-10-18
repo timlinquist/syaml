@@ -1,11 +1,10 @@
 - |
- detected
-- >
- 
-  
-  # detected
-- |1
-  explicit
-- >
- 	
- detected
+  detected
+- |
+
+   
+   # detected
+- " explicit\n"
+- |
+  	
+  detected

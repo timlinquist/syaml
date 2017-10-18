@@ -1,3 +1,11 @@
-- [ YAML : separate ]
-- [ : empty key entry ]
-- [ {JSON: like}:adjacent ]
+-
+  -
+    YAML: separate
+-
+  -
+    : empty key entry
+-
+  -
+    ?
+      JSON: like
+    : adjacent
