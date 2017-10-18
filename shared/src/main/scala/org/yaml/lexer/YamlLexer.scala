@@ -1,6 +1,6 @@
 package org.yaml.lexer
 
-import java.io.{File, FileInputStream, InputStreamReader}
+import java.io.File
 import java.lang.Integer.MAX_VALUE
 
 import org.mulesoft.common.core.countWhile
@@ -14,12 +14,11 @@ import scala.annotation.tailrec
 /**
   * Yaml Lexer for 1.2 Specification
   */
-final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends BaseLexer[YamlToken](input) {
+final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](input) {
 
   //~ Methods ..........................................................................................................
 
   override protected def initialize(): Unit = {
-    //    stack = List(new InitialState()(this))
     yamlStream()
     advance()
   }
@@ -963,7 +962,7 @@ final class YamlLexer(input: LexerInput = new CharSequenceLexerInput()) extends 
     * [159]	ns-flow-yaml-node(n,c)	::=	  [\[aliasNode c-ns-alias-node]\]
     * |   [\[flowYamlContent ns-flow-yaml-content(n,c)]\]
     * | ( [\[nodeProperties c-ns-properties(n,c)]\]
-    * ( ( [[separate s-separate(n,c)]] [\[flowYamlContent ns-flow-yaml-contt(n,c)]\] )
+    * ( ( [[separate s-separate(n,c)]] [\[flowYamlContent ns-flow-yaml-cont(n,c)]\] )
     * | [[emptyScalar e-scalar]] )
     * )
     */
@@ -1616,15 +1615,8 @@ object YamlLexer {
 
   def isText(c: Int): Boolean = c != '\n' && c != '\r' && c != EofChar
 
-  def apply(input: LexerInput = new CharSequenceLexerInput()): YamlLexer = new YamlLexer(input)
-
-  def apply(s: String): YamlLexer = YamlLexer(new CharSequenceLexerInput(s))
-
-  def apply(file: File): YamlLexer = {
-    val fis    = new InputStreamReader(new FileInputStream(file), "UTF-8")
-    val data   = new Array[Char](file.length.toInt)
-    val length = fis.read(data)
-    fis.close()
-    new YamlLexer(new CharSequenceLexerInput(data, 0, length, file.getName))
-  }
+  def apply(): YamlLexer                  = new YamlLexer(CharSequenceLexerInput())
+  def apply(input: LexerInput): YamlLexer = new YamlLexer(input)
+  def apply(s: String): YamlLexer         = new YamlLexer(CharSequenceLexerInput(s))
+  def apply(file: File): YamlLexer        = new YamlLexer(CharSequenceLexerInput(file))
 }

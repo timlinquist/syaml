@@ -1,0 +1,11 @@
+{
+  "Item 1": 1,
+  "Item 2": 2,
+  "Item 3": null,
+  "Item 4": "3 with some more text",
+  "Item 5": null,
+  "Item 6": "Something Else",
+  "Item 7": "Standard",
+  "Item 8": "A More Indented Plain Literal",
+  "Item 9": "An Indented\nBlock\nLiteral\n\nWith 2 empty Lines\nAnd trailing Comments\n"
+}

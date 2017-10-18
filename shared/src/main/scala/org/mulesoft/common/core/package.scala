@@ -94,6 +94,12 @@ package object core {
       }
       true
     }
+    /** Interpreting the string as a file name replace The extension */
+    def replaceExtension(newExt: String): String = {
+        val lastDot = str.lastIndexOf('.')
+        val ext = if (newExt == null || newExt.isEmpty) "" else if (newExt(0) != '.') '.' + newExt else newExt
+        if (lastDot == -1) str + ext else str.substring(0, lastDot) + ext
+    }
   }
 
   /**

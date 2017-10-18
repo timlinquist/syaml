@@ -5,7 +5,7 @@ package org.mulesoft.lexer
   */
 object Main {
     def main(args: Array[String]) {
-        val l = new CharSequenceLexerInput(
+        val l = CharSequenceLexerInput(
             """Hola que
               | tal 😀
               | Como va

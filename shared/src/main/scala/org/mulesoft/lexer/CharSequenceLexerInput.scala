@@ -1,21 +1,20 @@
 package org.mulesoft.lexer
 
+import java.io.{File, FileInputStream, InputStreamReader}
 import java.lang.Character._
 import java.lang.Integer.{MAX_VALUE => IntMax}
 
+import org.mulesoft.lexer.CharSequenceLexerInput.InputState
 import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
-import CharSequenceLexerInput.InputState
 
 /**
   * A LexerInput backed by a CharSequence
   */
-class CharSequenceLexerInput(val data: CharSequence = "",
-                             val startOffset: Int = 0,
-                             endOffsetValue: Int = IntMax,
-                             override val sourceName: String = "")
+class CharSequenceLexerInput private (val data: CharSequence,
+                                      val startOffset: Int,
+                                      val endOffset: Int,
+                                      override val sourceName: String)
     extends LexerInput {
-
-  val endOffset: Int = Math.min(data.length(), endOffsetValue)
 
   private var state = InputState(offset = startOffset, nextOffset = startOffset).init(data, endOffset)
 
@@ -40,10 +39,10 @@ class CharSequenceLexerInput(val data: CharSequence = "",
   /** Consume n code points.  */
   override def consume(n: Int): Unit = for (_ <- 0 until n) state.consume(data, endOffset)
 
-   /** We're not at the Eof */
-   override def nonEof: Boolean = state.nonEof
+  /** We're not at the Eof */
+  override def nonEof: Boolean = state.nonEof
 
-    /**
+  /**
     * Return the character `i` characters ahead of the current position, (or LexerInput#Eof if the EoF was reached).
     */
   override def lookAhead(i: Int): Int = {
@@ -78,6 +77,20 @@ class CharSequenceLexerInput(val data: CharSequence = "",
 
 object CharSequenceLexerInput {
 
+  def apply(data: CharSequence = "",
+            startOffset: Int = 0,
+            endOffset: Int = IntMax,
+            sourceName: String = ""): CharSequenceLexerInput =
+    new CharSequenceLexerInput(data, startOffset, Math.min(data.length(), endOffset), sourceName)
+
+  def apply(file: File): CharSequenceLexerInput = {
+    val fis    = new InputStreamReader(new FileInputStream(file), "UTF-8")
+    val data   = new Array[Char](file.length.toInt)
+    val length = fis.read(data)
+    fis.close()
+    new CharSequenceLexerInput(data, 0, length, file.getName)
+  }
+
   case class InputState(var column: Int = 0,
                         var line: Int = 1,
                         var offset: Int = 0,
@@ -85,7 +98,7 @@ object CharSequenceLexerInput {
                         var current: Int = EofChar)
       extends Mark {
 
-    private[CharSequenceLexerInput] def nonEof = current != EofChar
+    private[CharSequenceLexerInput] def nonEof                    = current != EofChar
     private[CharSequenceLexerInput] def position: (Int, Int, Int) = (line, column, offset)
 
     /** Consume and advance to the next code point.  */
@@ -93,7 +106,8 @@ object CharSequenceLexerInput {
       if (current == '\n') {
         column = 0
         line += 1
-      } else column += nextOffset - offset
+      }
+      else column += nextOffset - offset
       offset = nextOffset
       if (offset >= endOffset) {
         current = EofChar

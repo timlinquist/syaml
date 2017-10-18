@@ -34,9 +34,9 @@ class ParseAndDumpTokensTest extends FunSuite with Matchers {
       writer println s"$n tokens dumped."
       writer.close()
 
-      val deltas = Diff.ignoreAllSpace.diff(ytsFile, goldenFile)
-
-      assert(deltas.isEmpty, s"diff -y -W 150 $ytsFile $goldenFile\n\n${deltas.mkString}")
+      if (!goldenFile.exists()) goldenFile.createNewFile()
+          val deltas = Diff.ignoreAllSpace.diff(ytsFile, goldenFile)
+          assert(deltas.isEmpty, s"diff -y -W 150 $ytsFile $goldenFile\n\n${deltas.mkString}")
 
     }
   }
