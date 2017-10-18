@@ -118,7 +118,38 @@ class YamlBuilderTest extends FunSuite with Matchers {
     o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List("One", "Two")
 
   }
+  test("Build Map mix styles") {
+    val doc = YDocument { b =>
+      b comment "A Map"
+      b map { b =>
+        b.aString = "Value1"
+        b.anInt = 120
+        b.aList = YSequence(1, 2)
+        b.aMap = obj(
+            One = 1,
+            Two = 2
+        )
+        b.complexEntry(_.list { b =>
+          b.scalar("a")
+          b.scalar("b")
+        }, _.list { b =>
+          b.scalar(1)
+          b.scalar(2)
+        })
+      }
+    }
 
+    val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
+    types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
+
+    doc.obj.anInt.as[Int] shouldBe 120
+    val m = doc.obj.aMap
+    m("One").as[Int] shouldBe 1
+    m("Two").as[Int] shouldBe 2
+    doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
+
+    doc.obj(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
+  }
   test("References") {
     val node = YNode(YScalar("Value1"), YType.Str, YAnchor("id1"))
 

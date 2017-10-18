@@ -6,9 +6,9 @@ import org.yaml.model._
 import org.mulesoft.common.core._
 
 /**
-  * A Dumper to Yam 1.2 expanded Format
+  * A Render to Yam 1.2 expanded Format
   */
-class Yaml12Dumper(val parts: Seq[YPart], output: Writer) {
+class Yaml12Render(val parts: Seq[YPart], output: Writer) {
   def this(doc: YDocument, output: Writer) = this(List(doc), output)
 
   var indentation = 2

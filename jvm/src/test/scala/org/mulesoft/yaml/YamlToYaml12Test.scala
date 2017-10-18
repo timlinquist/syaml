@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import java.io.{File, FileWriter}
 
 import org.mulesoft.common.ext.Diff
-import org.mulesoft.yaml.dumper.Yaml12Dumper
+import org.mulesoft.yaml.dumper.Yaml12Render
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model.YPart
 import org.yaml.parser.YamlParser
@@ -38,7 +38,7 @@ object YamlToYaml12 {
     val goldenFile = new File(goldenDir, target)
 
     val elements: IndexedSeq[YPart] = YamlParser(yamlFile).parse()
-    new Yaml12Dumper(elements, new FileWriter(yaml12File)).dump()
+    new Yaml12Render(elements, new FileWriter(yaml12File)).dump()
 
     val deltas = Diff.ignoreAllSpace.diff(yaml12File, goldenFile)
 

@@ -4,6 +4,7 @@ import org.yaml.convert.YRead
 import org.yaml.parser.YamlParser
 
 import scala.collection.mutable.ArrayBuffer
+import scala.language.dynamics
 
 /**
   * A Yaml Document
@@ -73,8 +74,8 @@ object YDocument {
 
   }
 
-  class EntryBuilder extends BaseBuilder {
-    def complexEntry(kf: PartBuilder => Unit, vf: PartBuilder => Unit): Unit = {
+  class EntryBuilder extends BaseBuilder with Dynamic {
+    final def complexEntry(kf: PartBuilder => Unit, vf: PartBuilder => Unit): Unit = {
       val k = new PartBuilder
       kf(k)
       val v = new PartBuilder
@@ -82,13 +83,15 @@ object YDocument {
       addEntry(k.builder(0), v.builder(0))
     }
 
-    def entry(key: YNode, vf: PartBuilder => Unit): Unit = {
+    final def entry(key: YNode, vf: PartBuilder => Unit): Unit = {
       val v = new PartBuilder
       vf(v)
       addEntry(key, v.builder(0))
     }
 
-    def entry(key: YNode, value: YNode): Unit = addEntry(key, value)
+    final def entry(key: YNode, value: YNode): Unit = addEntry(key, value)
+
+    final def updateDynamic(name: String)(value: YNode): Unit = addEntry(YNode(name), value)
 
     private def addEntry(k: YPart, v: YPart): Unit = {
       builder += YMapEntry(Array(k, v))
