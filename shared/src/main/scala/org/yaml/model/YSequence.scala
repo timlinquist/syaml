@@ -5,10 +5,13 @@ import scala.collection.GenSeq
 /**
   * A Yaml Sequence
   */
-class YSequence private(c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
+class YSequence private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
 
   /** The Sequence nodes */
   val nodes: IndexedSeq[YNode] = c.collect { case a: YNode => a }.toArray[YNode]
+
+  /** Returns true if the Sequence does not have any node */
+  def isEmpty: Boolean = nodes.isEmpty
 
   @deprecated("Work with nodes", since = "0.0.2")
   def values: IndexedSeq[YValue] = nodes.map(_.value)
@@ -27,5 +30,5 @@ class YSequence private(c: IndexedSeq[YPart]) extends YAggregate(c) with YValue 
 object YSequence {
   val empty                                  = new YSequence(IndexedSeq.empty)
   def apply(c: IndexedSeq[YPart]): YSequence = new YSequence(c)
-  def apply(elems: YNode*): YSequence     = new YSequence(elems.toArray[YNode])
+  def apply(elems: YNode*): YSequence        = new YSequence(elems.toArray[YNode])
 }

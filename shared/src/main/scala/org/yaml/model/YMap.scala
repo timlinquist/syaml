@@ -18,6 +18,9 @@ class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
     b.result
   }
 
+  /** Returns true if the map is empty */
+  def isEmpty:Boolean = entries.isEmpty
+
   override def hashCode(): Int = entries.hashCode
 
   override def equals(obj: scala.Any): Boolean = obj match {

@@ -103,14 +103,13 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
   }
 
   private def string() = {
+    var hasText  = false
+    def emitText() = if (hasText) { emit(Text); hasText = false }
+
     nodeStart(BeginScalar)
-    var hasText = false
     while (currentChar != '"') {
       if (currentChar == '\\') {
-        if (hasText) {
-          emit(Text)
-          hasText = false
-        }
+        emitText()
         emit(BeginEscape)
         consumeAndEmit(Indicator)
         consumeAndEmit(MetaText)
@@ -121,7 +120,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
         consume()
       }
     }
-    if (hasText) emit(Text)
+    emitText()
     nodeEnd(EndScalar)
   }
 
