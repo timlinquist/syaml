@@ -1,0 +1,19 @@
+[
+  [
+    {
+      "YAML": "separate"
+    }
+  ],
+  [
+    {
+      null: "empty key entry"
+    }
+  ],
+  [
+    {
+      {
+        "JSON": "like"
+      }: "adjacent"
+    }
+  ]
+]

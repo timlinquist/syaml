@@ -1,0 +1,6 @@
+[
+  "Item 1",
+  "Item 2",
+  "Item 3 with some more text",
+  "A Block Literal\n  # This is not a comment\nAnd : this is not a map\n"
+]

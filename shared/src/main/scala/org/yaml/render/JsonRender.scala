@@ -57,7 +57,7 @@ class JsonRender private () {
 
   private def renderScalar(t: YType, scalar: YScalar): Unit =
     t match {
-      case Int | Float | Bool => render(scalar.text)
+      case Int | Float | Bool => render(scalar.value.toString)
       case Null               => render("null")
       case _                  => render('"' + scalar.text.encode + '"')
     }
