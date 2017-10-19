@@ -26,6 +26,7 @@ lazy val syaml = crossProject
   )
   .jsSettings(
     // JS-specific settings here
+    libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"
   )
 
 lazy val syamlJVM = syaml.jvm
