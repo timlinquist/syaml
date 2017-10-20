@@ -31,6 +31,9 @@ final class YNode(val value: YValue, val tag: YTag, val ref: Option[YReference],
     case _                => throw new IllegalStateException("Node does not have an Anchor")
   }
 
+  /** Create a new node with an anchor */
+  def anchor(name: String): YNode = YNode(value, tagType, YAnchor(name))
+
   override def obj: YObj                                             = YSuccess(this)
   override protected def thisNode: YNode = this
 }
@@ -60,6 +63,7 @@ object YNode {
   implicit def toInt(node: YNode): Int           = node.as[Int]
   implicit def toBoolean(node: YNode): Boolean   = node.as[Boolean]
   implicit def toDouble(node: YNode): Double     = node.as[Double]
+
   implicit def fromString(str: String): YNode    = YNode(str)
   implicit def fromInt(int: Int): YNode          = YNode(int)
   implicit def fromBool(bool: Boolean): YNode    = YNode(bool)

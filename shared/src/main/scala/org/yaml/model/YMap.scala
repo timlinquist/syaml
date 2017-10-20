@@ -19,13 +19,13 @@ class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
   }
 
   /** Returns true if the map is empty */
-  def isEmpty:Boolean = entries.isEmpty
+  def isEmpty: Boolean = entries.isEmpty
 
   override def hashCode(): Int = entries.hashCode
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case m: YMap      =>
-        entries.equals(m.entries)
+    case m: YMap =>
+      entries.equals(m.entries)
     case m: Map[_, _] => map.equals(m)
     case s: GenSeq[_] => entries.equals(s)
     case _            => false
@@ -35,22 +35,9 @@ class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
 }
 
 object YMap {
-    def apply(c: IndexedSeq[YPart]): YMap = new YMap(c)
-
-    def apply(elems: YMapEntry*): YMap =
-        YMap(elems.toArray)
-
-    val empty = YMap(IndexedSeq.empty)
-
-    /** Build using dynamic when all keys are Strings */
-    object obj  extends Dynamic {
-       def applyDynamicNamed(method: String)(args: (String, YNode)*):YMap = method match {
-            case "apply" =>
-                val a = args map { t => YMapEntry(t._1, t._2) }
-                new YMap(a.toArray[YPart])
-        }
-    }
-
+  def apply(c: IndexedSeq[YPart]): YMap = new YMap(c)
+  def apply(elems: YMapEntry*): YMap    = YMap(elems.toArray)
+  val empty                             = YMap(IndexedSeq.empty)
 }
 
 class YMapEntry private (val key: YNode, val value: YNode, children_ : IndexedSeq[YPart])
@@ -58,12 +45,12 @@ class YMapEntry private (val key: YNode, val value: YNode, children_ : IndexedSe
 
   override def hashCode(): Int = key.hashCode * 31 + value.hashCode
 
-    override def equals(obj: Any): Boolean = obj match {
-        case e : YMapEntry => key == e.key && value == e.value
-        case _ => false
-    }
+  override def equals(obj: Any): Boolean = obj match {
+    case e: YMapEntry => key == e.key && value == e.value
+    case _            => false
+  }
 
-    override def toString: String = key + ": " + value
+  override def toString: String = key + ": " + value
 }
 
 object YMapEntry {

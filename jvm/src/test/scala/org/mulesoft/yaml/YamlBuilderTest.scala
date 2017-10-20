@@ -1,7 +1,7 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
-import org.yaml.model.YMap.obj
+import org.yaml.model.YDocument.{obj, list}
 import org.yaml.model.YType._
 import org.yaml.model._
 
@@ -11,7 +11,7 @@ import org.yaml.model._
 class YamlBuilderTest extends FunSuite with Matchers {
 
   test("Build Simple Scalar") {
-    val doc1 = YDocument(_.scalar("A Document"))
+    val doc1 = YDocument(_ += "A Document")
     doc1.tagType shouldBe Str
     val s: String = doc1.node
     s shouldBe "A Document"
@@ -19,25 +19,31 @@ class YamlBuilderTest extends FunSuite with Matchers {
 
     val doc2 = YDocument { b =>
       b comment "A Comment"
-      b scalar 100
+      b += 100
     }
     doc2.headComment shouldBe "A Comment"
     doc2.tagType shouldBe Int
     doc2.node.as[Int] shouldBe 100
 
-    // Short way when you don;t need a Builder
-    val doc3 = YDocument(headComment = "Example", mainNode = 100)
-    doc3.headComment shouldBe "Example"
+    // Or
+    val doc3 = YDocument("A Comment") {
+      _ += 100
+    }
+    doc3.headComment shouldBe "A Comment"
+    doc3.tagType shouldBe Int
     doc3.node.as[Int] shouldBe 100
+
+    // Short way when you don;t need a Builder
+    val doc4 = YDocument("Example")(100)
+    doc4.headComment shouldBe "Example"
+    doc4.node.as[Int] shouldBe 100
   }
 
   test("Build Simple List") {
-    val doc = YDocument {
-      _.list { b =>
-        b.scalar("Line 1")
-        b.scalar("Line 2")
-        b.scalar(true)
-      }
+    val doc = YDocument.list { b =>
+      b += "Line 1"
+      b += "Line 2"
+      b += true
     }
     doc.tagType shouldBe Seq
     val seq = doc.node.as[Seq[YNode]]
@@ -46,32 +52,50 @@ class YamlBuilderTest extends FunSuite with Matchers {
     doc.obj(2).as[Boolean] shouldBe true
 
     // Short way when you don't need a Builder
-    val doc2 = YDocument("", YSequence("Line 1", "Line 2", true))
+    val doc2:YDocument = list("Line 1", "Line 2", true)
     doc shouldBe doc2
-
   }
-  test("Build Map") {
-    val doc = YDocument { b =>
-      b comment "A Map"
-      b map { b =>
-        b.complexEntry(_.scalar("aString"), _.scalar("Value1"))
-        b.entry("anInt", 120)
-        b.entry("aList", _.list { b =>
-          b.scalar(1)
-          b.scalar(2)
-        })
-        b.entry("aMap", _.map { b =>
-          b.entry("One", 1)
-          b.entry("Two", 2)
-        })
-        b.complexEntry(_.list { b =>
-          b.scalar("a")
-          b.scalar("b")
-        }, _.list { b =>
-          b.scalar(1)
-          b.scalar(2)
-        })
+
+  test("Build Nested List") {
+    val doc = YDocument("Nested list").list { b =>
+      b += "Line 1"
+      b += "Line 2"
+      b += true
+      b.list { b =>
+        b += "A"
+        b += "B"
       }
+    }
+    doc.tagType shouldBe Seq
+    val seq = doc.node.as[Seq[YNode]]
+    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool, YType.Seq)
+
+    doc.obj(3).as[List[String]] shouldBe List("A", "B")
+
+    // Short way when you don't need a Builder
+    val doc2:YDocument = YDocument("Nested list").list("Line 1", "Line 2", true, list("A", "B"))
+    doc shouldBe doc2
+  }
+
+  test("Build Object") {
+    val doc = YDocument("An Object").objFromBuilder { b =>
+      b.complexEntry(_ += "aString", _ += "Value1")
+      b.entry("anInt", 120)
+      b.entry("aList", _.list { b =>
+        b += 1
+        b += 2
+      })
+      b.entry("aMap", _.obj { b =>
+        b.entry("One", 1)
+        b.entry("Two", 2)
+      })
+      b.complexEntry(_.list { b =>
+        b += "a"
+        b += "b"
+      }, _.list { b =>
+        b += 1
+        b += 2
+      })
     }
 
     val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
@@ -86,29 +110,12 @@ class YamlBuilderTest extends FunSuite with Matchers {
     doc.obj(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
     // Short way when you don't need a Builder
-    val doc2 = YDocument(
-        "A Map",
-        YMap(
-            YMapEntry("aString", "Value1"),
-            YMapEntry("anInt", 120),
-            YMapEntry("aList", YSequence(1, 2)),
-            YMapEntry("aMap", YMap(YMapEntry("One", 1), YMapEntry("Two", 2))),
-            YMapEntry(YSequence("a", "b"), YSequence(1, 2))
-        )
-    )
-
-    doc2 shouldBe doc
-
-    // Nicer using dynamic when keys are String
-    val doc3 = YDocument(
-        "A Map",
-        obj(
-            aString = "Value1",
-            anInt = 120,
-            aList = YSequence(1, 2, 100),
-            anotherList = YSequence("One", "Two"),
-            aMap = obj(one = 1, two = 2)
-        )
+    val doc3 = YDocument("An Object").obj(
+        aString = "Value1",
+        anInt = 120,
+        aList = list(1, 2, 100),
+        anotherList = list("One", "Two"),
+        aMap = obj(one = 1, two = 2)
     )
 
     val o = doc3.obj
@@ -119,24 +126,15 @@ class YamlBuilderTest extends FunSuite with Matchers {
 
   }
   test("Build Map mix styles") {
-    val doc = YDocument { b =>
-      b comment "A Map"
-      b map { b =>
-        b.aString = "Value1"
-        b.anInt = 120
-        b.aList = YSequence(1, 2)
-        b.aMap = obj(
-            One = 1,
-            Two = 2
-        )
-        b.complexEntry(_.list { b =>
-          b.scalar("a")
-          b.scalar("b")
-        }, _.list { b =>
-          b.scalar(1)
-          b.scalar(2)
-        })
-      }
+    val doc = YDocument("A Map").objFromBuilder { b =>
+      b.aString = "Value1"
+      b.anInt = 120
+      b.aList = list(1, 2)
+      b.aMap = obj(
+          One = 1,
+          Two = 2
+      )
+      b.entry(list("a", "b"), list(1, 2))
     }
 
     val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
@@ -150,16 +148,14 @@ class YamlBuilderTest extends FunSuite with Matchers {
 
     doc.obj(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
   }
-  test("References") {
-    val node = YNode(YScalar("Value1"), YType.Str, YAnchor("id1"))
 
-    val doc = YDocument(
-        "A Map with references",
-        obj(
-            a = node,
-            b = 120,
-            c = node.alias()
-        )
+  test("References") {
+    val node = YNode("Value1").anchor("001")
+
+    val doc = YDocument("A Map with references").obj(
+        a = node,
+        b = 120,
+        c = node.alias()
     )
 
     doc.obj.c.as[String] shouldBe "Value1"
