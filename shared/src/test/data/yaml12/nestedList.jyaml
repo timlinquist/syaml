@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!seq [
+  !!seq [
+    !!str "A1",
+    !!str "A2"
+  ],
+  !!seq [
+    !!str "B1 First Line\nB1 Second Line\n",
+    !!str "B2"
+  ]
+]

@@ -1,0 +1,13 @@
+%YAML 1.2
+---
+!!map {
+  ? !!null "null"
+  : !!null "null",
+  ? !!str "booleans"
+  : !!seq [
+    !!bool "true",
+    !!bool "false"
+  ],
+  ? !!str "string"
+  : !!str "012345"
+}

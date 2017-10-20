@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "Mark McGwire"
+  : !!null "null",
+  ? !!str "Sammy Sosa"
+  : !!null "null",
+  ? !!str "Ken Griff"
+  : !!null "null"
+}

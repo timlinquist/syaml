@@ -1,0 +1,16 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "american"
+  : !!seq [
+    !!str "Boston Red Sox",
+    !!str "Detroit Tigers",
+    !!str "New York Yankees"
+  ],
+  ? !!str "national"
+  : !!seq [
+    !!str "New York Mets",
+    !!str "Chicago Cubs",
+    !!str "Atlanta Braves"
+  ]
+}

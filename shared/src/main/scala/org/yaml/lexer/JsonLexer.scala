@@ -112,6 +112,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
         emitText()
         emit(BeginEscape)
         consumeAndEmit(Indicator)
+        if (currentChar.toChar.toUpper == 'U') consume(4)
         consumeAndEmit(MetaText)
         emit(EndEscape)
       }

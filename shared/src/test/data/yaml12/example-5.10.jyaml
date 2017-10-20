@@ -1,0 +1,8 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "commercial-at"
+  : !!null "null",
+  ? !!str "grave-accent"
+  : !!null "null"
+}

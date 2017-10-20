@@ -1,0 +1,22 @@
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "item"
+    : !!str "Super Hoop",
+    ? !!str "quantity"
+    : !!int "1"
+  },
+  !!map {
+    ? !!str "item"
+    : !!str "Basketball",
+    ? !!str "quantity"
+    : !!int "4"
+  },
+  !!map {
+    ? !!str "item"
+    : !!str "Big Shoes",
+    ? !!str "quantity"
+    : !!int "1"
+  }
+]

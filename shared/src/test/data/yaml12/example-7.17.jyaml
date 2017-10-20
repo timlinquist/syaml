@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "unquoted"
+  : !!str "separate",
+  ? !!str "http://foo.com"
+  : !!null "null",
+  ? !!str "omitted value"
+  : !!null "null",
+  ? !!null "null"
+  : !!str "omitted key"
+}

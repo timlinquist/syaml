@@ -1,0 +1,20 @@
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "name"
+    : !!str "Mark McGwire",
+    ? !!str "hr"
+    : !!int "65",
+    ? !!str "avg"
+    : !!float "0.278"
+  },
+  !!map {
+    ? !!str "name"
+    : !!str "Sammy Sosa",
+    ? !!str "hr"
+    : !!int "63",
+    ? !!str "avg"
+    : !!float "0.288"
+  }
+]

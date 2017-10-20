@@ -14,7 +14,7 @@
     ? !!str "address"
     : !!map {
       ? !!str "lines"
-      : !!str "458 Walkman Dr.\nSuite #292",
+      : !!str "458 Walkman Dr.\nSuite #292\n",
       ? !!str "city"
       : !!str "Royal Oak",
       ? !!str "state"
@@ -32,7 +32,7 @@
     ? !!str "address"
     : !!map {
       ? !!str "lines"
-      : !!str "458 Walkman Dr.\nSuite #292",
+      : !!str "458 Walkman Dr.\nSuite #292\n",
       ? !!str "city"
       : !!str "Royal Oak",
       ? !!str "state"
@@ -51,7 +51,7 @@
       ? !!str "description"
       : !!str "Basketball",
       ? !!str "price"
-      : !!float "450.00"
+      : !!float "450.0"
     },
     !!map {
       ? !!str "sku"
@@ -61,7 +61,7 @@
       ? !!str "description"
       : !!str "Super Hoop",
       ? !!str "price"
-      : !!float "2392.00"
+      : !!float "2392.0"
     }
   ],
   ? !!str "tax"

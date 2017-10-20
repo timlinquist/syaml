@@ -1,0 +1,49 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "Time"
+  : !!timestamp "2001-11-23 15:01:42 -5",
+  ? !!str "User"
+  : !!str "ed",
+  ? !!str "Warning"
+  : !!str "This is an error message for the log file"
+}
+%YAML 1.2
+---
+!!map {
+  ? !!str "Time"
+  : !!timestamp "2001-11-23 15:02:31 -5",
+  ? !!str "User"
+  : !!str "ed",
+  ? !!str "Warning"
+  : !!str "A slightly different error message."
+}
+%YAML 1.2
+---
+!!map {
+  ? !!str "Date"
+  : !!timestamp "2001-11-23 15:03:17 -5",
+  ? !!str "User"
+  : !!str "ed",
+  ? !!str "Fatal"
+  : !!str "Unknown variable \"bar\"",
+  ? !!str "Stack"
+  : !!seq [
+    !!map {
+      ? !!str "file"
+      : !!str "TopClass.py",
+      ? !!str "line"
+      : !!int "23",
+      ? !!str "code"
+      : !!str "x = MoreObject(\"345\\n\")\n"
+    },
+    !!map {
+      ? !!str "file"
+      : !!str "MoreClass.py",
+      ? !!str "line"
+      : !!int "58",
+      ? !!str "code"
+      : !!str "foo = bar"
+    }
+  ]
+}

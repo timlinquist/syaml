@@ -6,7 +6,7 @@ import org.mulesoft.common.ext.Diff
 import org.mulesoft.yaml.dumper.Yaml12Render
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model.YPart
-import org.yaml.parser.YamlParser
+import org.yaml.parser.{JsonParser, YamlParser}
 import org.mulesoft.common.core._
 
 /**
@@ -32,12 +32,12 @@ class YamlToYaml12Test extends FunSuite with Matchers {
 object YamlToYaml12 {
   def test(src: String, yamlDir: File, modelDir: File, goldenDir: File): Unit = {
     val yamlFile   = new File(yamlDir, src)
-    val target     = if (src endsWith "json") src.replaceExtension("jyaml") else src
-    val yaml12File = new File(modelDir, target
-    )
+    val json       = src endsWith "json"
+    val target     = if (json) src.replaceExtension("jyaml") else src
+    val yaml12File = new File(modelDir, target)
     val goldenFile = new File(goldenDir, target)
 
-    val elements: IndexedSeq[YPart] = YamlParser(yamlFile).parse()
+    val elements: IndexedSeq[YPart] = (if (json) JsonParser(yamlFile) else YamlParser(yamlFile)).parse()
     new Yaml12Render(elements, new FileWriter(yaml12File)).dump()
 
     val deltas = Diff.ignoreAllSpace.diff(yaml12File, goldenFile)

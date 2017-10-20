@@ -1,0 +1,18 @@
+%YAML 1.2
+---
+!!seq [
+  !!seq [
+    !!str "A1",
+    !!str "A2"
+  ],
+  !!seq [
+    !!seq [
+      !!str "B11",
+      !!null "null",
+      !!str "B12"
+    ],
+    !!seq [
+      !!str "B21"
+    ]
+  ]
+]

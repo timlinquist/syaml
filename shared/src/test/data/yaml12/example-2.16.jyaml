@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "name"
+  : !!str "Mark McGwire",
+  ? !!str "accomplishment"
+  : !!str "Mark set a major league home run record in 1998.\n",
+  ? !!str "stats"
+  : !!str "65 Home Runs\n0.278 Batting Average\n"
+}

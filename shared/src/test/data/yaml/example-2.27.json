@@ -5,7 +5,7 @@
     "given"  : "Chris",
     "family" : "Dumars",
     "address": {
-      "lines": "458 Walkman Dr.\nSuite #292",
+      "lines": "458 Walkman Dr.\nSuite #292\n",
       "city": "Royal Oak",
       "state": "MI",
       "postal": 48046
@@ -15,7 +15,7 @@
     "given": "Chris",
     "family": "Dumars",
     "address": {
-      "lines": "458 Walkman Dr.\nSuite #292",
+      "lines": "458 Walkman Dr.\nSuite #292\n",
       "city": "Royal Oak",
       "state": "MI",
       "postal": 48046
@@ -26,13 +26,13 @@
       "sku": "BL394D",
       "quantity": 4,
       "description": "Basketball",
-      "price": 450.00
+      "price": 450.0
     },
     {
       "sku": "BL4438H",
       "quantity": 1,
       "description": "Super Hoop",
-      "price": 2392.00
+      "price": 2392.0
     }
   ],
   "tax": 251.42,

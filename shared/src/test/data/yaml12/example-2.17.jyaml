@@ -1,0 +1,16 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "unicode"
+  : !!str "Sosa did fine.\u263A",
+  ? !!str "control"
+  : !!str "\b1998\t1999\t2000\n",
+  ? !!str "hex esc"
+  : !!str "\r\n is \r\n",
+  ? !!str "single"
+  : !!str "\"Howdy!\" he cried.",
+  ? !!str "quoted"
+  : !!str " # Not a 'comment'.",
+  ? !!str "tie-fighter"
+  : !!str "|\\-*-/|"
+}

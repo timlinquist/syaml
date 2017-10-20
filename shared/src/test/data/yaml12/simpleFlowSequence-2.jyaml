@@ -1,0 +1,7 @@
+%YAML 1.2
+---
+!!seq [
+  !!str "Hello",
+  !!str "Nice",
+  !!str "World"
+]

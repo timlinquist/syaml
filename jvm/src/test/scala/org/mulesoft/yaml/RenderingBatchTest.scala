@@ -58,6 +58,8 @@ class RenderingBatchTest extends FunSuite with Matchers {
         generateJson(yamlFile,jsonOutput)
           val deltas = Diff.ignoreAllSpace.diff(jsonOutput, jsonGoldenFile)
           assert(deltas.isEmpty, s"diff -y -W 150 $jsonOutput $jsonGoldenFile\n\n${deltas.mkString}")
+          // Now convert the generated one to yaml12 to check that semantic is preserved
+          YamlToYaml12.test(yaml.replaceExtension("json"), modelDir, modelDir2, yaml12GoldenDir)
 
       }
     }

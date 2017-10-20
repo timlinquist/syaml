@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "First occurrence"
+  : !!str "Foo",
+  ? !!str "Second occurrence"
+  : !!str "Foo",
+  ? !!str "Override anchor"
+  : !!str "Bar",
+  ? !!str "Reuse anchor"
+  : !!str "Bar"
+}

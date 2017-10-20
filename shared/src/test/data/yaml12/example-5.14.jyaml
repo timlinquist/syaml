@@ -1,0 +1,6 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "Bad escapes"
+  : !!str "\\ \\x"
+}

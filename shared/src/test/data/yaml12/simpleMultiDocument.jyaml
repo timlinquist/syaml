@@ -1,0 +1,6 @@
+%YAML 1.2
+---
+!!str "Hello"
+%YAML 1.2
+---
+!!str "Good Bye"

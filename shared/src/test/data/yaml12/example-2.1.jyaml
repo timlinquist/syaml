@@ -1,0 +1,7 @@
+%YAML 1.2
+---
+!!seq [
+  !!str "Mark McGwire",
+  !!str "Sammy Sosa",
+  !!str "Ken Griffey"
+]

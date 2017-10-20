@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "canonical"
+  : !!int "12345",
+  ? !!str "decimal"
+  : !!int "12345",
+  ? !!str "octal"
+  : !!int "12",
+  ? !!str "hexadecimal"
+  : !!int "12"
+}

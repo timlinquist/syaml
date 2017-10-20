@@ -1,0 +1,14 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "canonical"
+  : !!float "1.23015e+3",
+  ? !!str "exponential"
+  : !!float "12.3015e+02",
+  ? !!str "fixed"
+  : !!float "1230.15",
+  ? !!str "negative infinity"
+  : !!float "-.inf",
+  ? !!str "not a number"
+  : !!float ".NaN"
+}
