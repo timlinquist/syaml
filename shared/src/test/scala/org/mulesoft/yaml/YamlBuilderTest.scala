@@ -1,7 +1,7 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
-import org.yaml.model.YDocument.{obj, list}
+import org.yaml.model.YDocument.{list, obj}
 import org.yaml.model.YType._
 import org.yaml.model._
 

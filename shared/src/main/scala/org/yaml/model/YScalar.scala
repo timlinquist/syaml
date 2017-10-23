@@ -2,8 +2,9 @@ package org.yaml.model
 
 import java.lang.Long.parseLong
 
-import org.mulesoft.common.core.{DateTimeOps, Strings}
+import org.mulesoft.common.core.Strings
 import org.yaml.model.YType.{Bool, Empty, Float, Int, Str, Timestamp, Unknown, Null => tNull}
+import org.yaml.remote.PlatformOps.platform
 
 import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 
@@ -60,7 +61,7 @@ object YScalar {
             case floatRegex() if typeIs(tt, Float)                        => (text.toDouble, Float)
             case infinity(s) if typeIs(tt, Float)                         => (if (s == "-") NegInf else Inf, Float)
             case ".nan" | ".NaN" | ".NAN" if typeIs(tt, Float)            => (NaN, Float)
-            case DateTimeOps(dateTime) if typeIs(tt, Timestamp)           => (dateTime, Timestamp)
+            case platform.dateTimeOps(dateTime) if typeIs(tt, Timestamp)  => (dateTime, Timestamp)
             case _ if tt == Unknown                                       => (text, Str)
             case _ =>
               if (tt == tNull || tt == Bool || tt == Int || tt == Float || tt == Timestamp) error = Some(tt)

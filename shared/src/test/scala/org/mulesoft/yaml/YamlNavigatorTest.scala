@@ -1,8 +1,7 @@
 package org.mulesoft.yaml
 
-import java.time.{Instant, ZonedDateTime}
-
 import org.scalatest.{FunSuite, Matchers}
+import org.yaml.convert.YRead.DoubleYRead
 import org.yaml.model.YDocument._
 import org.yaml.model._
 
@@ -94,19 +93,5 @@ class YamlNavigatorTest extends FunSuite with Matchers {
     an[YException] should be thrownBy {
       doc.obj(1).as[Long](range) shouldBe 1
     }
-  }
-  test("Scalar Types") {
-    val doc2 = YDocument.parseYaml("""
-              | - 123456789012345678
-              | - 2001-01-01 10:00:00
-            """.stripMargin)
-
-    doc2.obj(0).as[Long] shouldBe 123456789012345678L
-    doc2.obj(1).as[ZonedDateTime].toString shouldBe "2001-01-01T10:00Z"
-    doc2.obj(1).as[Instant].toEpochMilli shouldBe 978343200000L
-    val seq = doc2.obj.as[Seq[Any]]
-    seq should contain theSameElementsAs List(123456789012345678L, ZonedDateTime.parse("2001-01-01T10:00Z"))
-    val list = doc2.obj.as[List[Any]]
-    list should contain theSameElementsInOrderAs seq
   }
 }

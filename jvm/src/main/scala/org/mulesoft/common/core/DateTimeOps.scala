@@ -3,10 +3,12 @@ package org.mulesoft.common.core
 import java.lang.Integer.parseInt
 import java.time.{ZoneOffset, ZonedDateTime}
 
+import org.yaml.remote.PlatFormDateTimeOps
+
 /**
   * Some utility functions for DateTimes
   */
-object DateTimeOps {
+object DateTimeOps extends PlatFormDateTimeOps {
   private val timeRegex =
     """(?x)
           (\d{4})                  # year
@@ -32,9 +34,9 @@ object DateTimeOps {
 
   private def toInt(s: String): Int = if (s == null || s.isEmpty) 0 else parseInt(s)
 
-    /**
-      * Unapply Extractor
-      */
+  /**
+    * Unapply Extractor
+    */
   def unapply(arg: String): Option[ZonedDateTime] = toZonedDateTime(arg)
 
   /**
@@ -49,8 +51,8 @@ object DateTimeOps {
       val om    = toInt(offsetMinutes)
       val zo    = ZoneOffset.ofHoursMinutes(oh, if (oh < 0) -om else om)
       Some(
-          ZonedDateTime
-            .of(toInt(year), toInt(month), toInt(day), toInt(hours), toInt(minutes), toInt(seconds), nanos, zo))
+        ZonedDateTime
+          .of(toInt(year), toInt(month), toInt(day), toInt(hours), toInt(minutes), toInt(seconds), nanos, zo))
     case _ =>
       None
 

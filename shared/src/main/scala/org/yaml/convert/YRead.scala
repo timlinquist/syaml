@@ -1,7 +1,5 @@
 package org.yaml.convert
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-
 import org.yaml.convert.YRead.error
 import org.yaml.model._
 
@@ -44,9 +42,11 @@ abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
     if (tagType != expectedType) return error(node, s"Expecting $expectedType and $tagType provided")
     if (!node.value.isInstanceOf[YScalar]) return error(node, "Not an Scalar")
     val v = node.value.asInstanceOf[YScalar].value
-    if (!clazz.isInstance(v))
-      return error(node, s"Expecting ${clazz.getSimpleName} and ${v.getClass.getSimpleName} provided")
-    Right(v.asInstanceOf[T])
+    try {
+      Right(v.asInstanceOf[T])
+    } catch {
+      case e: ClassCastException => error(node, e.getMessage)
+    }
   }
 }
 
@@ -86,7 +86,7 @@ object YRead {
   /**
     * Deserializer for Double types.
     */
-  implicit object DoubleYRead extends ScalarYRead(YType.Float, 0.0)
+  implicit object DoubleYRead extends ScalarYRead[Double](YType.Float, 0.0)
 
   /**
     * Deserializer for Boolean types.
@@ -97,16 +97,6 @@ object YRead {
     * Deserializer for String types.
     */
   implicit object StringYRead extends ScalarYRead(YType.Str, "")
-
-  /**
-    * Deserializer for ZonedDateTime
-    */
-  implicit object ZDateTimeYRead extends ScalarYRead(YType.Timestamp, Epoch)
-  implicit object InstantYRead extends ScalarYRead(YType.Timestamp, Instant.EPOCH) {
-    override def read(node: YNode): Either[YError, Instant] = ZDateTimeYRead.read(node).map(_.toInstant)
-  }
-
-  private val Epoch = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
 
   /**
     * Deserializer for Collections
