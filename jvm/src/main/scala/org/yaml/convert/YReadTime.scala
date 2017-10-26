@@ -1,24 +1,27 @@
 package org.yaml.convert
 
-import java.time.{Instant, ZoneOffset, ZonedDateTime}
-
-import org.yaml.model.{YError, YNode, YType}
+import org.yaml.convert.YRead.TimeBaseYRead
 
 /**
   * Default time deserializer classes.
   */
 object YReadTime {
 
-  /**
-    * Deserializer for ZonedDateTime
-    */
-  implicit object ZDateTimeYRead extends ScalarYRead(YType.Timestamp, Epoch)
+  /** Deserializer for ZonedDateTime */
+  implicit object ZonedDateTimeYRead extends TimeBaseYRead(_.toZonedDateTime)
 
-  implicit object InstantYRead
-      extends ScalarYRead(YType.Timestamp, Instant.EPOCH) {
-    override def read(node: YNode): Either[YError, Instant] =
-      ZDateTimeYRead.read(node).map(_.toInstant)
-  }
+  /** Deserializer for Instant */
+  implicit object InstantYRead extends TimeBaseYRead(_.toInstant)
 
-  private val Epoch = ZonedDateTime.ofInstant(Instant.EPOCH, ZoneOffset.UTC)
+  /** Deserializer for LocalDateTime */
+  implicit object LocalDateTimeYRead extends TimeBaseYRead(_.toLocalDateTime)
+
+  /** Deserializer for LocalDate */
+  implicit object LocalDateYRead extends TimeBaseYRead(_.toLocalDate)
+
+  /** Deserializer for Date */
+  implicit object DateYRead extends TimeBaseYRead(_.toDate)
+
+  /** Deserializer for Calendar */
+  implicit object CalendarYRead extends TimeBaseYRead(_.toCalendar)
 }

@@ -232,11 +232,11 @@ object YamlRender {
 
     var oneLine   = true
     var allSpaces = true
-    var noTabs  = true
+    var noTabs    = true
     for (c <- text) {
       c match {
         case '\n'                  => oneLine = false
-        case '\t'            => noTabs = false
+        case '\t'                  => noTabs = false
         case '\r'                  => return QuotedScalar
         case _ if !isCPrintable(c) => return QuotedScalar
         case _                     => allSpaces = false

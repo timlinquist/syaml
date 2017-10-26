@@ -1,6 +1,8 @@
 package org.yaml.convert
 
+import org.mulesoft.common.time.SimpleDateTime
 import org.yaml.convert.YRead.error
+import org.yaml.model.YType.Timestamp
 import org.yaml.model._
 
 import scala.annotation.implicitNotFound
@@ -31,7 +33,6 @@ trait YRead[T] {
   *  A Generic implementation for scalar types
   */
 abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
-  private val clazz            = dv.getClass
   override def defaultValue: T = dv
 
   /**
@@ -97,6 +98,17 @@ object YRead {
     * Deserializer for String types.
     */
   implicit object StringYRead extends ScalarYRead(YType.Str, "")
+
+  /**
+    * Deserializer for SimpleDateTime
+    * For more native serializers take a look at YReadTime
+    */
+  implicit object DTYRead extends ScalarYRead(YType.Timestamp, SimpleDateTime.Epoch)
+
+  /** Base class for Time de-serializers */
+  abstract class TimeBaseYRead[T <: AnyRef](f: SimpleDateTime => T) extends ScalarYRead[T](Timestamp, null.asInstanceOf[T]) {
+    override def read(node: YNode): Either[YError, T] = DTYRead.read(node).map(f)
+  }
 
   /**
     * Deserializer for Collections

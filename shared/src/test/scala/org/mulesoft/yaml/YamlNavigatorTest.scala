@@ -1,5 +1,6 @@
 package org.mulesoft.yaml
 
+import org.mulesoft.common.time.SimpleDateTime
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.convert.YRead.DoubleYRead
 import org.yaml.model.YDocument._
@@ -93,5 +94,19 @@ class YamlNavigatorTest extends FunSuite with Matchers {
     an[YException] should be thrownBy {
       doc.obj(1).as[Long](range) shouldBe 1
     }
+  }
+  test("Scalar Types") {
+    val doc2 = YDocument.parseYaml("""
+                                         | - 123456789012345678
+                                         | - 2001-01-01 10:00:00
+                                       """.stripMargin)
+
+    doc2.obj(0).as[Long] shouldBe 123456789012345678L
+    val seq       = doc2.obj.as[Seq[Any]]
+    val maybeTime = SimpleDateTime.parse("2001-01-01T10:00")
+    val list1     = List(123456789012345678L, maybeTime.get)
+    seq should contain theSameElementsAs list1
+    val list = doc2.obj.as[List[Any]]
+    list should contain theSameElementsInOrderAs seq
   }
 }
