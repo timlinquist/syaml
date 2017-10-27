@@ -7,7 +7,7 @@ import org.yaml.render.{JsonRender, YamlRender}
 /**
   * Test Extractors and exception Handling
   */
-class RenderingTest extends FunSuite with Matchers {
+trait RenderingTest extends FunSuite with Matchers {
 
   test("Simple Document") {
     testDoc(

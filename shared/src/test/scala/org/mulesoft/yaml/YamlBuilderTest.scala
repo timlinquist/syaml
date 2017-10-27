@@ -8,7 +8,7 @@ import org.yaml.model._
 /**
   * Test Builders
   */
-class YamlBuilderTest extends FunSuite with Matchers {
+trait YamlBuilderTest extends FunSuite with Matchers {
 
   test("Build Simple Scalar") {
     val doc1 = YDocument(_ += "A Document")

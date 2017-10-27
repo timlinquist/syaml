@@ -1,6 +1,6 @@
 package org.mulesoft.yaml
 
-import java.util.{Date, GregorianCalendar}
+import java.util.Date
 
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.convert.YReadTime._

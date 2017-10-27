@@ -10,7 +10,7 @@ import org.yaml.model._
   * Test Extractors and exception Handling
   */
 //noinspection SpellCheckingInspection
-class YamlNavigatorTest extends FunSuite with Matchers {
+trait YamlNavigatorTest extends FunSuite with Matchers {
 
   val addressBase: YNode = obj(
       given = "Chris",
