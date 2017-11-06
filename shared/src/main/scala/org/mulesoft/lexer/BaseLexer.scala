@@ -2,12 +2,12 @@ package org.mulesoft.lexer
 
 import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
 
-import scala.collection.mutable.ListBuffer
+import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
 abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
   type TD = TokenData[T]
-  private val tokenBuffer = ListBuffer.empty[TD]
+  private val tokenQueue = new Queue[TD]
   private var mark        = input.position
 
   private var _tokenData: TokenData[T] = _
@@ -16,7 +16,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
   initialize()
 
   /** Check if there are emitted tokens */
-  def nonTokenEmitted: Boolean = tokenBuffer.isEmpty
+  def nonTokenEmitted: Boolean = tokenQueue.isEmpty
 
   /** Init must initialize the current _tokenData (may be invoking advance) */
   protected def initialize()
@@ -36,7 +36,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
   /** Emit a Token */
   @failfast def emit(token: T): Boolean = {
     val newMark = input.position
-    tokenBuffer += TokenData(token, InputRange(mark._1, mark._2, newMark._1, newMark._2), mark._3, newMark._3)
+    tokenQueue += TokenData(token, InputRange(mark._1, mark._2, newMark._1, newMark._2), mark._3, newMark._3)
     mark = newMark
     true
   }
@@ -63,7 +63,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
       }
       else processPending()
     }
-    _tokenData = tokenBuffer.remove(0)
+    _tokenData = tokenQueue.dequeue
   }
 
   protected final def currentChar: Int = input.current
@@ -151,11 +151,31 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
   protected def processPending(): Unit
 
   def restoreState(s: (Int, (Int, Int, Int), Mark)): Unit = {
-    tokenBuffer.remove(s._1, tokenBuffer.size - s._1)
+    tokenQueue.reduceTo(s._1)
     mark = s._2
     input.reset(s._3)
   }
 
   def saveState: (Int, (Int, Int, Int), Mark) =
-    (tokenBuffer.size, mark, input.createMark())
+    (tokenQueue.size, mark, input.createMark())
 }
+class Queue[T] {
+    private val buffer = ArrayBuffer.empty[T]
+    private var head = 0
+    private var tail = 0
+    def size:Int = tail - head
+    def +=(t : T): this.type = {
+        if (buffer.size <= tail) buffer.append(t)
+        else buffer(tail) = t
+        tail += 1
+        this
+    }
+    def reduceTo(newSize: Int): Unit = tail = head + newSize
+    def dequeue: T = {
+        head += 1
+        buffer(head-1)
+    }
+    def isEmpty: Boolean = tail <= head
+}
+
+
