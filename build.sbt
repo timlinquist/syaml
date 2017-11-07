@@ -2,7 +2,7 @@ name := "syaml"
 
 val settings = Common.settings ++ Seq(
   name := "syaml",
-  version := "0.0.5",
+  version := "0.0.6-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "org.scalactic" %%% "scalactic" % "3.0.1",
