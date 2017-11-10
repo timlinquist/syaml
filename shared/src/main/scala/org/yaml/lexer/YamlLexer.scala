@@ -1621,6 +1621,6 @@ object YamlLexer {
 
   def apply(): YamlLexer                  = new YamlLexer(CharSequenceLexerInput())
   def apply(input: LexerInput): YamlLexer = new YamlLexer(input)
-  def apply(s: String): YamlLexer         = new YamlLexer(CharSequenceLexerInput(s))
+  def apply(cs: CharSequence): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs))
   def apply(file: File): YamlLexer        = new YamlLexer(CharSequenceLexerInput(file))
 }

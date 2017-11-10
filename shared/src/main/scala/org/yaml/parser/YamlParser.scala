@@ -262,10 +262,10 @@ class YamlParser private[parser](val lexer: BaseLexer[YamlToken]) {
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
   def apply(file: File): YamlParser       = new YamlParser(YamlLexer(file))
-  def apply(s: String): YamlParser        = new YamlParser(YamlLexer(s))
+  def apply(s: CharSequence): YamlParser        = new YamlParser(YamlLexer(s))
 }
 
 object JsonParser {
     def apply(file: File): YamlParser       = new YamlParser(JsonLexer(file))
-    def apply(s: String): YamlParser        = new YamlParser(YamlLexer(s))
+    def apply(s: CharSequence): YamlParser        = new YamlParser(YamlLexer(s))
 }

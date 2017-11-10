@@ -99,8 +99,9 @@ class YamlRender() {
         render("?").render(key).renderNewLine().renderIndent().render(": ")
     }
 
-    // Capture comments before and after the value
-    val (before, tail) = e.children.dropWhile(_ != key).tail.span(_ != e.value)
+      // Capture comments before and after the value
+    val value = e.value
+    val (before, tail) = e.children.dropWhile(!_.eq(key)).tail.span(!_.eq(value))
     val after          = tail.tail
 
     // Render Before comments
@@ -109,7 +110,7 @@ class YamlRender() {
     dedent()
 
     // Render the value
-    render(e.value)
+    render(value)
 
     // Render after comments
     if (after.nonEmpty) {

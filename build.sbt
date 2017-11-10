@@ -1,3 +1,5 @@
+import org.scalajs.core.tools.linker.ModuleKind
+
 name := "syaml"
 
 val settings = Common.settings ++ Seq(
@@ -26,7 +28,7 @@ lazy val syaml = crossProject
   )
   .jsSettings(
     // JS-specific settings here
-    libraryDependencies += "org.scala-js" %%% "scalajs-java-time" % "0.2.2"
+      scalaJSModuleKind := ModuleKind.CommonJSModule
   )
 
 lazy val syamlJVM = syaml.jvm

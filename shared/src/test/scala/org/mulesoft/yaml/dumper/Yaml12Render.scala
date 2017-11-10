@@ -1,60 +1,50 @@
 package org.mulesoft.yaml.dumper
 
-import java.io.{PrintWriter, Writer}
-
-import org.yaml.model._
 import org.mulesoft.common.core._
+import org.yaml.model._
 
 /**
   * A Render to Yam 1.2 expanded Format
   */
-class Yaml12Render(val parts: Seq[YPart], output: Writer) {
-  def this(doc: YDocument, output: Writer) = this(List(doc), output)
+class Yaml12Render(val parts: Seq[YPart], output: StringBuilder) {
+  def this(doc: YDocument, output: StringBuilder) = this(List(doc), output)
 
   var indentation = 2
-
-  private val pw = output match {
-    case p: PrintWriter => p
-    case _              => new PrintWriter(output)
-  }
-
   private var indent = ""
 
   def dump(): Unit = {
     parts foreach {
       case doc: YDocument =>
-          pw println "%YAML 1.2"
-          pw println "---"
+          output append "%YAML 1.2\n"
+          output append  "---\n"
           dump(doc.node)
-          pw.println()
+          output append '\n'
       case _ =>
     }
-    pw.flush()
-    pw.close()
   }
 
   private def dump(node: YNode, mark: String = ""): Unit = {
-    pw print indent + mark
+    output append indent + mark
 
     node.ref match {
         case Some(a:YAlias) =>
-            pw print a
+            output append a
             return
         case Some(a:YAnchor) =>
             printTag(node)
-            pw print a + " "
+            output append a + " "
         case _ =>
             printTag(node)
     }
 
     node.value match {
       case scalar: YScalar =>
-          pw print '"' + scalar.text.encode + '"'
+          output append '"' + scalar.text.encode + '"'
       case seq: YSequence  => printEntries[YNode]("[", seq.nodes, "]", dump(_))
       case map: YMap =>
         printEntries[YMapEntry]("{", map.entries, "}", e => {
           dump(e.key, "? ")
-          pw.println()
+          output append '\n'
           dump(e.value, ": ")
         })
     }
@@ -63,20 +53,20 @@ class Yaml12Render(val parts: Seq[YPart], output: Writer) {
     private def printTag(node: YNode) = {
         var tag = node.tag
         if (tag.text == "!") tag = tag.tagType.tag
-        pw print tag + " "
+        output append tag + " "
     }
 
     private def printEntries[T](prefix: String, seq: IndexedSeq[T], suffix: String, pf: T => Unit) = {
-    pw println prefix
+    output append prefix append '\n'
     indent += " " * indentation
     var first = true
     for (e <- seq) {
-      if (!first) pw println "," else first = false
+      if (!first) output append ",\n" else first = false
       pf(e)
     }
-    pw.println()
+    output append '\n'
     indent = indent.substring(indentation)
-    pw print indent + suffix
+    output append indent + suffix
   }
 
 }

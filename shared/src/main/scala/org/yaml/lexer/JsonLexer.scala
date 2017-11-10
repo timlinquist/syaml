@@ -103,7 +103,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
   }
 
   private def string() = {
-    var hasText  = false
+    var hasText    = false
     def emitText() = if (hasText) { emit(Text); hasText = false }
 
     nodeStart(BeginScalar)
@@ -130,7 +130,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
 object JsonLexer {
   def apply(): JsonLexer                  = new JsonLexer(CharSequenceLexerInput())
   def apply(input: LexerInput): JsonLexer = new JsonLexer(input)
-  def apply(s: String): JsonLexer         = new JsonLexer(CharSequenceLexerInput(s))
+  def apply(cs: CharSequence): JsonLexer  = new JsonLexer(CharSequenceLexerInput(cs))
   def apply(file: File): JsonLexer        = new JsonLexer(CharSequenceLexerInput(file))
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'

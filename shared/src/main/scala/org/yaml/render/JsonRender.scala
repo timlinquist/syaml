@@ -56,11 +56,14 @@ class JsonRender private () {
     }
 
   private def renderScalar(t: YType, scalar: YScalar): Unit =
-    t match {
-      case Int | Float | Bool => render(scalar.value.toString)
-      case Null               => render("null")
-      case _                  => render('"' + scalar.text.encode + '"')
-    }
+    render(t match {
+      case Int | Bool => scalar.value.toString
+      case Float =>
+        val s = scalar.value.toString
+        if (s.indexOf('.') == -1) s + ".0" else s // Bug in scala-js toString
+      case Null => "null"
+      case _    => '"' + scalar.text.encode + '"'
+    })
 
   private def render(value: String) = {
     builder.append(value)
