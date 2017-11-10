@@ -567,6 +567,10 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
             consume(spaces)
           }
 
+        case EofChar =>
+          emit(Error)
+          done = true
+
         case _ =>
           inText = true
           consume()
