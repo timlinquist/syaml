@@ -7,7 +7,7 @@ import org.scalatest.{FunSuite, Matchers}
 /**
   * Golden based test
   */
-trait GoldenTest extends FunSuite with Matchers {
+trait GoldenSuite extends FunSuite with Matchers {
   def fs: FileSystem
 
   def mkdir(str: String*): SyncFile = {

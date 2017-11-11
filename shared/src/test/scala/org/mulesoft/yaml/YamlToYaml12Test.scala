@@ -9,7 +9,7 @@ import org.yaml.parser.{JsonParser, YamlParser}
 /**
   * Test against golden files
   */
-trait YamlToYaml12Test extends GoldenTest {
+trait YamlToYaml12Test extends GoldenSuite {
 
   private val modelDir  = mkdir("target", "test", "model")
   private val yamlDir   = fs.syncFile("shared/src/test/data/yaml")
@@ -26,7 +26,7 @@ trait YamlToYaml12Test extends GoldenTest {
 }
 
 object YamlToYaml12 {
-  def test(src: String, test: GoldenTest, yamlDir: SyncFile, modelDir: SyncFile, goldenDir: SyncFile): Unit = {
+  def test(src: String, test: GoldenSuite, yamlDir: SyncFile, modelDir: SyncFile, goldenDir: SyncFile): Unit = {
     val fs         = test.fs
     val yamlFile   = fs.syncFile(yamlDir, src)
     val json       = src endsWith "json"

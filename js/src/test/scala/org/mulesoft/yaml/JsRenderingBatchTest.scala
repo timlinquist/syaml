@@ -3,4 +3,4 @@ package org.mulesoft.yaml
 /**
   * Instantiate the test
   */
-class JsRenderingBatchTest extends RenderingBatchTest with JsTest
+class JsRenderingBatchTest extends RenderingBatchTest with JsSuite

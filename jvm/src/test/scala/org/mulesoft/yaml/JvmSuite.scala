@@ -5,6 +5,6 @@ import org.mulesoft.common.io.JvmFileSystem
 /**
   * A trait to inject a JvmFileSystem
   */
-trait JvmTest extends GoldenTest{
+trait JvmSuite extends GoldenSuite{
     def fs = JvmFileSystem
 }
