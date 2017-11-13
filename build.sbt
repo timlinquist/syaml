@@ -7,6 +7,7 @@ val settings = Common.settings ++ Seq(
   version := "0.0.6-SNAPSHOT",
 
   libraryDependencies ++= Seq(
+    "org.mulesoft"  %%% "scala-common" % "0.0.7",
     "org.scalactic" %%% "scalactic" % "3.0.1",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
