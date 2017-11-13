@@ -1,4 +1,5 @@
 import org.scalajs.core.tools.linker.ModuleKind
+import sbt.Keys.{libraryDependencies, resolvers}
 
 name := "syaml"
 
@@ -13,6 +14,7 @@ val settings = Common.settings ++ Seq(
   ),
 
   Common.publish,
+  resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
 
   credentials ++= Common.credentials()
 )
