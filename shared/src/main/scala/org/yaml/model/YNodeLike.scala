@@ -56,7 +56,7 @@ trait YNodeLike {
     */
   def obj: YObj
 
-  val tagType: YType
+  def tagType: YType
 
   protected def thisNode: YNode
 }

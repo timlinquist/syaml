@@ -55,7 +55,7 @@ class YamlRender() {
 
   private def renderTag(t: YTag) = if (!renderTokens(t.tokens) && !t.synthesized) render(t.toString + " ")
 
-  private def renderNode(n: YNode) = if (!renderParts(n)) {
+  private def renderNode(n: YNode): Unit = if (!renderParts(n)) {
     if (hasDirectives) {
       render("---\n")
       hasDirectives = false
@@ -65,25 +65,25 @@ class YamlRender() {
 
   private def renderAnchor(anchor: YAnchor) = if (!renderTokens(anchor.tokens)) render(anchor + " ")
   private def renderAlias(alias: YAlias)    = if (!renderTokens(alias.tokens)) render(alias.toString)
-  private def renderDirective(d: YDirective) = {
+  private def renderDirective(d: YDirective): Unit = {
     if (!renderParts(d)) render(d.toString).renderNewLine()
     hasDirectives = true
   }
 
-  private def renderDocument(parts: IndexedSeq[YPart]) = {
+  private def renderDocument(parts: IndexedSeq[YPart]): Unit = {
     doRenderParts(parts)
     if (builder.last != '\n') render("\n")
     endDocument = true
   }
 
-  private def renderMap(map: YMap) = if (!renderParts(map)) {
+  private def renderMap(map: YMap): Unit = if (!renderParts(map)) {
     indent()
     chopLast()
     for (e <- map.entries) renderNewLine().renderIndent().renderMapEntry(e)
     dedent()
   }
 
-  private def renderMapEntry(e: YMapEntry) = {
+  private def renderMapEntry(e: YMapEntry): Unit = {
     // The key
     val key = e.key
     key.value match {
@@ -122,7 +122,7 @@ class YamlRender() {
     }
   }
 
-  private def chopLast() = {
+  private def chopLast(): Unit = {
     val last = builder.length - 1
     if (last >= 0 && builder(last).isWhitespace) builder.setLength(last)
   }
@@ -146,7 +146,7 @@ class YamlRender() {
       }
     }
 
-  private def renderAsLiteral(scalar: YScalar) = {
+  private def renderAsLiteral(scalar: YScalar): Unit = {
     val text = scalar.text
     if (indentation < 0) indentation = 0
     render("|")
@@ -170,7 +170,7 @@ class YamlRender() {
     dedent()
   }
 
-  private def renderSeq(seq: YSequence) = if (!renderParts(seq)) {
+  private def renderSeq(seq: YSequence): Unit = if (!renderParts(seq)) {
     indent()
     chopLast()
     for (e <- seq.children) {
@@ -202,7 +202,7 @@ class YamlRender() {
     hasTokens
   }
 
-  private def doRenderParts(children: IndexedSeq[YPart]) = children foreach render
+  private def doRenderParts(children: IndexedSeq[YPart]): Unit = children foreach render
 
 }
 

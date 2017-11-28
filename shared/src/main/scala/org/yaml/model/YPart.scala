@@ -8,7 +8,7 @@ import org.yaml.lexer.YeastToken
   */
 trait YPart {
   def children: IndexedSeq[YPart] = IndexedSeq.empty
-  val range: InputRange
+  def range: InputRange
 }
 
 /** A Set of Yaml Tokens */

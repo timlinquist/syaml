@@ -1,19 +1,19 @@
 package org.yaml.model
 
-import org.yaml.model.YType.{Null, _}
-
-import scala.collection.mutable
-import language.implicitConversions
+import scala.language.implicitConversions
 
 /**
   * A Yaml Node, it has a Value plus Properties
   */
-final class YNode(val value: YValue, val tag: YTag, val ref: Option[YReference], c: IndexedSeq[YPart])
+final class YNode(private var value_ : YValue, private var tag_ : YTag, val ref: Option[YReference], c : IndexedSeq[YPart])
     extends YAggregate(c)
     with YNodeLike {
 
-  assert(value != null)
-  override val tagType: YType = tag.tagType
+  def value: YValue = value_
+  def tag: YTag = tag_
+
+  assert(value_ != null)
+  override def tagType: YType = tag.tagType
 
   override def equals(obj: scala.Any): Boolean = obj match {
     case n: YNode =>
@@ -33,6 +33,12 @@ final class YNode(val value: YValue, val tag: YTag, val ref: Option[YReference],
 
   /** Create a new node with an anchor */
   def anchor(name: String): YNode = YNode(value, tagType, YAnchor(name))
+
+  /** Transform / mutate node. Preserve tokens. */
+  def into(n: YNode): Unit = {
+    value_ = n.value
+    tag_ = n.tag
+  }
 
   override def obj: YObj                                             = YSuccess(this)
   override protected def thisNode: YNode = this

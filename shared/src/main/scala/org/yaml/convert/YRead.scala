@@ -134,6 +134,7 @@ object YRead {
 
       override def defaultValue: That[T] = bf().result
     }
+
   implicit def list[A](implicit reader: YRead[A]): YRead[List[A]] = seqReader[List, A]
   implicit def seq[A](implicit reader: YRead[A]): YRead[Seq[A]]   = seqReader[IndexedSeq, A].asInstanceOf[YRead[Seq[A]]]
   implicit def set[A](implicit reader: YRead[A]): YRead[Set[A]]   = seqReader[Set, A]
