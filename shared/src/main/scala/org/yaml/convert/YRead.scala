@@ -106,7 +106,8 @@ object YRead {
   implicit object DTYRead extends ScalarYRead(YType.Timestamp, SimpleDateTime.Epoch)
 
   /** Base class for Time de-serializers */
-  abstract class TimeBaseYRead[T <: AnyRef](f: SimpleDateTime => T) extends ScalarYRead[T](Timestamp, null.asInstanceOf[T]) {
+  abstract class TimeBaseYRead[T <: AnyRef](f: SimpleDateTime => T)
+      extends ScalarYRead[T](Timestamp, null.asInstanceOf[T]) {
     override def read(node: YNode): Either[YError, T] = DTYRead.read(node).map(f)
   }
 
@@ -140,6 +141,17 @@ object YRead {
   implicit def set[A](implicit reader: YRead[A]): YRead[Set[A]]   = seqReader[Set, A]
 
   /**
+    * Deserializer YScalar
+    */
+  implicit object YScalarYRead extends YRead[YScalar] {
+    def read(node: YNode): Either[YError, YScalar] = node.value match {
+      case s: YScalar => Right(s)
+      case _          => error(node, "Not a YScalar")
+    }
+    override def defaultValue: YScalar = YScalar.Null
+  }
+
+  /**
     * Deserializer for Seq[YNode]
     */
   implicit object SeqNodeYRead extends YRead[Seq[YNode]] {
@@ -159,6 +171,17 @@ object YRead {
       case _       => error(node, "Not a YMap")
     }
     override def defaultValue: YMap = YMap.empty
+  }
+
+  /**
+    * Deserializer for YSequence
+    */
+  implicit object YSeqYRead extends YRead[YSequence] {
+    def read(node: YNode): Either[YError, YSequence] = node.value match {
+      case s: YSequence => Right(s)
+      case _            => error(node, "Not a YSequence")
+    }
+    override def defaultValue: YSequence = YSequence.empty
   }
 
   /**

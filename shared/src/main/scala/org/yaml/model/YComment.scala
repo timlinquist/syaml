@@ -13,7 +13,6 @@ case class YComment(metaText: String,
 
   override def equals(obj: Any): Boolean = obj match {
     case c: YComment => metaText == c.metaText
-    case s: String   => metaText == s
     case _           => false
   }
 
@@ -22,4 +21,6 @@ case class YComment(metaText: String,
 
 /** Non Content (Whitespace, Indentation and Indicators) */
 case class YNonContent(override val range: InputRange, override val tokens: IndexedSeq[YeastToken])
-    extends YIgnorable(range, tokens)
+    extends YIgnorable(range, tokens) {
+  override def toString: String = tokens.mkString(", ")
+}

@@ -10,98 +10,110 @@ import scala.language.dynamics
   * It extends Dynamic to 'simulate' a Dynamic Object
   *
   */
-sealed abstract class YObj extends Product with Dynamic with YNodeLike {
-    /**
-      * Returns true if the option is [[YFail]], false otherwise.
-      */
-    def isError: Boolean
+sealed abstract class YObj extends YNodeLike with Dynamic {
 
-    /** Returns true if the option is an instance of [[YSuccess]], false otherwise.
-      */
-    def isDefined: Boolean = !isError
+  /**
+    * Returns true if the option is [[YFail]], false otherwise.
+    */
+  def isError: Boolean
 
-    /**
-      * Dereference the node as a Map it not a YMap or the key is not found it returns an YError
-      * Use YObj.apply when the name of the field clashes with methods of this class
-      */
-    def selectDynamic(key: String): YObj
+  /** Returns true if the option is an instance of [[YSuccess]], false otherwise.
+    */
+  def isDefined: Boolean = !isError
 
-    /** Dereference a Node as an Array or if it is a Map as a Map[Int, _], when fails it returns an YError */
-    def apply(key: Int): YObj
+  /**
+    * Dereference the node as a Map it not a YMap or the key is not found it returns an YError
+    * Use YObj.apply when the name of the field clashes with methods of this class
+    */
+  def selectDynamic(key: String): YObj
 
-    /**
-      * Dereference a Node as a Map[YNode,_] when fails it returns an YError.
-      * It can be used to replace the select Dynamic invocation if the name of the field clashes with methods of YObj
-      */
-    def apply(key: YNode): YObj
+  /** Dereference a Node as an Array or if it is a Map as a Map[Int, _], when fails it returns an YError */
+  def apply(key: Int): YObj
 
-    /** Dereference the node as a Map and then as an Array */
-    final def applyDynamic(key: String)(index: Int): YObj = selectDynamic(key)(index)
+  /**
+    * Dereference a Node as a Map[YNode,_] when fails it returns an YError.
+    * It can be used to replace the select Dynamic invocation if the name of the field clashes with methods of YObj
+    */
+  def apply(key: YNode): YObj
 
-    override def obj: YObj = this
+  /** Dereference the node as a Map and then as an Array */
+  final def applyDynamic(key: String)(index: Int): YObj = selectDynamic(key)(index)
+
+  override def obj: YObj = this
 }
 
 case class YSuccess(node: YNode) extends YObj {
 
-    /** Dereference the node as a Map it not a YMap or the key is not found it returns YNode.Null */
-    def selectDynamic(key: String): YObj = node.value match {
-        case yMap: YMap => get(yMap, YNode(key))
-        case _ => YFail(node, "Not a map")
+  /** Dereference the node as a Map it not a YMap or the key is not found it returns YNode.Null */
+  def selectDynamic(key: String): YObj = apply(YNode(key))
+
+  def apply(key: Int): YObj = node.value match {
+    case s: YSequence =>
+      val nodes = s.nodes
+      if (key < 0 || key >= nodes.size) YFail(node, s"Index: $key out of range") else YSuccess(nodes(key))
+    case s: YMap => get(s, YNode(key))
+    case _       => YFail(node, "Scalar node")
+  }
+
+  def apply(key: YNode): YObj = node.value match {
+    case s: YMap => get(s, key)
+    case _       => YFail(node, "Not a map")
+  }
+
+  override def equals(obj: Any): Boolean = {
+    obj match {
+      case _: YFail     => false
+      case n: YNodeLike => thisNode == n.thisNode
+      case v: YValue    => v == this
     }
+  }
 
-    def apply(key: Int): YObj = node.value match {
-        case s: YSequence =>
-            val nodes = s.nodes
-            if (key < 0 || key >= nodes.size) YFail(node, s"Index: $key out of range") else YSuccess(nodes(key))
-        case s: YMap => get(s, YNode(key))
-        case _ => YFail(node, "Scalar node")
-    }
+  override def isError: Boolean = false
 
-    def apply(key: YNode): YObj = node.value match {
-        case s: YMap => get(s, key)
-        case _ => YFail(node, "Not a map")
-    }
+  override val tagType: YType = node.tagType
 
-    override def isError: Boolean = false
+  private def get(yMap: YMap, key: YNode) = yMap.map.get(key) match {
+    case Some(v) => YSuccess(v)
+    case None    => YFail(node, s"Key: $key not found")
+  }
 
-    override val tagType: YType = node.tagType
-
-
-    private def get(yMap: YMap, key: YNode) = yMap.map.get(key) match {
-        case Some(v) => YSuccess(v)
-        case None => YFail(node, s"Key: $key not found")
-    }
-
-    override protected def thisNode: YNode = node
+  override protected[model] def thisNode: YNode = node
+  override def toString: String                 = node.toString
 }
 
 /**
   * Represents a failure when trying to access a particular  Node
   */
 case class YFail(error: YError) extends YObj {
-    override def isError: Boolean = true
-    override def selectDynamic(key: String): YObj = this
-    override def apply(key: Int): YObj = this
-    override def apply(key: YNode): YObj = this
-    override def to[T](implicit c: YRead[T]): Either[YError, T] = Left(error)
-    override val tagType: YType = YType.Unknown
-    override protected def thisNode: YNode = throw new IllegalStateException()
+  override def isError: Boolean                               = true
+  override def selectDynamic(key: String): YObj               = this
+  override def apply(key: Int): YObj                          = this
+  override def apply(key: YNode): YObj                        = this
+  override def to[T](implicit c: YRead[T]): Either[YError, T] = Left(error)
+  override val tagType: YType                                 = YType.Unknown
+  override def equals(obj: Any): Boolean                      = false
+
+  override protected[model] def thisNode: YNode = {
+    // $COVERAGE-OFF$ unreachable
+    throw new IllegalStateException()
+    // $COVERAGE-ON$
+  }
 }
 
 object YFail {
-    def apply(node: YNodeLike, err: => String): YFail = YFail(YError(node, err))
+  def apply(node: YNodeLike, err: => String): YFail = YFail(YError(node, err))
 }
 
 /**
   * An Error Message usually associated with a failure
   */
-class YError private(val node: YNodeLike, err: => String) {
-    def error: String = err
-    def throwIt: Nothing = throw new YException(this)
-    override def toString: String = error + "@" + node
+class YError private (val node: YNodeLike, err: => String) {
+  def error: String             = err
+  def throwIt: Nothing          = throw new YException(this)
+  override def toString: String = error + "@" + node
 }
 object YError {
-    def apply(node: YNodeLike, err: => String): YError = new YError(node, err)
+  def apply(node: YNodeLike, err: => String): YError = new YError(node, err)
 }
 
 /** An Exception that contains an YError */

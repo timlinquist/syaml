@@ -10,14 +10,11 @@ import scala.language.implicitConversions
 /**
   * A Yaml Document
   */
-case class YDocument(override val children: IndexedSeq[YPart]) extends YAggregate(children) with YNodeLike {
+case class YDocument(override val children: IndexedSeq[YPart]) extends YNodeLike with YPart {
 
   /** The Main Document Node */
   val node: YNode    = children collectFirst { case a: YNode => a } getOrElse YNode.Null
   val tagType: YType = node.tag.tagType
-
-  @deprecated(message = "Use node and node conversions", since = "0.0.2")
-  def value: Option[YValue] = if (node == YNode.Null || tagType == YType.Empty) None else Some(node.value)
 
   val headComment: String = children takeWhile (!_.isInstanceOf[YNode]) collect {
     case c: YComment => c.metaText
@@ -29,7 +26,7 @@ case class YDocument(override val children: IndexedSeq[YPart]) extends YAggregat
 
   override def obj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
 
-  override protected def thisNode: YNode = node
+  override protected[model] def thisNode: YNode = node
 }
 
 object YDocument {
@@ -115,10 +112,6 @@ object YDocument {
     /** Add a Node to the builder */
     def +=(node: YNode): Unit = builder += node
 
-    /** Add a Scalar to the builder */
-    @deprecated("Use '+=' method", since = "0.0.3")
-    def scalar(node: YNode): Unit = this += node
-
     /** Add a Scalar Integer to the builder */
     def +=(int: Int): Unit = builder += YNode(int)
 
@@ -130,9 +123,6 @@ object YDocument {
 
     /** Add an object (aka map) to the builder */
     def obj(f: EntryBuilder => Unit): Unit = builder += createMapNode(f)
-
-    @deprecated("Use 'obj' method", since = "0.0.3")
-    def map(f: EntryBuilder => Unit): Unit = obj(f)
   }
 
   class EntryBuilder extends BaseBuilder with Dynamic {

@@ -131,7 +131,6 @@ object JsonLexer {
   def apply(): JsonLexer                  = new JsonLexer(CharSequenceLexerInput())
   def apply(input: LexerInput): JsonLexer = new JsonLexer(input)
   def apply(cs: CharSequence): JsonLexer  = new JsonLexer(CharSequenceLexerInput(cs))
-  def apply(file: File): JsonLexer        = new JsonLexer(CharSequenceLexerInput(file))
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'
   private def isDigit(c: Int)      = c >= '0' && c <= '9'

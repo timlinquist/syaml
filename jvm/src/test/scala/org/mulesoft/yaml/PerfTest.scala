@@ -1,8 +1,8 @@
 package org.mulesoft.yaml
 
-import java.io.File
 import java.lang.System.nanoTime
 
+import org.mulesoft.common.io.Fs
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.parser.YamlParser
 
@@ -11,16 +11,15 @@ import org.yaml.parser.YamlParser
   */
 class PerfTest extends FunSuite with Matchers {
 
-  val yamlDir   = new File("shared/src/test/data/perf")
+  private val yamlDir   = Fs syncFile "shared/src/test/data/perf"
   private val file  = System.getProperty("yaml")
-  private val files = if (file == null) yamlDir.list() else Array(file)
+  private val files = if (file == null) yamlDir.list else Array(file)
 
-  for (yaml <- files) {
+//  for (yaml <- files) {
 //    test("Check Perf of " + yaml) {
-//      val yamlFile   = new File(yamlDir, yaml)
-//      time(YamlParser(yamlFile).parse())
+//      time(YamlParser((yamlDir / yaml).read()).parse())
 //    }
-  }
+//  }
   def time(f: =>Unit): Unit = {
         val t = nanoTime()
         f

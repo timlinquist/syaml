@@ -14,7 +14,7 @@ class YType {
 
 object YType {
   def apply(tag: String): YType =
-      knownTypes.getOrElse(tag, Unknown)
+    knownTypes.getOrElse(tag, Unknown)
 
   private def forName(tagName: String): YType = {
     val t = new YType()

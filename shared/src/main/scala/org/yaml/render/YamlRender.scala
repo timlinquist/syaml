@@ -195,7 +195,7 @@ class YamlRender() {
   }
   private def renderToken(t: YeastToken): Unit = render(t.text)
 
-  private def renderParts(parts: YAggregate): Boolean = {
+  private def renderParts(parts: YPart): Boolean = {
     val nodes     = parts.children
     val hasTokens = nodes.nonEmpty && nodes.head.isInstanceOf[YNonContent]
     if (hasTokens) doRenderParts(nodes)

@@ -15,11 +15,14 @@ class YScalar private (val value: Any,
                        val text: String,
                        val plain: Boolean = true,
                        c: IndexedSeq[YPart] = IndexedSeq.empty)
-    extends YAggregate(c)
-    with YValue {
+    extends YValue(c) {
 
   override def equals(obj: Any): Boolean = obj match {
     case s: YScalar => s.value == this.value
+    case n: YNodeLike => n.to[YScalar] exists { s =>
+        val v1 = s.value
+        value == v1
+    }
     case _          => false
   }
 

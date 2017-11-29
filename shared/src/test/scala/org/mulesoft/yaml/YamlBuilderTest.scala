@@ -52,7 +52,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     doc.obj(2).as[Boolean] shouldBe true
 
     // Short way when you don't need a Builder
-    val doc2:YDocument = list("Line 1", "Line 2", true)
+    val doc2: YDocument = list("Line 1", "Line 2", true)
     doc shouldBe doc2
   }
 
@@ -73,7 +73,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     doc.obj(3).as[List[String]] shouldBe List("A", "B")
 
     // Short way when you don't need a Builder
-    val doc2:YDocument = YDocument("Nested list").list("Line 1", "Line 2", true, list("A", "B"))
+    val doc2: YDocument = YDocument("Nested list").list("Line 1", "Line 2", true, list("A", "B"))
     doc shouldBe doc2
   }
 
@@ -97,17 +97,31 @@ trait YamlBuilderTest extends FunSuite with Matchers {
         b += 2
       })
     }
+    val doc2 = YDocument.objFromBuilder { b =>
+      b.aString = "Value1"
+      b.anInt = 120
+      b.aList = list(1, 2)
+      b.aMap = obj(One = 1, Two = 2)
+    }
+
+    val obj1 = doc.obj
+    val obj2 = doc2.obj
+
+    obj1.aString shouldBe obj2.aString
+    obj1.anInt shouldBe obj2.anInt
+    obj1.aList shouldBe obj2.aList
+    obj1.aMap shouldBe obj2.aMap
 
     val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
     types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
 
-    doc.obj.anInt.as[Int] shouldBe 120
-    val m = doc.obj.aMap
+    obj1.anInt.as[Int] shouldBe 120
+    val m = obj1.aMap
     m("One").as[Int] shouldBe 1
     m("Two").as[Int] shouldBe 2
-    doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
+    obj1.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
-    doc.obj(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
+    obj1(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
     // Short way when you don't need a Builder
     val doc3 = YDocument("An Object").obj(
@@ -159,5 +173,13 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     )
 
     doc.obj.c.as[String] shouldBe "Value1"
+  }
+  test("Scalar errors") {
+      val doc = YDocument.parseYaml(
+          """
+            |- !!float abc
+            |- !!timestamp 10
+          """.stripMargin)
+
   }
 }

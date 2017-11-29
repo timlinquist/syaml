@@ -1,11 +1,9 @@
 package org.yaml.parser
 
-import java.io.File
-
 import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
-import org.yaml.lexer.{JsonLexer, YamlLexer, YamlToken, YeastToken}
+import org.yaml.lexer.{YamlLexer, YamlToken, YeastToken}
 import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable
@@ -15,7 +13,7 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
   * A Yaml Parser that covers Steps Parse and Compose of the spec.
   * [[http://www.yaml.org/spec/1.2/spec.html#id2762107 Yaml 1.2 Processes]]
   */
-class YamlParser private[parser](val lexer: BaseLexer[YamlToken]) {
+class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
 
   type TD = TokenData[YamlToken]
   private val aliases                           = mutable.Map.empty[String, YNode]
@@ -206,8 +204,8 @@ class YamlParser private[parser](val lexer: BaseLexer[YamlToken]) {
     stack = stack.tail
     val c = stack.head
 
-      val parts = current.buildParts(td)
-      val b = new YScalar.Builder(buildText(), c.tag, scalarMark, parts)
+    val parts = current.buildParts(td)
+    val b     = new YScalar.Builder(buildText(), c.tag, scalarMark, parts)
     c.value = b.scalar
     c.tag = b.tag
     c.parts += b.scalar
@@ -261,11 +259,9 @@ class YamlParser private[parser](val lexer: BaseLexer[YamlToken]) {
 
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
-  def apply(file: File): YamlParser       = new YamlParser(YamlLexer(file))
-  def apply(s: CharSequence): YamlParser        = new YamlParser(YamlLexer(s))
+  def apply(s: CharSequence): YamlParser = new YamlParser(YamlLexer(s))
 }
 
 object JsonParser {
-    def apply(file: File): YamlParser       = new YamlParser(JsonLexer(file))
-    def apply(s: CharSequence): YamlParser        = new YamlParser(YamlLexer(s))
+  def apply(s: CharSequence): YamlParser = new YamlParser(YamlLexer(s))
 }

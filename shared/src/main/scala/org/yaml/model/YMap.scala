@@ -1,12 +1,12 @@
 package org.yaml.model
 
+import scala.collection.immutable
 import scala.language.dynamics
-import scala.collection.{GenSeq, immutable}
 
 /**
   * A Yaml Map
   */
-class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
+class YMap private (c: IndexedSeq[YPart]) extends YValue(c) {
 
   /** The Map Entries in order */
   val entries: IndexedSeq[YMapEntry] = c.collect { case a: YMapEntry => a }.toArray[YMapEntry]
@@ -21,13 +21,11 @@ class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
   /** Returns true if the map is empty */
   def isEmpty: Boolean = entries.isEmpty
 
-  override def hashCode(): Int = entries.hashCode
+  override def hashCode(): Int = map.hashCode
 
   override def equals(obj: scala.Any): Boolean = obj match {
-    case m: YMap =>
-      entries.equals(m.entries)
-    case m: Map[_, _] => map.equals(m)
-    case s: GenSeq[_] => entries.equals(s)
+    case m: YMap      => map == m.map
+    case n: YNodeLike => n.to[YMap] exists (map == _.map)
     case _            => false
   }
 
@@ -36,20 +34,10 @@ class YMap private (c: IndexedSeq[YPart]) extends YAggregate(c) with YValue {
 
 object YMap {
   def apply(c: IndexedSeq[YPart]): YMap = new YMap(c)
-  def apply(elems: YMapEntry*): YMap    = YMap(elems.toArray)
   val empty                             = YMap(IndexedSeq.empty)
 }
 
-class YMapEntry private (val key: YNode, val value: YNode, children_ : IndexedSeq[YPart])
-    extends YAggregate(children_) {
-
-  override def hashCode(): Int = key.hashCode * 31 + value.hashCode
-
-  override def equals(obj: Any): Boolean = obj match {
-    case e: YMapEntry => key == e.key && value == e.value
-    case _            => false
-  }
-
+class YMapEntry private (val key: YNode, val value: YNode, override val children: IndexedSeq[YPart]) extends YPart {
   override def toString: String = key + ": " + value
 }
 

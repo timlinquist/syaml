@@ -4,7 +4,7 @@ package org.yaml.model
 case class YDirective(name: String,
                       args: IndexedSeq[String],
                       override val children: IndexedSeq[YPart] = IndexedSeq.empty)
-    extends YAggregate(children) {
+    extends YPart {
 
   override def hashCode(): Int = name.hashCode + 31 * args.hashCode
 

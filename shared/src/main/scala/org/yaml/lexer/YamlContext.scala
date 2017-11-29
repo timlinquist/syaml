@@ -25,14 +25,11 @@ package org.yaml.lexer
   *    <li>or as values outside one (flow-out)</li>
   *</ul>
   */
-sealed class YamlContext {
-    def isFlow: Boolean = false
-
-}
+sealed class YamlContext
 
 case object BlockKey extends YamlContext
-case object FlowKey extends YamlContext
-case object FlowIn extends YamlContext
-case object FlowOut extends YamlContext
-case object BlockIn extends YamlContext
+case object FlowKey  extends YamlContext
+case object FlowIn   extends YamlContext
+case object FlowOut  extends YamlContext
+case object BlockIn  extends YamlContext
 case object BlockOut extends YamlContext

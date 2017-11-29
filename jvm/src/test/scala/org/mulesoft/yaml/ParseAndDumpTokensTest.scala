@@ -1,42 +1,42 @@
 package org.mulesoft.yaml
 
-import java.io.{File, PrintWriter}
+import java.io.{CharArrayWriter, PrintWriter}
 
-import org.mulesoft.common.ext.Diff
+import org.mulesoft.common.io.{FileSystem, Fs}
 import org.mulesoft.lexer.InputRange
-import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model._
 import org.yaml.parser.YamlParser
 
 /**
   * Test against golden files
   */
-class ParseAndDumpTokensTest extends FunSuite with Matchers {
+class ParseAndDumpTokensTest extends GoldenSuite {
 
-  val modelDir  = new File("target/test/model")
-  val yamlDir   = new File("shared/src/test/data/yaml")
-  val goldenDir = new File("shared/src/test/data/yts")
-
-  modelDir.mkdirs()
+  private val modelDir  = mkdir("target", "test", "model")
+  private val yamlDir   = Fs syncFile "shared/src/test/data/yaml"
+  private val goldenDir = Fs syncFile "shared/src/test/data/yts"
 
   private val file  = System.getProperty("yaml")
-  private val files = if (file == null) yamlDir.list() else Array(file)
+  private val files = if (file == null) yamlDir.list else Array(file)
+
   for (yaml <- files) {
     test("Parse and Dump Tokens for " + yaml) {
-      val yamlFile   = new File(yamlDir, yaml)
+      val yamlFile   = yamlDir / yaml
       val yts        = yaml.replace(".yaml", ".yts")
-      val ytsFile    = new File(modelDir, yts)
-      val goldenFile = new File(goldenDir, yts)
+      val ytsFile    = modelDir / yts
+      val goldenFile = goldenDir / yts
 
-      val writer = new PrintWriter(ytsFile)
+        val cw = new CharArrayWriter()
+        val writer = new PrintWriter(cw)
       writer println s"File: $yaml"
-      val n = dump(YamlParser(yamlFile).parse(), writer, "")
+      val n = dump(YamlParser(yamlFile.read()).parse(), writer, "")
       writer println s"$n tokens dumped."
       writer.close()
+      ytsFile.write(cw.toCharArray)
 
-      if (!goldenFile.exists()) goldenFile.createNewFile()
-          val deltas = Diff.ignoreAllSpace.diff(ytsFile, goldenFile)
-          assert(deltas.isEmpty, s"diff -y -W 150 $ytsFile $goldenFile\n\n${deltas.mkString}")
+      if (!goldenFile.exists) goldenFile.write("")
+
+      doDeltas(ytsFile, goldenFile)
 
     }
   }
@@ -67,4 +67,6 @@ class ParseAndDumpTokensTest extends FunSuite with Matchers {
     }
     n
   }
+
+    override def fs: FileSystem = Fs
 }

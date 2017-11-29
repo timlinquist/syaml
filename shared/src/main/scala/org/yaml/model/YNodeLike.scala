@@ -5,7 +5,7 @@ import org.yaml.convert.YRead
 /**
   * A trait that represents Node like values that can be converted using YRead
   */
-trait YNodeLike {
+abstract class YNodeLike extends YValueLike {
 
   /**
     * Tries to convert the node into a T. An implicit YRead[T] must be defined.
@@ -58,5 +58,5 @@ trait YNodeLike {
 
   def tagType: YType
 
-  protected def thisNode: YNode
+  protected[model] def thisNode: YNode
 }

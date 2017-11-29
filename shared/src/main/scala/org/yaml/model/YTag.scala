@@ -3,7 +3,6 @@ package org.yaml.model
 import org.mulesoft.lexer.InputRange
 import org.mulesoft.lexer.InputRange.Zero
 import org.yaml.lexer.YeastToken
-import org.yaml.model.YType._
 
 /**
   * A Yaml Tag

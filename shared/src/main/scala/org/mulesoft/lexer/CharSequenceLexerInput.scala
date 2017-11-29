@@ -1,6 +1,5 @@
 package org.mulesoft.lexer
 
-import java.io.{File, FileInputStream, InputStreamReader}
 import java.lang.Character._
 import java.lang.Integer.{MAX_VALUE => IntMax}
 
@@ -83,15 +82,7 @@ object CharSequenceLexerInput {
             sourceName: String = ""): CharSequenceLexerInput =
     new CharSequenceLexerInput(data, startOffset, Math.min(data.length(), endOffset), sourceName)
 
-  def apply(file: File): CharSequenceLexerInput = {
-    val fis    = new InputStreamReader(new FileInputStream(file), "UTF-8")
-    val data   = new Array[Char](file.length.toInt)
-    val length = fis.read(data)
-    fis.close()
-    new CharSequenceLexerInput(data, 0, length, file.getName)
-  }
-
-  case class InputState(var column: Int = 0,
+    case class InputState(var column: Int = 0,
                         var line: Int = 1,
                         var offset: Int = 0,
                         var nextOffset: Int = 0,
