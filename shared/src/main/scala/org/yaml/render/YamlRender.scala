@@ -9,7 +9,7 @@ import org.yaml.render.YamlRender._
 /**
   * Yaml Render
   */
-class YamlRender() {
+class YamlRender(val expandReferences: Boolean) {
   private val builder           = new StringBuilder
   override def toString: String = builder.toString
 
@@ -36,7 +36,6 @@ class YamlRender() {
       case s: YScalar                => renderScalar(s)
       case t: YTag                   => renderTag(t)
       case a: YAnchor                => renderAnchor(a)
-      case a: YAlias                 => renderAlias(a)
       case n: YNode                  => renderNode(n)
     }
     this
@@ -55,16 +54,22 @@ class YamlRender() {
 
   private def renderTag(t: YTag) = if (!renderTokens(t.tokens) && !t.synthesized) render(t.toString + " ")
 
-  private def renderNode(n: YNode): Unit = if (!renderParts(n)) {
+  private def renderNode(n: YNode): Unit = if (expandReferences && n.isInstanceOf[YNode.Ref] || !renderParts(n)) {
     if (hasDirectives) {
       render("---\n")
       hasDirectives = false
     }
-    doRenderParts(n.children)
+    n match {
+      case a: YNode.Alias =>
+        if (expandReferences) render(a.target) else render(a.toString)
+      case r: YNode.MutRef if expandReferences && r.target.isDefined =>
+        render(r.target.get)
+      case _ =>
+        doRenderParts(n.children)
+    }
   }
 
   private def renderAnchor(anchor: YAnchor) = if (!renderTokens(anchor.tokens)) render(anchor + " ")
-  private def renderAlias(alias: YAlias)    = if (!renderTokens(alias.tokens)) render(alias.toString)
   private def renderDirective(d: YDirective): Unit = {
     if (!renderParts(d)) render(d.toString).renderNewLine()
     hasDirectives = true
@@ -89,7 +94,7 @@ class YamlRender() {
     key.value match {
       case s: YScalar =>
         renderTag(key.tag)
-        for (r <- key.ref) render(r)
+        for (r <- key.anchor) render(r)
         if (s.text contains "\n")
           render('"' + s.text.encode + '"')
         else
@@ -99,8 +104,8 @@ class YamlRender() {
         render("?").render(key).renderNewLine().renderIndent().render(": ")
     }
 
-      // Capture comments before and after the value
-    val value = e.value
+    // Capture comments before and after the value
+    val value          = e.value
     val (before, tail) = e.children.dropWhile(!_.eq(key)).tail.span(!_.eq(value))
     val after          = tail.tail
 
@@ -209,15 +214,18 @@ class YamlRender() {
 object YamlRender {
 
   /** Render a Seq of Parts as an String */
-  def render(parts: Seq[YPart]): String = {
-    val builder = new YamlRender()
+  def render(parts: Seq[YPart]): String = render(parts, expandReferences = false)
+
+  /** Render a Seq of Parts as an String */
+  def render(parts: Seq[YPart], expandReferences: Boolean): String = {
+    val builder = new YamlRender(expandReferences)
     parts.foreach(builder.render)
     builder.toString
   }
 
   /** Render a YamlPart as an String */
-  def render(part: YPart): String = {
-    val render = new YamlRender()
+  def render(part: YPart, expandReferences: Boolean = false): String = {
+    val render = new YamlRender(expandReferences)
     render.render(part)
     render.toString
   }

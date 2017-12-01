@@ -1,5 +1,6 @@
 package org.yaml.model
 
+import scala.language.implicitConversions
 import org.yaml.convert.YRead
 
 /**
@@ -55,8 +56,15 @@ abstract class YNodeLike extends YValueLike {
     * Returns the Node as an YObj
     */
   def obj: YObj
-
   def tagType: YType
-
   protected[model] def thisNode: YNode
+}
+
+object YNodeLike {
+  // Implicit conversions
+  implicit def toString(node: YNodeLike): String   = node.as[String]
+  implicit def toInt(node: YNodeLike): Int         = node.as[Int]
+  implicit def toLong(node: YNodeLike): Long       = node.as[Long]
+  implicit def toBoolean(node: YNodeLike): Boolean = node.as[Boolean]
+  implicit def toDouble(node: YNodeLike): Double   = node.as[Double]
 }

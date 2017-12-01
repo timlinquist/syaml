@@ -4,6 +4,7 @@ import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken, YeastToken}
+import org.yaml.model
 import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable
@@ -14,7 +15,6 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
   * [[http://www.yaml.org/spec/1.2/spec.html#id2762107 Yaml 1.2 Processes]]
   */
 class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
-
   type TD = TokenData[YamlToken]
   private val aliases                           = mutable.Map.empty[String, YNode]
   private var escaping                          = false
@@ -29,6 +29,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
   private var prev: TD                          = TokenData(BeginStream, InputRange.Zero)
   private var lastBegin                         = BeginStream
   private var directiveArgs: ListBuffer[String] = _
+  private var includeTag = ""
 
   /** Parse the Yaml and return an Indexed Seq of the Parts */
   def parse(keepTokens: Boolean = true): IndexedSeq[YPart] = {
@@ -51,8 +52,14 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
     if (docs.nonEmpty) docs(0) = YDocument(header ++ docs(0).children)
     docs
   }
+    /** Define an Include Tag if not empty it will generate Mutable Node References for tagged nodes */
 
-  private def push(td: TD): Unit = {
+    def withIncludeTag(s: String): this.type = {
+        includeTag = s
+        this
+    }
+
+    private def push(td: TD): Unit = {
     current.addNonContent(prev)
     metaTextBuilder.clear()
     textBuilder.clear()
@@ -158,7 +165,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
   private def createAnchor(td: TD) = {
     val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
     pop(anchor)
-    current.ref = Some(anchor)
+    current.anchor = Some(anchor)
     td
   }
 
@@ -176,9 +183,20 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
   }
 
   private def createNode(td: TD) = {
-    val node = new YNode(current.value, current.tag, current.ref, current.buildParts(td))
-    for (n <- current.ref) aliases += ((n.name, node))
-    pop(node)
+    val parts = current.buildParts(td)
+    if (current.alias.nonEmpty) {
+      val target = aliases.getOrElse(current.alias, YNode.Null)
+      // Manage Error if (target == YNode.Null)
+      pop(new YNode.Alias(current.alias, target, parts))
+    }
+    else {
+      val tag = current.tag
+      val n =
+        if (includeTag.nonEmpty && tag.text == includeTag) new model.YNode.MutRef(current.value, tag, parts)
+        else YNode(current.value, tag, current.anchor, parts)
+      for (a <- current.anchor) aliases += a.name -> n
+      pop(n)
+    }
     td
   }
 
@@ -191,12 +209,10 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
   }
 
   private def createAlias(td: TD) = {
-    val alias = YAlias(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    val aliasName = buildMetaText()
+    val alias     = YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td))
     pop(alias)
-    val target = aliases(alias.name)
-    current.value = target.value
-    current.tag = target.tag
-    current.ref = Some(alias)
+    current.alias = aliasName
     td
   }
 
@@ -222,7 +238,8 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
     var first: TD               = _
     val tokens                  = new ArrayBuffer[YeastToken]
     val parts                   = new ArrayBuffer[YPart]
-    var ref: Option[YReference] = None
+    var anchor: Option[YAnchor] = None
+    var alias: String           = ""
     var tag: YTag               = _
     var value: YValue           = _
 
@@ -259,7 +276,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
 
 object YamlParser {
   def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
-  def apply(s: CharSequence): YamlParser = new YamlParser(YamlLexer(s))
+  def apply(s: CharSequence): YamlParser  = new YamlParser(YamlLexer(s))
 }
 
 object JsonParser {

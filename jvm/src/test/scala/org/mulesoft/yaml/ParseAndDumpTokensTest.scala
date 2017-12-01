@@ -26,8 +26,8 @@ class ParseAndDumpTokensTest extends GoldenSuite {
       val ytsFile    = modelDir / yts
       val goldenFile = goldenDir / yts
 
-        val cw = new CharArrayWriter()
-        val writer = new PrintWriter(cw)
+      val cw     = new CharArrayWriter()
+      val writer = new PrintWriter(cw)
       writer println s"File: $yaml"
       val n = dump(YamlParser(yamlFile.read()).parse(), writer, "")
       writer println s"$n tokens dumped."
@@ -56,17 +56,18 @@ class ParseAndDumpTokensTest extends GoldenSuite {
     }
 
     for (e <- elements) {
-      val cc = e.getClass.getSimpleName.substring(0, 2)
+      def cc = e.getClass.getSimpleName.substring(0, 2)
       e match {
         case s: YScalar if s.children.size == 1 => dumpTokens(cc, e.children.head.asInstanceOf[YTokens], e.range)
         case nc: YNonContent                    => dumpTokens("YI", nc, e.range)
         case ts: YTokens                        => dumpTokens(cc, ts, e.range)
         case yd: YDirective                     => dumpParts("Yd", e.children, e.range)
+        case yn: YNode                          => dumpParts("YN", e.children, e.range)
         case _                                  => dumpParts(cc, e.children, e.range)
       }
     }
     n
   }
 
-    override def fs: FileSystem = Fs
+  override def fs: FileSystem = Fs
 }

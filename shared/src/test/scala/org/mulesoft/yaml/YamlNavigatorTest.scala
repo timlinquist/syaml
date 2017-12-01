@@ -258,7 +258,7 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     n == v shouldBe true
     n.value == v shouldBe true
 
-    an[IllegalStateException] should be thrownBy n.alias
+    an[IllegalStateException] should be thrownBy n.alias()
 
     doc3.toString shouldBe "Document: {a: [aaa, bbb], b: [aaa, bbb], c: [10, 20]}"
 

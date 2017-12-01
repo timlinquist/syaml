@@ -169,7 +169,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     val doc = YDocument("A Map with references").obj(
         a = node,
         b = 120,
-        c = node.alias()
+        c = node.alias
     )
 
     doc.obj.c.as[String] shouldBe "Value1"

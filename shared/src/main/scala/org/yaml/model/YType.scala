@@ -5,7 +5,7 @@ import scala.collection.mutable
 /**
   * Tag Types
   */
-class YType {
+class YType(val synthesized: Boolean) {
   private var tag_ : YTag = _
 
   def tag: YTag                 = tag_
@@ -13,11 +13,10 @@ class YType {
 }
 
 object YType {
-  def apply(tag: String): YType =
-    knownTypes.getOrElse(tag, Unknown)
+  def apply(tag: String): YType = knownTypes.getOrElse(tag, Unknown)
 
-  private def forName(tagName: String): YType = {
-    val t = new YType()
+  private def forName(tagName: String, synthesized: Boolean = true): YType = {
+    val t = new YType(synthesized)
     t.tag_ = YTag(tagName, t)
     knownTypes.put(tagName, t)
     t
@@ -34,4 +33,7 @@ object YType {
   val Null: YType      = forName("!!null")
   val Unknown: YType   = forName("?")
   val Empty: YType     = forName("!")
+
+  // Extension
+  val Include: YType = forName("!include", synthesized = false)
 }
