@@ -5,7 +5,7 @@ name := "syaml"
 
 val settings = Common.settings ++ Seq(
   name := "syaml",
-  version := "0.0.8",
+  version := "0.0.9-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "org.mulesoft"  %%% "scala-common" % "0.1.0",
