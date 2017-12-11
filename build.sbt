@@ -3,17 +3,16 @@ import sbt.Keys.{libraryDependencies, resolvers}
 
 name := "syaml"
 
-val settings = Common.settings ++ Seq(
+val settings = Common.settings ++ Common.publish ++ Seq(
   name := "syaml",
-  version := "0.0.9-SNAPSHOT",
+  version := "0.0.9",
 
   libraryDependencies ++= Seq(
-    "org.mulesoft"  %%% "scala-common" % "0.1.0",
+    "org.mulesoft"  %%% "scala-common" % "0.1.1",
     "org.scalactic" %%% "scalactic" % "3.0.1",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
 
-  Common.publish,
   resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
 
   credentials ++= Common.credentials()
@@ -23,9 +22,7 @@ lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM)
 
 lazy val syaml = crossProject
   .in(file("."))
-  .settings(
-    settings: _*
-  )
+  .settings(settings: _*)
   .jvmSettings(
     // JVM-specific settings here
   )

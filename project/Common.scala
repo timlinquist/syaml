@@ -1,5 +1,5 @@
 import sbt.Keys.{scalacOptions, _}
-import sbt.{Def, _}
+import sbt._
 
 object Common {
 
@@ -8,10 +8,8 @@ object Common {
   private val nexus =
     "https://repository-master.mulesoft.org/nexus/content/repositories"
 
-  val snapshots
-    : MavenRepository = "MuleSoft private snapshots" at s"$nexus/ci-snapshots"
-  val releases
-    : MavenRepository = "MuleSoft private releases" at s"$nexus/ci-releases"
+  val snapshots = "MuleSoft snapshots" at s"$nexus/snapshots"
+  val releases = "MuleSoft releases" at s"$nexus/releases"
 
   val settings: Seq[Def.Setting[_]] = Seq(
     organization := organizationName,
@@ -22,14 +20,19 @@ object Common {
     scalacOptions ++= Seq("-encoding", "utf-8")
   )
 
-  val publish: Def.Setting[_] = publishTo := Some(
-    if (isSnapshot.value) snapshots else releases)
+  val publish: Seq[Def.Setting[_]] = Seq(
+    publishTo := Some(if (isSnapshot.value) snapshots else releases),
+    publishConfiguration ~= { config =>
+      val newArts = config.artifacts.filterKeys(_.`type` != Artifact.SourceType)
+      new PublishConfiguration(config.ivyFile, config.resolverName, newArts, config.checksums, config.logging)
+    }
+  )
 
   def credentials(): Seq[Credentials] = {
     val cs =
       Seq("mule_user" -> "mule_password",
-          "NEXUS_USER" -> "NEXUS_PASSWORD",
-          "NEXUS_USR" -> "NEXUS_PSW")
+        "NEXUS_USER" -> "NEXUS_PASSWORD",
+        "NEXUS_USR" -> "NEXUS_PSW")
         .flatMap({
           case (user, password) =>
             for {
@@ -44,13 +47,13 @@ object Common {
         case (user, password) =>
           Seq(
             Credentials("Sonatype Nexus Repository Manager",
-                        "repository-master.mulesoft.org",
-                        user,
-                        password),
+              "repository-master.mulesoft.org",
+              user,
+              password),
             Credentials("Sonatype Nexus Repository Manager",
-                        "repository.mulesoft.org",
-                        user,
-                        password)
+              "repository.mulesoft.org",
+              user,
+              password)
           )
       })
 
@@ -69,9 +72,9 @@ object Common {
           if (servers.contains(id)) {
             Some(
               Credentials("Sonatype Nexus Repository Manager",
-                          servers(id),
-                          (s \ "username").text,
-                          (s \ "password").text))
+                servers(id),
+                (s \ "username").text,
+                (s \ "password").text))
           } else {
             None
           }
