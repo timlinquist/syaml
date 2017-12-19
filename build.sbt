@@ -4,12 +4,12 @@ import sbt.Keys.{libraryDependencies, resolvers}
 name := "syaml"
 
 val settings = Common.settings ++ Common.publish ++ Seq(
-  organization := "org.mulesoft.syaml",
+  organization := "org.mule.syaml",
   name := "syaml",
-  version := "0.0.10-SNAPSHOT",
+  version := "0.0.10",
 
   libraryDependencies ++= Seq(
-    "org.mulesoft"  %%% "scala-common" % "0.1.1",
+    "org.mule.common" %%% "scala-common" % "0.1.2-SNAPSHOT",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
 
