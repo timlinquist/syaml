@@ -9,7 +9,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   version := "0.0.10",
 
   libraryDependencies ++= Seq(
-    "org.mule.common" %%% "scala-common" % "0.1.2-SNAPSHOT",
+    "org.mule.common" %%% "scala-common" % "0.1.2",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
 
