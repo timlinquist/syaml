@@ -1,8 +1,8 @@
 package org.yaml.render
 
 import org.mulesoft.common.core.Strings
+import org.mulesoft.lexer.AstToken
 import org.yaml.lexer.YamlCharRules.isCPrintable
-import org.yaml.lexer.YeastToken
 import org.yaml.model._
 import org.yaml.render.YamlRender._
 
@@ -132,7 +132,7 @@ class YamlRender(val expandReferences: Boolean) {
     if (last >= 0 && builder(last).isWhitespace) builder.setLength(last)
   }
 
-  private def renderComment(text: String, tks: IndexedSeq[YeastToken]) = if (!renderTokens(tks)) {
+  private def renderComment(text: String, tks: IndexedSeq[AstToken]) = if (!renderTokens(tks)) {
     if (builder.nonEmpty && !builder.last.isWhitespace) render(" ")
     render("#" + text + '\n')
   }
@@ -193,12 +193,12 @@ class YamlRender(val expandReferences: Boolean) {
     this
   }
 
-  private def renderTokens(tks: IndexedSeq[YeastToken]): Boolean = {
+  private def renderTokens(tks: IndexedSeq[AstToken]): Boolean = {
     val hasTokens = tks.nonEmpty
     if (hasTokens) tks foreach renderToken
     hasTokens
   }
-  private def renderToken(t: YeastToken): Unit = render(t.text)
+  private def renderToken(t: AstToken): Unit = render(t.text)
 
   private def renderParts(parts: YPart): Boolean = {
     val nodes     = parts.children

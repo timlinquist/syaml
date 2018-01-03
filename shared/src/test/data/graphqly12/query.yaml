@@ -1,0 +1,17 @@
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "operation"
+    : !!str "query",
+    ? !!str "name"
+    : !!str "fetchUser",
+    ? !!str "fields"
+    : !!seq [
+      !!map {
+        ? !!str "name"
+        : !!str "user"
+      }
+    ]
+  }
+]

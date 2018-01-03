@@ -4,6 +4,7 @@ import java.lang.Long.parseLong
 
 import org.mulesoft.common.core.Strings
 import org.mulesoft.common.time.SimpleDateTime
+import org.mulesoft.lexer.{AstToken, InputRange}
 import org.yaml.model.YType.{Bool, Empty, Float, Int, Str, Timestamp, Unknown, Null => tNull}
 
 import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
@@ -19,11 +20,12 @@ class YScalar private (val value: Any,
 
   override def equals(obj: Any): Boolean = obj match {
     case s: YScalar => s.value == this.value
-    case n: YNodeLike => n.to[YScalar] exists { s =>
+    case n: YNodeLike =>
+      n.to[YScalar] exists { s =>
         val v1 = s.value
         value == v1
-    }
-    case _          => false
+      }
+    case _ => false
   }
 
   override def hashCode(): Int  = value.hashCode
@@ -35,6 +37,9 @@ object YScalar {
   def apply(value: Int): YScalar = YScalar(value.asInstanceOf[Long])
   def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value))
   val Null: YScalar              = YScalar.apply(null, "null")
+
+  def fromToken(astToken: AstToken, range: InputRange) =
+    new YScalar(astToken.text, astToken.text, true, Array(YNonContent(range, Array(astToken))))
 
   class Builder(text: String, t: YTag, mark: String = "", parts: IndexedSeq[YPart] = IndexedSeq.empty) {
     var tag: YTag            = _

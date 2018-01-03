@@ -1,7 +1,6 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.InputRange
-import org.yaml.lexer.YeastToken
+import org.mulesoft.lexer.{InputRange, AstToken}
 
 /**
   * A Part of a Yaml Document
@@ -12,9 +11,9 @@ trait YPart {
 }
 
 /** A Set of Yaml Tokens */
-abstract class YTokens(override val range: InputRange, val tokens: IndexedSeq[YeastToken]) extends YPart
+abstract class YTokens(override val range: InputRange, val tokens: IndexedSeq[AstToken]) extends YPart
 
 /** Ignorable content */
-abstract class YIgnorable(range: InputRange, ts: IndexedSeq[YeastToken]) extends YTokens(range, ts)
+abstract class YIgnorable(range: InputRange, ts: IndexedSeq[AstToken]) extends YTokens(range, ts)
 
 

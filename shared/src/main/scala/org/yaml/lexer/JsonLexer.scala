@@ -1,7 +1,5 @@
 package org.yaml.lexer
 
-import java.io.File
-
 import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput}
 import org.yaml.lexer.JsonLexer._
 import org.yaml.lexer.YamlToken._

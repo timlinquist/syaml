@@ -1,4 +1,4 @@
-package org.mulesoft.yaml
+package org.mulesoft.test
 
 import org.mulesoft.common.ext.Diff
 import org.mulesoft.common.io.{FileSystem, SyncFile}

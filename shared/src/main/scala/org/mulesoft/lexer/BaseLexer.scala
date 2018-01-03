@@ -2,7 +2,7 @@ package org.mulesoft.lexer
 
 import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
 
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ArrayBuffer
 
 abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 

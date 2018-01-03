@@ -2,6 +2,7 @@ package org.mulesoft.yaml
 
 import org.mulesoft.common.core._
 import org.mulesoft.common.io.SyncFile
+import org.mulesoft.test.GoldenSuite
 import org.mulesoft.yaml.dumper.Yaml12Render
 import org.yaml.model.YPart
 import org.yaml.parser.{JsonParser, YamlParser}

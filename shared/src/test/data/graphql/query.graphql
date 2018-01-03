@@ -1,0 +1,6 @@
+# A Query example
+query fetchUser {
+  user #(name: "Joe", age: 30) {
+#    name
+#  }
+}

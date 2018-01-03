@@ -1,0 +1,34 @@
+#query FetchWithFragment {
+#  lee: user(id: "1") {
+#    ...UserFragment
+#  }
+#  sam: user(id: "2") {
+#    ...UserFragment
+#  }
+#}
+#
+#fragment UserFragment on User {
+#  name
+#  email
+#}
+
+#query :
+#  name: FetchWithFragment
+#  fields :
+#      - user:
+#          alias: lee
+#          args :
+#            - id : 1
+#          fields: *UserFragment
+#      - user:
+#          alias: sam
+#          args :
+#            - id : 2
+#          fields: *UserFragment
+#
+#fragment:
+#  name: UserFragment
+#  type: User
+#  fields:
+#    - name
+#    - email

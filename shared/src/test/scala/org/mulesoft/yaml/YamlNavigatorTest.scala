@@ -232,7 +232,7 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
 
     val fullDoc = YamlParser("# A Document\n A Document").parse()
     fullDoc(0).toString shouldBe " A Document"
-    fullDoc(1).toString shouldBe "LineBreak(12, 13)"
+    fullDoc(1).toString shouldBe "LineBreak '\\n'"
 
   }
   test("YNode") {

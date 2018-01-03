@@ -7,11 +7,8 @@ import scala.collection.mutable
 /**
   * YamlTokenType
   */
-sealed class YamlToken(name: String, val abbreviation: String) extends Token(name) {
-  def this(name: String) = this(name, name.substring(0, 1))
-  YamlToken.tokens.put(abbreviation, this)
-
-  override def toString: String = name
+sealed class YamlToken(name: String, abbreviation: String) extends Token(name, abbreviation) {
+    YamlToken.tokens.put(abbreviation, this)
 }
 
 object YamlToken {

@@ -7,7 +7,7 @@ import org.mulesoft.lexer.LexerInput.Mark
   */
 trait LexerInput {
 
-    /** The current code point character in the input (or LexerInput#Eof if the EoF was reached).  */
+  /** The current code point character in the input (or LexerInput#Eof if the EoF was reached).  */
   def current: Int = lookAhead(0)
 
   /** The absolute offset (0..n) of the current character.  */
@@ -27,10 +27,22 @@ trait LexerInput {
 
   /** Consume n code points.  */
   def consume(n: Int): Unit
-    /** Consume while the condition holds.  */
+
+  /** Consume while the condition holds.  */
   def consumeWhile(p: (Int => Boolean)): Unit = while (p(current)) consume()
 
-    /** Create a mark in the Input so you can reset the input to it later */
+  /** Count the number of characters the condition holds.  */
+  def countWhile(p: (Int => Boolean)): Int = {
+    var offset = 0
+    var chr    = current
+    while (chr != LexerInput.EofChar && p(chr)) {
+      offset += 1
+      chr = lookAhead(offset)
+    }
+    offset
+  }
+
+  /** Create a mark in the Input so you can reset the input to it later */
   def createMark(): Mark
 
   /** Reset the input to the specified offset */

@@ -4,6 +4,7 @@ import java.io.{CharArrayWriter, PrintWriter}
 
 import org.mulesoft.common.io.{FileSystem, Fs}
 import org.mulesoft.lexer.InputRange
+import org.mulesoft.test.GoldenSuite
 import org.yaml.model._
 import org.yaml.parser.YamlParser
 

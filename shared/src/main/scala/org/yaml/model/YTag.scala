@@ -1,8 +1,7 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.InputRange
+import org.mulesoft.lexer.{InputRange, AstToken}
 import org.mulesoft.lexer.InputRange.Zero
-import org.yaml.lexer.YeastToken
 
 /**
   * A Yaml Tag
@@ -10,7 +9,7 @@ import org.yaml.lexer.YeastToken
 case class YTag(text: String,
                 tagType: YType,
                 override val range: InputRange = Zero,
-                override val tokens: IndexedSeq[YeastToken] = IndexedSeq.empty)
+                override val tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
     extends YTokens(range, tokens) {
 
   def synthesized: Boolean      = tagType.synthesized && tagType.tag == this
@@ -18,6 +17,6 @@ case class YTag(text: String,
 }
 
 object YTag {
-  def apply(tag: String, range: InputRange, ts: IndexedSeq[YeastToken]): YTag = YTag(tag, YType(tag), range, ts)
+  def apply(tag: String, range: InputRange, ts: IndexedSeq[AstToken]): YTag = YTag(tag, YType(tag), range, ts)
   def apply(tag: String): YTag                                                = YTag(tag, YType(tag))
 }

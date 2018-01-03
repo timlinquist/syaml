@@ -1,12 +1,11 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.InputRange
-import org.yaml.lexer.YeastToken
+import org.mulesoft.lexer.{InputRange, AstToken}
 
 /** Yaml Comment Part */
 case class YComment(metaText: String,
                     override val range: InputRange = InputRange.Zero,
-                    override val tokens: IndexedSeq[YeastToken] = IndexedSeq.empty)
+                    override val tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
     extends YIgnorable(range, tokens) {
 
   override def hashCode(): Int = metaText.hashCode
@@ -20,7 +19,7 @@ case class YComment(metaText: String,
 }
 
 /** Non Content (Whitespace, Indentation and Indicators) */
-case class YNonContent(override val range: InputRange, override val tokens: IndexedSeq[YeastToken])
+case class YNonContent(override val range: InputRange, override val tokens: IndexedSeq[AstToken])
     extends YIgnorable(range, tokens) {
   override def toString: String = tokens.mkString(", ")
 }

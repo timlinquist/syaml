@@ -1,9 +1,9 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData}
+import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData, AstToken}
 import org.yaml.lexer.YamlToken._
-import org.yaml.lexer.{YamlLexer, YamlToken, YeastToken}
+import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model
 import org.yaml.model.{YTag, _}
 
@@ -236,7 +236,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
 
   private class Builder {
     var first: TD               = _
-    val tokens                  = new ArrayBuffer[YeastToken]
+    val tokens                  = new ArrayBuffer[AstToken]
     val parts                   = new ArrayBuffer[YPart]
     var anchor: Option[YAnchor] = None
     var alias: String           = ""
@@ -244,15 +244,15 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
     var value: YValue           = _
 
     def append(td: TD, text: String = ""): Unit = {
-      if (keepTokens) tokens += YeastToken(td.token, td.start, td.end, text)
+      if (keepTokens) tokens += AstToken(td.token, text)
       if (first == null) first = td
     }
 
-    def buildTokens(td: TD = null): IndexedSeq[YeastToken] = {
+    def buildTokens(td: TD = null): IndexedSeq[AstToken] = {
       if (td != null) this append td
       if (tokens.isEmpty) IndexedSeq.empty
       else {
-        val r = tokens.toArray[YeastToken]
+        val r = tokens.toArray[AstToken]
         tokens.clear()
         first = null
         r
