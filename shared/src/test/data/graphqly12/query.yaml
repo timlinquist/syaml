@@ -10,7 +10,14 @@
     : !!seq [
       !!map {
         ? !!str "name"
-        : !!str "user"
+        : !!str "user",
+        ? !!str "arguments"
+        : !!map {
+          ? !!str "name"
+          : !!str "Joe",
+          ? !!str "age"
+          : !!int "30"
+        }
       }
     ]
   }

@@ -51,6 +51,7 @@ final class GraphQlLexer private (input: LexerInput) extends BaseLexer[GraphQlTo
   override protected def initialize(): Unit = advance()
 
   private def string(): Unit = {
+   consume()
     while (currentChar != '"') {
       if (currentChar == '\\') {
         consume()
@@ -58,6 +59,7 @@ final class GraphQlLexer private (input: LexerInput) extends BaseLexer[GraphQlTo
       }
       consume()
     }
+      consume()
     emit(StringValue)
   }
   private def number(): Unit = {
@@ -66,7 +68,7 @@ final class GraphQlLexer private (input: LexerInput) extends BaseLexer[GraphQlTo
       consume()
       consumeWhile(isDigit)
     }
-    if (currentChar != '.' && currentChar != 'e' && currentChar == 'E')
+    if (currentChar != '.' && currentChar != 'e' && currentChar != 'E')
       emit(IntValue)
     else {
       if (consume('.')) consumeWhile(isDigit)
