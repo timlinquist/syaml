@@ -17,7 +17,14 @@
           : !!str "Joe",
           ? !!str "age"
           : !!int "30"
-        }
+        },
+        ? !!str "fields"
+        : !!seq [
+          !!map {
+            ? !!str "name"
+            : !!str "name"
+          }
+        ]
       }
     ]
   }

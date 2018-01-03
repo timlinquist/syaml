@@ -7,4 +7,7 @@
       name: user
       arguments:
         name: Joe
-        age: 30# { name  }
+        age: 30
+      fields:
+        -
+          name: name

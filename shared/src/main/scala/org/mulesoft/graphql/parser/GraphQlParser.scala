@@ -96,6 +96,7 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
       push()
       if (current() == Name) name := lexer.tokenString
       if (matchOperator("(")) arguments := parseArguments()
+      if (matchOperator("{")) fields := parseSelection()
       pop(buildMap())
     }
     pop(buildSeq())
