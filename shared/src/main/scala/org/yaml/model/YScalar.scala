@@ -38,6 +38,8 @@ object YScalar {
   def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value))
   val Null: YScalar              = YScalar.apply(null, "null")
 
+  def nonPlain(value: String) = new YScalar(value, value, false)
+
   def fromToken(astToken: AstToken, range: InputRange) =
     new YScalar(astToken.text, astToken.text, true, Array(YNonContent(range, Array(astToken))))
 

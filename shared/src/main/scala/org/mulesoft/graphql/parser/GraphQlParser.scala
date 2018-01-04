@@ -15,17 +15,17 @@ import scala.collection.mutable.ArrayBuffer
   */
 class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
   type TD = TokenData[GraphQlToken]
-  private var keepTokens = false
-  private var builder    = new Builder
-  private var stack      = List(builder)
+  private var keepTokens           = false
+  private var stack: List[Builder] = Nil
+  private var builder              = new Builder(YType.Seq)
 
   /** Parse the Yaml and return an Indexed Seq of the Parts */
   def parse(keepTokens: Boolean = false): YDocument = {
     this.keepTokens = keepTokens
     if (current() != Eof) {
-      push()
-      do parseDefinition() while (current() != Eof)
-      pop(buildSeq())
+      beginSeq()
+      do add(parseDefinition()) while (current() != Eof)
+      add(endSeq())
     }
     YDocument(builder.buildParts())
   }
@@ -44,13 +44,13 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
       token match {
         case WhiteSpace | Comma | LineTerminator =>
           if (tokens != null) {
-            tokens += AstToken(token, lexer.tokenString)
+            tokens += AstToken(token, tokenText)
             range = if (range == null) td.range else range.extent(td.range)
           }
         case Comment =>
           addNonContent()
-          val txt = lexer.tokenString
-          builder.parts += YComment(txt, td.range, Array(AstToken(token, txt)))
+          val txt = tokenText
+          add(YComment(txt, td.range, Array(AstToken(token, txt))))
         case _ =>
           addNonContent()
           return token
@@ -61,68 +61,107 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
     Eof
   }
 
-  private def parseDefinition() = {
+  private def add(part: YPart) = {
+    builder.parts += part
+  }
 
-    if (matchOperation("query")) {
-      if (current() == Name) name := lexer.tokenString
+  private def parseDefinition(): YNode = tokenText match {
+    case "query" =>
+      beginMap()
+      operation.matchCurrent()
+      name.matchCurrent()
       if (matchOperator("(")) variables := parseVariables()
       while (matchOperator("@")) {
         // Parse Directives
       }
       if (matchOperator("{")) fields := parseSelection()
 
-      pop(buildMap())
-    }
-    else if (matchOperator("{")) {
-      builder.parts += YMapEntry(operation.key, "query")
+      endMap()
+    case "{" =>
+      lexer.advance()
+      beginMap()
+      operation := "query"
       fields := parseSelection()
-      pop(buildMap())
-    }
-//            case "fragment" =>
-//            case "mutation" =>
-//            case "type" =>
-//            case "{" =>
-//            case  _ =>
+      endMap()
+    //            case "fragment" =>
+    //            case "mutation" =>
+    //            case "type" =>
+    case _ => YNode.Null
   }
 
-  private def matchOperator(chr: String) = current() == Punctuation && lexer.tokenString == chr
+  private def matchOperator(chr: String) = if (current() != Punctuation || tokenText != chr) false
+    else {
+      lexer.advance()
+      true
+    }
 
   private def parseVariables(): YSequence = YSequence.empty
 
+  var prefix = " "
   private def parseSelection(): YNode = {
-    push()
-    lexer.advance()
-    while (!matchOperator("}")) {
-      push()
-      if (current() == Name) name := lexer.tokenString
+    beginSeq()
+    prefix += "   "
+    while (lexer.nonEof && !matchOperator("}")) {
+      beginMap()
+      parseAlias()
       if (matchOperator("(")) arguments := parseArguments()
       if (matchOperator("{")) fields := parseSelection()
-      pop(buildMap())
+      add(endMap())
+      current()
     }
-    pop(buildSeq())
+    prefix = prefix.substring(3)
+    endSeq()
   }
+
+  private def parseAlias() = {
+    if (current() == Name) {
+      val txt = tokenText
+      lexer.advance()
+      if (matchOperator(":")) {
+        alias := txt
+        name.matchCurrent()
+      }
+      else name := txt
+    }
+  }
+
+  private def beginMap(): Unit = new Builder(YType.Map)
+  private def beginSeq(): Unit = new Builder(YType.Seq)
+
+  private def end(node: YNode): YNode = {
+    if (node.tag.tagType != builder.tagType)
+      throw new IllegalStateException(s"${node.tag.tagType} != ${builder.tagType}")
+    stack = stack.tail
+    builder = stack.head
+    node
+  }
+  private def endMap() = end(YMap(builder.buildParts()))
+  private def endSeq() = end(YSequence(builder.buildParts()))
+
+  private def tokenText = lexer.tokenString
+
   private def parseArguments(): YNode = {
-    push()
-    lexer.advance()
+    beginMap()
     while (!matchOperator(")")) parseArgument()
-    pop(buildMap())
+    endMap()
   }
 
   private def parseArgument(): Boolean =
     if (current() != Name) false
     else {
-      val argName = lexer.tokenString
+      val argName = tokenText
       lexer.advance()
       if (!matchOperator(":")) false
       else {
-        lexer.advance()
-          val token = current()
-          val node = token match {
-          case IntValue    => YNode(parseInt(lexer.tokenString))
-          case FloatValue    => YNode(parseDouble(lexer.tokenString))
+        val token = current()
+        val node = token match {
+          case IntValue   => YNode(parseInt(tokenText))
+          case FloatValue => YNode(parseDouble(tokenText))
           case StringValue =>
-              val str = lexer.tokenString
-              YNode(str.substring(1, str.length-1).decode)
+            val str = tokenText
+            YNode(YScalar.nonPlain(str.substring(1, str.length - 1).decode), YType.Str)
+          case Name =>
+            YNode(tokenText)
           case _ => return false
         }
         builder.parts += YMapEntry(argName, node)
@@ -131,29 +170,9 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
       }
     }
 
-  private def matchOperation(name: String): Boolean =
-    if (lexer.tokenString != name) false
-    else {
-      push()
-      operation := name
-      true
-    }
-
-  private def push(): Unit = {
-    builder = new Builder
-    stack = builder :: stack
-  }
-  private def buildMap(): YNode = YMap(builder.buildParts())
-  private def buildSeq(): YNode = YSequence(builder.buildParts())
-
-  private def pop(node: YNode): YNode = {
-    stack = stack.tail
-    builder = stack.head
-    builder.parts += node
-    node
-  }
-
-  private class Builder {
+  private class Builder(val tagType: YType) {
+    stack = this :: stack
+    builder = this
     val parts = new ArrayBuffer[YPart]
 
     def buildParts(): Array[YPart] = {
@@ -167,8 +186,11 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
   }
   private class Field(val keyText: String) {
     val key = YNode(keyText)
-    def :=(value: YNode): Unit = {
-      builder.parts += YMapEntry(key, value)
+
+    def :=(value: YNode): Unit = builder.parts += YMapEntry(key, value)
+
+    def matchCurrent(): Unit = if (current() == Name) {
+      builder.parts += YMapEntry(key, tokenText)
       lexer.advance()
     }
   }
@@ -177,6 +199,7 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
   private val variables = new Field("variables")
   private val fields    = new Field("fields")
   private val arguments = new Field("arguments")
+  private val alias     = new Field("alias")
 }
 
 object GraphQlParser {

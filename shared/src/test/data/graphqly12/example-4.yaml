@@ -1,0 +1,36 @@
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "operation"
+    : !!str "query",
+    ? !!str "fields"
+    : !!seq [
+      !!map {
+        ? !!str "name"
+        : !!str "human",
+        ? !!str "arguments"
+        : !!map {
+          ? !!str "id"
+          : !!str "1000"
+        },
+        ? !!str "fields"
+        : !!seq [
+          !!map {
+            ? !!str "name"
+            : !!str "name"
+          },
+          !!map {
+            ? !!str "name"
+            : !!str "height",
+            ? !!str "arguments"
+            : !!map {
+              ? !!str "unit"
+              : !!str "FOOT"
+            }
+          }
+        ]
+      }
+    ]
+  }
+]

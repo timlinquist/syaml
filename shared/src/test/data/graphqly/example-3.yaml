@@ -1,13 +1,12 @@
-# A Query example
 -
   operation: query
-  name: fetchUser
   fields:
     -
-      name: user
+      name: human
       arguments:
-        name: "Joe"
-        age: 30
+        id: "1000"
       fields:
         -
           name: name
+        -
+          name: height

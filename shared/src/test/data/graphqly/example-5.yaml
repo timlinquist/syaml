@@ -1,0 +1,19 @@
+-
+  operation: query
+  fields:
+    -
+      alias: empireHero
+      name: hero
+      arguments:
+        episode: EMPIRE
+      fields:
+        -
+          name: name
+    -
+      alias: jediHero
+      name: hero
+      arguments:
+        episode: JEDI
+      fields:
+        -
+          name: name

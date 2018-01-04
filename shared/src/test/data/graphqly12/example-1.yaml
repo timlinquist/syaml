@@ -1,0 +1,22 @@
+%YAML 1.2
+---
+!!seq [
+  !!map {
+    ? !!str "operation"
+    : !!str "query",
+    ? !!str "fields"
+    : !!seq [
+      !!map {
+        ? !!str "name"
+        : !!str "hero",
+        ? !!str "fields"
+        : !!seq [
+          !!map {
+            ? !!str "name"
+            : !!str "name"
+          }
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,13 @@
+-
+  operation: query
+  fields:
+    -
+      name: hero
+      fields:
+        -
+          name: name
+        -
+          name: friends
+          fields:
+            -
+              name: name
