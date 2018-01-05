@@ -22,11 +22,9 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
   /** Parse the Yaml and return an Indexed Seq of the Parts */
   def parse(keepTokens: Boolean = false): YDocument = {
     this.keepTokens = keepTokens
-    if (current() != Eof) {
-      beginSeq()
+    if (current() != Eof) add(buildSeq {
       do add(parseDefinition()) while (current() != Eof)
-      add(endSeq())
-    }
+    })
     YDocument(builder.buildParts())
   }
 
@@ -61,56 +59,73 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
     Eof
   }
 
-  private def add(part: YPart) = {
-    builder.parts += part
-  }
+  private def add(part: YPart) = builder.parts += part
 
   private def parseDefinition(): YNode = tokenText match {
     case "query" =>
-      beginMap()
-      operation.matchCurrent()
-      name.matchCurrent()
-      if (matchOperator("(")) variables := parseVariables()
-      while (matchOperator("@")) {
-        // Parse Directives
+      buildMap {
+        operation.matchCurrent()
+        name.matchCurrent()
+        if (matchOperator("(")) variables := parseVariables()
+        while (matchOperator("@")) {
+          // Parse Directives
+        }
+        if (matchOperator("{")) fields := parseSelection()
       }
-      if (matchOperator("{")) fields := parseSelection()
-
-      endMap()
+    case "fragment" => YNode.Null // todo
+    case "mutation" => YNode.Null // todo
+    case "type"     => YNode.Null // todo
     case "{" =>
       lexer.advance()
-      beginMap()
-      operation := "query"
-      fields := parseSelection()
-      endMap()
-    //            case "fragment" =>
-    //            case "mutation" =>
-    //            case "type" =>
+      buildMap {
+        operation := "query"
+        fields := parseSelection()
+      }
     case _ => YNode.Null
   }
 
-  private def matchOperator(chr: String) = if (current() != Punctuation || tokenText != chr) false
+  private def matchOperator(chr: String) =
+    if (current() != Punctuation || tokenText != chr) false
     else {
       lexer.advance()
       true
     }
 
-  private def parseVariables(): YSequence = YSequence.empty
+  private def parseVariables(): YNode = buildMap {
+    while (!matchOperator(")")) parseVariable()
+  }
+  private def parseVariable(): Boolean =
+    if (!matchOperator("$") || current() != Name) false
+    else {
+      val varName = tokenText
+      lexer.advance()
+      if (!matchOperator(":")) false
+      else {
+        varName := buildMap {
+            parseType()
+            if (matchOperator("=")) default := parseValue()
+        }
+        true
+      }
+    }
 
-  var prefix = " "
-  private def parseSelection(): YNode = {
-    beginSeq()
-    prefix += "   "
+  // todo complete
+  private def parseType(): Unit =
+    if (current() == Name) {
+      `type` := YNode(tokenText)
+      lexer.advance()
+      required := matchOperator("!")
+    }
+
+  private def parseSelection(): YNode = buildSeq {
     while (lexer.nonEof && !matchOperator("}")) {
-      beginMap()
-      parseAlias()
-      if (matchOperator("(")) arguments := parseArguments()
-      if (matchOperator("{")) fields := parseSelection()
-      add(endMap())
+      add(buildMap {
+        parseAlias()
+        if (matchOperator("(")) arguments := parseArguments()
+        if (matchOperator("{")) fields := parseSelection()
+      })
       current()
     }
-    prefix = prefix.substring(3)
-    endSeq()
   }
 
   private def parseAlias() = {
@@ -125,8 +140,19 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
     }
   }
 
-  private def beginMap(): Unit = new Builder(YType.Map)
   private def beginSeq(): Unit = new Builder(YType.Seq)
+
+  private def buildMap(block: => Unit): YNode = {
+    new Builder(YType.Map)
+    block
+    val map = YMap(builder.buildParts())
+    end(YNode(map))
+  }
+  private def buildSeq(block: => Unit): YNode = {
+    new Builder(YType.Seq)
+    block
+    end(YSequence(builder.buildParts()))
+  }
 
   private def end(node: YNode): YNode = {
     if (node.tag.tagType != builder.tagType)
@@ -135,15 +161,12 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
     builder = stack.head
     node
   }
-  private def endMap() = end(YMap(builder.buildParts()))
   private def endSeq() = end(YSequence(builder.buildParts()))
 
   private def tokenText = lexer.tokenString
 
-  private def parseArguments(): YNode = {
-    beginMap()
+  private def parseArguments(): YNode = buildMap {
     while (!matchOperator(")")) parseArgument()
-    endMap()
   }
 
   private def parseArgument(): Boolean =
@@ -153,22 +176,29 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
       lexer.advance()
       if (!matchOperator(":")) false
       else {
-        val token = current()
-        val node = token match {
-          case IntValue   => YNode(parseInt(tokenText))
-          case FloatValue => YNode(parseDouble(tokenText))
-          case StringValue =>
-            val str = tokenText
-            YNode(YScalar.nonPlain(str.substring(1, str.length - 1).decode), YType.Str)
-          case Name =>
-            YNode(tokenText)
-          case _ => return false
-        }
-        builder.parts += YMapEntry(argName, node)
-        lexer.advance()
+        argName := parseValue()
         true
       }
     }
+
+  private def parseValue(): YNode = {
+    val token = current()
+    val n = token match {
+      case IntValue   => YNode(parseInt(tokenText))
+      case FloatValue => YNode(parseDouble(tokenText))
+      case StringValue =>
+        val str = tokenText
+        YNode(YScalar.nonPlain(str.substring(1, str.length - 1).decode), YType.Str)
+      case Name =>
+        YNode(tokenText)
+      case Punctuation if matchOperator("$") => YNode("$" + tokenText)
+      case _                                 =>
+        // Error
+        YNode.Null
+    }
+    lexer.advance()
+    n
+  }
 
   private class Builder(val tagType: YType) {
     stack = this :: stack
@@ -184,22 +214,25 @@ class GraphQlParser private[parser] (val lexer: GraphQlLexer) {
       }
     }
   }
-  private class Field(val keyText: String) {
+  private implicit class Field(val keyText: String) {
     val key = YNode(keyText)
 
-    def :=(value: YNode): Unit = builder.parts += YMapEntry(key, value)
+    def :=(value: YNode): Unit = add(YMapEntry(key, value))
 
     def matchCurrent(): Unit = if (current() == Name) {
       builder.parts += YMapEntry(key, tokenText)
       lexer.advance()
     }
   }
-  private val operation = new Field("operation")
-  private val name      = new Field("name")
-  private val variables = new Field("variables")
-  private val fields    = new Field("fields")
-  private val arguments = new Field("arguments")
-  private val alias     = new Field("alias")
+  private val operation: Field = "operation"
+  private val name: Field      = "name"
+  private val variables: Field = "variables"
+  private val fields: Field    = "fields"
+  private val arguments: Field = "arguments"
+  private val alias: Field     = "alias"
+  private val `type`: Field    = "type"
+  private val default: Field   = "default"
+  private val required: Field  = "required"
 }
 
 object GraphQlParser {

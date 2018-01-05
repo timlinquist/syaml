@@ -1,0 +1,21 @@
+-
+  operation: query
+  name: HeroNameAndFriends
+  variables:
+    episode:
+      type: Episode
+      required: false
+      default: "JEDI"
+  fields:
+    -
+      name: hero
+      arguments:
+        episode: $episode
+      fields:
+        -
+          name: name
+        -
+          name: friends
+          fields:
+            -
+              name: name
