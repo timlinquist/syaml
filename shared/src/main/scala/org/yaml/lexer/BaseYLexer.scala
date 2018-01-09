@@ -1,6 +1,5 @@
 package org.yaml.lexer
 
-import org.mulesoft.lexer.LexerInput.EofChar
 import org.mulesoft.lexer.{BaseLexer, LexerInput}
 import org.yaml.lexer.YamlToken._
 
@@ -78,7 +77,7 @@ abstract class BaseYLexer protected (input: LexerInput) extends BaseLexer[YamlTo
 
   protected def string(): Unit = {
     var hasText    = false
-    def emitText() = if (hasText) { emit(Text); hasText = false }
+    def emitText(): Unit = if (hasText) { emit(Text); hasText = false }
 
     nodeStart(BeginScalar)
     while (currentChar != '"') {

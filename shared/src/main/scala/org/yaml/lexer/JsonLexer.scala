@@ -45,12 +45,12 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     }
   }
 
-  private def endEntry() = {
+  private def endEntry(): Unit = {
     consumeAndEmit(Indicator)
     if (stack.head == BeginMapping) stack = BeginPair :: stack
   }
 
-  private def checkKeyword(str: String) = {
+  private def checkKeyword(str: String): Unit = {
     val l = check(str)
     if (l > 0) {
       nodeStart(BeginScalar, indicator = false)
@@ -60,7 +60,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     }
   }
 
-  private def nodeStart(block: YamlToken, indicator: Boolean = true) = {
+  private def nodeStart(block: YamlToken, indicator: Boolean = true): Unit = {
     if (stack.headOption contains BeginPair) emit(BeginPair)
     stack = block :: stack
     emit(BeginNode, block)
@@ -68,7 +68,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     if (block == BeginMapping) stack = BeginPair :: stack
   }
 
-  private def nodeEnd(block: YamlToken, indicator: Boolean = true) = {
+  private def nodeEnd(block: YamlToken, indicator: Boolean = true): Unit = {
     stack = stack.tail
     if (indicator) consumeAndEmit(Indicator)
     emit(block, EndNode)
@@ -84,7 +84,7 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     consumeAndEmit(Indicator)
   }
 
-  private def number() = {
+  private def number(): Unit = {
     nodeStart(BeginScalar, indicator = false)
     consume('-')
     if (!consume('0')) {
@@ -100,9 +100,9 @@ final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     nodeEnd(EndScalar, indicator = false)
   }
 
-  private def string() = {
+  private def string(): Unit = {
     var hasText    = false
-    def emitText() = if (hasText) { emit(Text); hasText = false }
+    def emitText(): Unit = if (hasText) { emit(Text); hasText = false }
 
     nodeStart(BeginScalar)
     while (currentChar != '"') {

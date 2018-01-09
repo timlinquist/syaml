@@ -1,6 +1,5 @@
 package org.yaml.lexer
 
-import java.io.File
 import java.lang.Integer.MAX_VALUE
 
 import org.mulesoft.common.core.countWhile
@@ -496,7 +495,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
   private def quotedScalar(n: Int, c: YamlContext, quoteChar: Char) = currentChar == quoteChar && {
     var inText = false
 
-    def emitText() = if (inText) {
+    def emitText(): Unit = if (inText) {
       emit(Text); inText = false
     }
 

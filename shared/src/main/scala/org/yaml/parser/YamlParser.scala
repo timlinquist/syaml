@@ -133,7 +133,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
     td
   }
 
-  private def addDirectiveArg() = {
+  private def addDirectiveArg(): Unit = {
     if (directiveArgs != null && metaTextBuilder.nonEmpty) {
       directiveArgs += metaTextBuilder.result
       metaTextBuilder.clear()
