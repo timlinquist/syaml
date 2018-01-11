@@ -12,10 +12,10 @@ import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 /**
   * A Yaml Scalar
   */
-class YScalar private (val value: Any,
-                       val text: String,
-                       val plain: Boolean = true,
-                       c: IndexedSeq[YPart] = IndexedSeq.empty)
+class YScalar private[model] (val value: Any,
+                              val text: String,
+                              val plain: Boolean = true,
+                              c: IndexedSeq[YPart] = IndexedSeq.empty)
     extends YValue(c) {
 
   override def equals(obj: Any): Boolean = obj match {
@@ -36,7 +36,7 @@ object YScalar {
 
   def apply(value: Int): YScalar = YScalar(value.asInstanceOf[Long])
   def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value))
-  val Null: YScalar              = YScalar.apply(null, "null")
+  val Null: YScalar              = new YScalar(null, "null")
 
   def nonPlain(value: String) = new YScalar(value, value, false)
 
@@ -81,7 +81,7 @@ object YScalar {
 
       tag =
         if (t == null) valType._2.tag
-        else if (t.tagType == Empty) t.copy(tagType = valType._2)
+        else if (t.tagType == YType.Empty) t.copy(tagType = valType._2)
         else t
 
       new YScalar(valType._1, if (mark == "'") text.replace("''", "'") else text, plain, parts)

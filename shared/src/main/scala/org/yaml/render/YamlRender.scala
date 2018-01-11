@@ -82,10 +82,13 @@ class YamlRender(val expandReferences: Boolean) {
   }
 
   private def renderMap(map: YMap): Unit = if (!renderParts(map)) {
-    indent()
-    chopLast()
-    for (e <- map.entries) renderNewLine().renderIndent().renderMapEntry(e)
-    dedent()
+    if (map.isEmpty) render("{}")
+    else {
+        indent()
+        chopLast()
+        for (e <- map.entries) renderNewLine().renderIndent().renderMapEntry(e)
+        dedent()
+    }
   }
 
   private def renderMapEntry(e: YMapEntry): Unit = {
@@ -114,8 +117,9 @@ class YamlRender(val expandReferences: Boolean) {
     for (c <- before) render(c).renderIndent()
     dedent()
 
-    // Render the value
-    render(value)
+    // Render the value (special case Null as Empty)
+    if (value.tagType == YType.Null && value.toString.isEmpty && before.isEmpty && after.isEmpty) chopLast()
+    else render(value)
 
     // Render after comments
     if (after.nonEmpty) {
@@ -176,16 +180,19 @@ class YamlRender(val expandReferences: Boolean) {
   }
 
   private def renderSeq(seq: YSequence): Unit = if (!renderParts(seq)) {
-    indent()
-    chopLast()
-    for (e <- seq.children) {
-      e match {
-        case n: YNode    => renderNewLine().renderIndent().render("- ").render(n)
-        case c: YComment => render(c)
-        case _           =>
-      }
+    if (seq.isEmpty) render("[]")
+    else {
+        indent()
+        chopLast()
+        for (e <- seq.children) {
+            e match {
+                case n: YNode => renderNewLine().renderIndent().render("- ").render(n)
+                case c: YComment => render(c)
+                case _ =>
+            }
+        }
+        dedent()
     }
-    dedent()
   }
 
   private def renderNewLine() = {

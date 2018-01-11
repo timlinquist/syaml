@@ -58,7 +58,8 @@ object YNode {
   def apply(seq: YSequence): YNode                         = YNode(seq, YType.Seq)
   def apply(map: YMap): YNode                              = YNode(map, YType.Map)
 
-  val Null = YNode(YScalar.Null, YType.Null)
+  val Null  = YNode(YScalar.Null, YType.Null)
+  val Empty = YNode(new YScalar(null, ""), YType.Null)
 
   // Implicit conversions
 
@@ -77,9 +78,9 @@ object YNode {
 
   /** An Include Node */
   def include(uri: String): MutRef = {
-      val v = YScalar(uri)
-      val t = YType.Include.tag
-      new MutRef(v, t, Array(t, v))
+    val v = YScalar(uri)
+    val t = YType.Include.tag
+    new MutRef(v, t, Array(t, v))
   }
 
   private type Parts = IndexedSeq[YPart]
