@@ -10,7 +10,9 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        sh 'sbt clean coverage test coverageReport'
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+          sh 'sbt clean coverage test coverageReport'
+        }
       }
     }
     stage('Publish') {
