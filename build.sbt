@@ -18,7 +18,28 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   credentials ++= Common.credentials()
 )
 
-lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM)
+lazy val url = sys.env.getOrElse("SONAR_SERVER_URL", "Not found url.")
+lazy val token = sys.env.getOrElse("SONAR_SERVER_TOKEN", "Not found token.")
+
+lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM).enablePlugins(SonarRunnerPlugin).settings(
+  sonarRunnerOptions := Seq("-X"),
+  sonarProperties := {
+    Map(
+      "sonar.host.url" -> url,
+      "sonar.login" -> token,
+      "sonar.projectKey" -> "mulesoft.syaml",
+      "sonar.projectName" -> "SYaml",
+      "sonar.github.repository" -> "mulesoft/syaml",
+      "sonar.projectVersion" -> "0.0.1",
+      "sonar.sourceEncoding" -> "UTF-8",
+      "sonar.modules" -> ".",
+      "..sonar.sources" -> "shared/src/main/scala",
+      "..sonar.exclusions" -> "shared/src/test/resources/**",
+      "..sonar.tests" -> "shared/src/test/scala",
+      "..sonar.scoverage.reportPath" -> "jvm/target/scala-2.12/scoverage-report/scoverage.xml"
+    )
+  }
+)
 
 lazy val syaml = crossProject
   .in(file("."))

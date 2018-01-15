@@ -12,3 +12,4 @@ output/
 classes
 .gradle
 build/
+.sonar/
