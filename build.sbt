@@ -22,7 +22,6 @@ lazy val url = sys.env.getOrElse("SONAR_SERVER_URL", "Not found url.")
 lazy val token = sys.env.getOrElse("SONAR_SERVER_TOKEN", "Not found token.")
 
 lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM).enablePlugins(SonarRunnerPlugin).settings(
-  sonarRunnerOptions := Seq("-X"),
   sonarProperties := {
     Map(
       "sonar.host.url" -> url,
