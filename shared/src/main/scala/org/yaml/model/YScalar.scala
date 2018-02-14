@@ -80,7 +80,8 @@ object YScalar {
           }
 
       tag =
-        if (t == null) valType._2.tag
+        if (error.isDefined) Str.tag
+        else if (t == null) valType._2.tag
         else if (t.tagType == YType.Empty) t.copy(tagType = valType._2)
         else t
 

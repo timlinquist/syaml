@@ -182,7 +182,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
               One = 1,
               Two = 2
           )
-          b.entry("emptyMap", _.obj(b => {}))
+          b.entry("emptyMap", _.obj(_ => {}))
       }
       doc2.obj.emptyMap shouldBe YMap.empty
   }
@@ -203,6 +203,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
             |- !!float abc
             |- !!timestamp 10
           """.stripMargin)
-
+      // Wrong tag types are normalized to !!str
+      doc.node.as[Seq[YNode]].map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str)
   }
 }
