@@ -104,7 +104,7 @@ object YDocument {
     private[YDocument] val builder = new ArrayBuffer[YPart]
 
     /** Add a Comment */
-    def comment(text: String): Unit = builder += YComment(text)
+    def comment(text: String): Unit = for (line <- text split "\n") builder += YComment(line)
   }
 
   class PartBuilder extends BaseBuilder {
