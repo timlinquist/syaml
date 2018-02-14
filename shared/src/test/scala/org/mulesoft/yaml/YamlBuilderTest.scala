@@ -1,6 +1,5 @@
 package org.mulesoft.yaml
 
-import com.sun.javafx.collections.MappingChange
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model.YDocument.{list, obj}
 import org.yaml.model.YType._
