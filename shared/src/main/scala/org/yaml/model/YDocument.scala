@@ -137,7 +137,8 @@ object YDocument {
     final def entry(key: YNode, vf: PartBuilder => Unit): Unit = {
       val v = new PartBuilder
       vf(v)
-      addEntry(key, v.builder(0))
+      v.builder.insert(0, key)
+      builder += YMapEntry(v.builder)
     }
 
     final def entry(key: YNode, value: YNode): Unit = addEntry(key, value)

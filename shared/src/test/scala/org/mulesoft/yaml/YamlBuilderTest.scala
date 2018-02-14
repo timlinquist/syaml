@@ -1,9 +1,11 @@
 package org.mulesoft.yaml
 
+import com.sun.javafx.collections.MappingChange
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model.YDocument.{list, obj}
 import org.yaml.model.YType._
 import org.yaml.model._
+import org.yaml.render.YamlRender
 
 /**
   * Test Builders
@@ -78,6 +80,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
   }
 
   test("Build Object") {
+
     val doc = YDocument("An Object").objFromBuilder { b =>
       b.complexEntry(_ += "aString", _ += "Value1")
       b.entry("anInt", 120)
@@ -138,6 +141,18 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
     o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List("One", "Two")
 
+    // Comments inside a Map
+
+    val doc1 = YDocument.objFromBuilder { b =>
+      b.entry("name", { b =>
+        b += YNode.Empty
+        b.comment("A Comment")
+        b.comment("Line 2")
+      })
+      b.name2 = 10
+    }
+    YamlRender.render(doc1) shouldBe "name: #A Comment\n  #Line 2\nname2: 10\n"
+
   }
   test("Build Map mix styles") {
     val doc = YDocument("A Map").objFromBuilder { b =>
@@ -175,8 +190,7 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     doc.obj.c.as[String] shouldBe "Value1"
   }
   test("Scalar errors") {
-      val doc = YDocument.parseYaml(
-          """
+    val doc = YDocument.parseYaml("""
             |- !!float abc
             |- !!timestamp 10
           """.stripMargin)
