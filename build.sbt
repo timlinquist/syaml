@@ -6,7 +6,7 @@ name := "syaml"
 val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
-  version := "0.1.1",
+  version := "0.1.2-SNAPSHOT",
 
   libraryDependencies ++= Seq(
     "org.mule.common" %%% "scala-common" % "0.1.2",
