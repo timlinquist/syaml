@@ -9,7 +9,10 @@ import org.yaml.render.YamlRender
 /**
   * Test Builders
   */
-trait YamlBuilderTest extends FunSuite with Matchers {
+trait YamlBuilderTest
+    extends FunSuite
+    with Matchers
+    with IgnoreParseErrorTest {
 
   test("Build Simple Scalar") {
     val doc1 = YDocument(_ += "A Document")
@@ -48,7 +51,9 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     }
     doc.tagType shouldBe Seq
     val seq = doc.node.as[Seq[YNode]]
-    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool)
+    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str,
+                                                                    Str,
+                                                                    Bool)
 
     doc.obj(2).as[Boolean] shouldBe true
 
@@ -69,12 +74,16 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     }
     doc.tagType shouldBe Seq
     val seq = doc.node.as[Seq[YNode]]
-    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool, YType.Seq)
+    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str,
+                                                                    Str,
+                                                                    Bool,
+                                                                    YType.Seq)
 
     doc.obj(3).as[List[String]] shouldBe List("A", "B")
 
     // Short way when you don't need a Builder
-    val doc2: YDocument = YDocument("Nested list").list("Line 1", "Line 2", true, list("A", "B"))
+    val doc2: YDocument =
+      YDocument("Nested list").list("Line 1", "Line 2", true, list("A", "B"))
     doc shouldBe doc2
   }
 
@@ -114,8 +123,13 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     obj1.aList shouldBe obj2.aList
     obj1.aMap shouldBe obj2.aMap
 
-    val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
-    types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
+    val types = for (e <- doc.as[YMap].entries)
+      yield (e.key.tagType, e.value.tagType)
+    types should contain theSameElementsInOrderAs List((Str, Str),
+                                                       (Str, Int),
+                                                       (Str, Seq),
+                                                       (Str, Map),
+                                                       (Seq, Seq))
 
     obj1.anInt.as[Int] shouldBe 120
     val m = obj1.aMap
@@ -123,22 +137,25 @@ trait YamlBuilderTest extends FunSuite with Matchers {
     m("Two").as[Int] shouldBe 2
     obj1.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
-    obj1(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
+    obj1(YSequence("a", "b"))
+      .as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
     // Short way when you don't need a Builder
     val doc3 = YDocument("An Object").obj(
-        aString = "Value1",
-        anInt = 120,
-        aList = list(1, 2, 100),
-        anotherList = list("One", "Two"),
-        aMap = obj(one = 1, two = 2)
+      aString = "Value1",
+      anInt = 120,
+      aList = list(1, 2, 100),
+      anotherList = list("One", "Two"),
+      aMap = obj(one = 1, two = 2)
     )
 
     val o = doc3.obj
     o.aMap.one.as[Int] shouldBe 1
     o.anotherList(0).to[String].getOrElse("") shouldBe "One"
     o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
-    o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List("One", "Two")
+    o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List(
+      "One",
+      "Two")
 
     // Comments inside a Map
 
@@ -153,47 +170,55 @@ trait YamlBuilderTest extends FunSuite with Matchers {
 
   }
   test("Build Map mix styles") {
-      val doc = YDocument("A Map").objFromBuilder { b =>
-          b.aString = "Value1"
-          b.anInt = 120
-          b.aList = list(1, 2)
-          b.aMap = obj(
-              One = 1,
-              Two = 2
-          )
-          b.entry(list("a", "b"), list(1, 2))
-      }
+    val doc = YDocument("A Map").objFromBuilder { b =>
+      b.aString = "Value1"
+      b.anInt = 120
+      b.aList = list(1, 2)
+      b.aMap = obj(
+        One = 1,
+        Two = 2
+      )
+      b.entry(list("a", "b"), list(1, 2))
+    }
 
-      val types = for (e <- doc.as[YMap].entries) yield (e.key.tagType, e.value.tagType)
-      types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
+    val types = for (e <- doc.as[YMap].entries)
+      yield (e.key.tagType, e.value.tagType)
+    types should contain theSameElementsInOrderAs List((Str, Str),
+                                                       (Str, Int),
+                                                       (Str, Seq),
+                                                       (Str, Map),
+                                                       (Seq, Seq))
 
-      doc.obj.anInt.as[Int] shouldBe 120
-      val m = doc.obj.aMap
-      m("One").as[Int] shouldBe 1
-      m("Two").as[Int] shouldBe 2
-      doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
+    doc.obj.anInt.as[Int] shouldBe 120
+    val m = doc.obj.aMap
+    m("One").as[Int] shouldBe 1
+    m("Two").as[Int] shouldBe 2
+    doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1,
+                                                                             2)
 
-      doc.obj(YSequence("a", "b")).as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
+    doc
+      .obj(YSequence("a", "b"))
+      .as[Seq[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
-      // Empty Map
+    // Empty Map
 
-      val doc2 = objFromBuilder { b =>
-          b.aMap = obj(
-              One = 1,
-              Two = 2
-          )
-          b.entry("emptyMap", _.obj(_ => {}))
-      }
-      doc2.obj.emptyMap shouldBe YMap.empty
+    val doc2 = objFromBuilder { b =>
+      b.aMap = obj(
+        One = 1,
+        Two = 2
+      )
+      b.entry("emptyMap", _.obj(_ => {}))
+    }
+    doc2.obj.emptyMap shouldBe YMap.empty
   }
 
   test("References") {
     val node = YNode("Value1").anchor("001")
 
     val doc = YDocument("A Map with references").obj(
-        a = node,
-        b = 120,
-        c = node.alias()
+      a = node,
+      b = 120,
+      c = node.alias()
     )
 
     doc.obj.c.as[String] shouldBe "Value1"
@@ -203,7 +228,9 @@ trait YamlBuilderTest extends FunSuite with Matchers {
             |- !!float abc
             |- !!timestamp 10
           """.stripMargin)
-      // Wrong tag types are normalized to !!str
-      doc.node.as[Seq[YNode]].map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str)
+    // Wrong tag types are normalized to !!str
+    doc.node
+      .as[Seq[YNode]]
+      .map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str)
   }
 }

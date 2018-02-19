@@ -11,7 +11,7 @@ import org.yaml.parser.YamlParser
 /**
   * Test against golden files
   */
-class ParseAndDumpTokensTest extends GoldenSuite {
+class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
 
   private val modelDir  = mkdir("target", "test", "model")
   private val yamlDir   = Fs syncFile "shared/src/test/data/yaml"
@@ -45,13 +45,13 @@ class ParseAndDumpTokensTest extends GoldenSuite {
   private def dump(elements: IndexedSeq[YPart], writer: PrintWriter, indent: String): Int = {
     var n = 0
 
-    def dumpTokens(cc: String, ts: YTokens, range: InputRange) = {
+    def dumpTokens(cc: String, ts: YTokens, range: InputRange): Unit = {
       val str = indent + cc + "  " + ts.tokens.map(_.tokenType.abbreviation).mkString(" ")
       writer.printf("%-50s %s%n", str, range)
       n += ts.tokens.size
     }
 
-    def dumpParts(cc: String, children: IndexedSeq[YPart], range: InputRange) = {
+    def dumpParts(cc: String, children: IndexedSeq[YPart], range: InputRange): Unit = {
       writer.printf("%-50s %s%n", indent + cc, range)
       n += dump(children, writer, indent + "  ")
     }

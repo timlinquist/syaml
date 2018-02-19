@@ -3,7 +3,7 @@ package org.yaml.model
 /**
   * Handles IllegalType requests from nodes
   */
-abstract class IllegalTypeHandler {
+trait IllegalTypeHandler {
   def handle[T](error: YError, defaultValue: T): T
 }
 

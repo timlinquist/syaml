@@ -26,7 +26,7 @@ trait YamlToYaml12Test extends GoldenSuite {
   }
 }
 
-object YamlToYaml12 {
+object YamlToYaml12 extends IgnoreParseErrorTest {
   def test(src: String, test: GoldenSuite, yamlDir: SyncFile, modelDir: SyncFile, goldenDir: SyncFile): Unit = {
     val fs         = test.fs
     val yamlFile   = fs.syncFile(yamlDir, src)

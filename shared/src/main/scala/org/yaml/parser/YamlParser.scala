@@ -1,12 +1,11 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData, AstToken}
+import org.mulesoft.lexer.{AstToken, BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model
 import org.yaml.model.{YTag, _}
-
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -14,20 +13,22 @@ import scala.collection.mutable.{ArrayBuffer, ListBuffer}
   * A Yaml Parser that covers Steps Parse and Compose of the spec.
   * [[http://www.yaml.org/spec/1.2/spec.html#id2762107 Yaml 1.2 Processes]]
   */
-class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
+class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(
+    implicit eh: ParseErrorHandler) {
+
   type TD = TokenData[YamlToken]
-  private val aliases                           = mutable.Map.empty[String, YNode]
-  private var escaping                          = false
-  private var keepTokens                        = false
-  private val textBuilder                       = new StringBuilder
-  private val metaTextBuilder                   = new StringBuilder
-  private var inHandle                          = false
-  private var inTag                             = false
-  private var scalarMark                        = ""
-  private var current                           = new Builder
-  private var stack                             = List(current)
-  private var prev: TD                          = TokenData(BeginStream, InputRange.Zero)
-  private var lastBegin                         = BeginStream
+  private val aliases = mutable.Map.empty[String, YNode]
+  private var escaping = false
+  private var keepTokens = false
+  private val textBuilder = new StringBuilder
+  private val metaTextBuilder = new StringBuilder
+  private var inHandle = false
+  private var inTag = false
+  private var scalarMark = ""
+  private var current = new Builder
+  private var stack = List(current)
+  private var prev: TD = TokenData(BeginStream, InputRange.Zero)
+  private var lastBegin = BeginStream
   private var directiveArgs: ListBuffer[String] = _
   private var includeTag = ""
 
@@ -47,19 +48,20 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
   def documents(): IndexedSeq[YDocument] = {
     val parts = parse(keepTokens = false)
     // Merge header into first document
-    val header                 = parts.takeWhile(p => !p.isInstanceOf[YDocument])
-    val docs: Array[YDocument] = parts.collect({ case d: YDocument => d })(collection.breakOut)
+    val header = parts.takeWhile(p => !p.isInstanceOf[YDocument])
+    val docs: Array[YDocument] =
+      parts.collect({ case d: YDocument => d })(collection.breakOut)
     if (docs.nonEmpty) docs(0) = YDocument(header ++ docs(0).children)
     docs
   }
-    /** Define an Include Tag if not empty it will generate Mutable Node References for tagged nodes */
 
-    def withIncludeTag(s: String): this.type = {
-        includeTag = s
-        this
-    }
+  /** Define an Include Tag if not empty it will generate Mutable Node References for tagged nodes */
+  def withIncludeTag(s: String): this.type = {
+    includeTag = s
+    this
+  }
 
-    private def push(td: TD): Unit = {
+  private def push(td: TD): Unit = {
     current.addNonContent(prev)
     metaTextBuilder.clear()
     textBuilder.clear()
@@ -90,8 +92,8 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
       case BeginDocument =>
         aliases.clear()
         push(td)
-      case BeginNode | BeginComment | BeginSequence | BeginScalar | BeginMapping | BeginPair | BeginAlias |
-          BeginAnchor =>
+      case BeginNode | BeginComment | BeginSequence | BeginScalar |
+          BeginMapping | BeginPair | BeginAlias | BeginAnchor =>
         push(td)
       case BeginTag =>
         inTag = true
@@ -119,7 +121,8 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
       case MetaText =>
         metaTextBuilder.append(lexer.tokenText)
       case Indicator =>
-        if (escaping || inHandle || inTag) metaTextBuilder.append(lexer.tokenText)
+        if (escaping || inHandle || inTag)
+          metaTextBuilder.append(lexer.tokenText)
         else if (prev.token == BeginScalar) scalarMark = lexer.tokenString
       case EndEscape =>
         textBuilder.append(buildMetaText().decode(ignoreErrors = true))
@@ -141,14 +144,20 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
   }
 
   private def createComment(td: TD) = {
-    pop(YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+    pop(
+      YComment(buildMetaText(),
+               current.first rangeTo td,
+               current.buildTokens(td)))
     td
   }
   private def createDirective(td: TD) = {
     addDirectiveArg()
     val parts = current.buildParts(td)
     parts collectFirst { case YTag(tag, _, _, _) => directiveArgs += tag }
-    pop(YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], parts))
+    pop(
+      YDirective(directiveArgs.head,
+                 directiveArgs.tail.toArray[String],
+                 parts))
     metaTextBuilder.clear()
     directiveArgs = null
     td
@@ -156,14 +165,17 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
 
   private def createTag(td: TokenData[YamlToken]) = {
     inTag = false
-    val t = YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    val t =
+      YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
     pop(t)
     current.tag = t
     td
   }
 
   private def createAnchor(td: TD) = {
-    val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    val anchor = YAnchor(buildMetaText(),
+                         current.first rangeTo td,
+                         current.buildTokens(td))
     pop(anchor)
     current.anchor = Some(anchor)
     td
@@ -188,11 +200,11 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
       val target = aliases.getOrElse(current.alias, YNode.Null)
       // Manage Error if (target == YNode.Null)
       pop(new YNode.Alias(current.alias, target, parts))
-    }
-    else {
+    } else {
       val tag = current.tag
       val n =
-        if (includeTag.nonEmpty && tag.text == includeTag) new model.YNode.MutRef(current.value, tag, parts)
+        if (includeTag.nonEmpty && tag.text == includeTag)
+          new model.YNode.MutRef(current.value, tag, parts)
         else YNode(current.value, tag, current.anchor, parts)
       for (a <- current.anchor) aliases += a.name -> n
       pop(n)
@@ -210,7 +222,8 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
 
   private def createAlias(td: TD) = {
     val aliasName = buildMetaText()
-    val alias     = YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td))
+    val alias =
+      YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td))
     pop(alias)
     current.alias = aliasName
     td
@@ -221,7 +234,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
     val c = stack.head
 
     val parts = current.buildParts(td)
-    val b     = new YScalar.Builder(buildText(), c.tag, scalarMark, parts)
+    val b = new YScalar.Builder(buildText(), c.tag, scalarMark, parts)
     c.value = b.scalar
     c.tag = b.tag
     c.parts += b.scalar
@@ -232,16 +245,18 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
     td
   }
   private def tagFor(tag: YTag, defaultType: YType) =
-    if (tag == null) defaultType.tag else if (tag.tagType == YType.Empty) tag.copy(tagType = defaultType) else tag
+    if (tag == null) defaultType.tag
+    else if (tag.tagType == YType.Empty) tag.copy(tagType = defaultType)
+    else tag
 
   private class Builder {
-    var first: TD               = _
-    val tokens                  = new ArrayBuffer[AstToken]
-    val parts                   = new ArrayBuffer[YPart]
+    var first: TD = _
+    val tokens = new ArrayBuffer[AstToken]
+    val parts = new ArrayBuffer[YPart]
     var anchor: Option[YAnchor] = None
-    var alias: String           = ""
-    var tag: YTag               = _
-    var value: YValue           = _
+    var alias: String = ""
+    var tag: YTag = _
+    var value: YValue = _
 
     def append(td: TD, text: String = ""): Unit = {
       if (keepTokens) tokens += AstToken(td.token, text)
@@ -269,16 +284,24 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken]) {
       }
     }
     def addNonContent(td: TD): Unit =
-      if (tokens.nonEmpty) parts += YNonContent(first rangeTo td, buildTokens())
+      if (tokens.nonEmpty)
+        parts += YNonContent(first rangeTo td, buildTokens())
   }
 
 }
 
 object YamlParser {
-  def apply(lexer: YamlLexer): YamlParser = new YamlParser(lexer)
-  def apply(s: CharSequence): YamlParser  = new YamlParser(YamlLexer(s))
+
+  def apply(lexer: YamlLexer)(implicit eh: ParseErrorHandler): YamlParser =
+    new YamlParser(lexer)(eh)
+  def apply(s: CharSequence)(implicit eh: ParseErrorHandler): YamlParser =
+    apply(YamlLexer(s))(eh)
+
 }
 
 object JsonParser {
-  def apply(s: CharSequence): YamlParser = new YamlParser(YamlLexer(s))
+  def apply(
+      s: CharSequence)(implicit eh: ParseErrorHandler =
+                         ParseErrorHandler.parseErrorHandler): YamlParser =
+    new YamlParser(YamlLexer(s))(eh)
 }

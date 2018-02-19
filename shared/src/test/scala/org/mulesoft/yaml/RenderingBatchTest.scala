@@ -9,7 +9,7 @@ import org.yaml.render.{JsonRender, YamlRender}
 /**
   * Test against golden files
   */
-trait RenderingBatchTest extends GoldenSuite {
+trait RenderingBatchTest extends GoldenSuite with IgnoreParseErrorTest{
 
   private val modelDir  = mkdir("target", "test", "model")
   private val modelDir2 = mkdir("target", "test", "model2")

@@ -1,0 +1,5 @@
+description: API ID of specific API you have configured on your merchant account
+format: int64
+maximum: 9223372036854776000
+minimum: 0
+type: integer

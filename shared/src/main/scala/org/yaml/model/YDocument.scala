@@ -41,10 +41,10 @@ object YDocument {
   def apply(mainNode: YNode): YDocument = YDocument("")(mainNode)
 
   /** Constructor from Yaml text, keep the first document */
-  def parseYaml(text: String): YDocument = YamlParser(text).documents()(0)
+  def parseYaml(text: String)(implicit eh: ParseErrorHandler): YDocument = YamlParser(text)(eh).documents()(0)
 
   /** Constructor from Json text */
-  def parseJson(text: String): YDocument = JsonParser(text).documents()(0)
+  def parseJson(text: String)(implicit eh: ParseErrorHandler): YDocument = JsonParser(text)(eh).documents()(0)
 
   /** Build an Object(Map) (Using dynamics) */
   object obj extends Dynamic {
