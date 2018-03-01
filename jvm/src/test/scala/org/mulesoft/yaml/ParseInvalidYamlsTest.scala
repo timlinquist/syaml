@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import org.mulesoft.common.io.Fs
 import org.mulesoft.lexer.InputRange
 import org.scalatest.FunSuite
-import org.yaml.model.{ParseErrorHandler, SyamlException, YPart, YScalar}
+import org.yaml.model.{ParseErrorHandler, SyamlException, YPart}
 import org.yaml.parser.YamlParser
 
 import scala.collection.mutable
