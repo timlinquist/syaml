@@ -5,7 +5,6 @@ import org.mulesoft.lexer.{AstToken, BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model
-import org.yaml.model.YScalar.LexerException
 import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable

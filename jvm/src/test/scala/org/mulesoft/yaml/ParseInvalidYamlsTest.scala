@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import org.mulesoft.common.io.Fs
 import org.mulesoft.lexer.InputRange
 import org.scalatest.FunSuite
-import org.yaml.model.{ParseErrorHandler, YPart, YScalar}
+import org.yaml.model.{ParseErrorHandler, SyamlException, YPart, YScalar}
 import org.yaml.parser.YamlParser
 
 import scala.collection.mutable
@@ -42,7 +42,7 @@ class ParseInvalidYamlsTest extends FunSuite {
 
     case class ErrorContainer(error: Exception, inputRange: InputRange)
 
-    override def handle(node: YPart, e: YScalar.SyamlException): Unit = errors += ErrorContainer(e, node.range)
+    override def handle(node: YPart, e: SyamlException): Unit = errors += ErrorContainer(e, node.range)
   }
 
 }

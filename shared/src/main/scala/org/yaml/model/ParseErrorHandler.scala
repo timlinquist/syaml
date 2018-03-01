@@ -1,7 +1,5 @@
 package org.yaml.model
 
-import org.yaml.model.YScalar.SyamlException
-
 trait ParseErrorHandler {
   def handle(node: YPart, e:SyamlException)
 }
