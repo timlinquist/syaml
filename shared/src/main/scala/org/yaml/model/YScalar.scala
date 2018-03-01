@@ -102,9 +102,9 @@ object YScalar {
           case "true" | "True" | "TRUE" if typeIs(tt, Bool) => (true, Bool)
           case "false" | "False" | "FALSE" if typeIs(tt, Bool) =>
             (false, Bool)
-          case intRegex() if typeIs(tt, Int) => (text.toLong, Int)
-          case hexRegex(s) if typeIs(tt, Int) => (parseLong(s, 16), Int)
-          case octRegex(s) if typeIs(tt, Int) => (parseLong(s, 8), Int)
+          case intRegex() if typeIs(tt, Int)     => (text.toLong, Int)
+          case hexRegex(s) if typeIs(tt, Int)    => (parseLong(s, 16), Int)
+          case octRegex(s) if typeIs(tt, Int)    => (parseLong(s, 8), Int)
           case floatRegex() if typeIs(tt, Float) => (text.toDouble, Float)
           case infinity(s) if typeIs(tt, Float) =>
             (if (s == "-") NegInf else Inf, Float)
@@ -134,5 +134,11 @@ object YScalar {
   private val infinity = "([-+])?(?:\\.inf|\\.Inf|\\.INF)".r
 
   case class ParseException(tag: YType, text: String, cause: Exception = null)
-      extends RuntimeException(s"Cannot parse '$text' with tag '$tag'", cause)
+      extends SyamlException(s"Cannot parse '$text' with tag '$tag'", cause)
+
+  case class LexerException(text: String, cause: Exception = null)
+      extends SyamlException(s"Error node '$text'", cause)
+
+  abstract class SyamlException(message: String, cause: Exception)
+      extends RuntimeException(message, cause) {}
 }

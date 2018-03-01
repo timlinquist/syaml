@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Test handling errors
   */
-class ParseInvalidYamls extends FunSuite {
+class ParseInvalidYamlsTest extends FunSuite {
 
   private val yamlDir = Fs syncFile "shared/src/test/data/parser/invalid"
 
@@ -26,13 +26,23 @@ class ParseInvalidYamls extends FunSuite {
 
   }
 
+  test("Parse invalid entry value as scalar and map") {
+    val yamlFile = yamlDir / "invalid-entry-value.yaml"
+    val handler = TestErrorHandler()
+
+    YamlParser(yamlFile.read())(handler).parse()
+
+    assert(handler.errors.lengthCompare(2) == 0)
+    assert(handler.errors.head.error.getMessage.equals("Error node ' name'"))
+    assert(handler.errors.last.error.getMessage.equals("Error node '  get:\n  post:'"))
+  }
+
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
 
-    override def handle(node: YPart, e: YScalar.ParseException): Unit =
-      errors += ErrorContainer(e, node.range)
-
     case class ErrorContainer(error: Exception, inputRange: InputRange)
+
+    override def handle(node: YPart, e: YScalar.SyamlException): Unit = errors += ErrorContainer(e, node.range)
   }
 
 }

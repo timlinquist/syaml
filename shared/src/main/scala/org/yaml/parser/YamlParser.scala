@@ -5,7 +5,9 @@ import org.mulesoft.lexer.{AstToken, BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model
+import org.yaml.model.YScalar.LexerException
 import org.yaml.model.{YTag, _}
+
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
 
@@ -284,8 +286,19 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(
       }
     }
     def addNonContent(td: TD): Unit =
-      if (tokens.nonEmpty)
-        parts += YNonContent(first rangeTo td, buildTokens())
+      if (tokens.nonEmpty) {
+        val content = YNonContent(first rangeTo td, buildTokens())
+        parts += content
+        collectErrors(content)
+      }
+
+    def collectErrors(nonContent: YNonContent): Unit = {
+      nonContent.tokens.find(_.tokenType == Error) match {
+        case Some(astToken: AstToken) =>
+          eh.handle(nonContent, LexerException(astToken.text))
+        case _ =>
+      }
+    }
   }
 
 }
