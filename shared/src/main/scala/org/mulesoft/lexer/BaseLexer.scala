@@ -47,6 +47,8 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
     emit(t2)
   }
 
+  protected def reset(): Unit = mark = input.position
+
   protected def findToken(chr: Int):Unit = {}
 
   /** Advance the lexer to the next token.  */
