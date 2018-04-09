@@ -1,0 +1,9 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "type"
+  : !!map {
+    ? !!str "fhirResourceType"
+    : !!str "get_allergyIntolerance.json"
+  }
+}

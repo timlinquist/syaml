@@ -164,6 +164,15 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
       }
     }
 
+  private def flowLinePrefix(): Boolean = {
+
+    if (isDirectivesEnd || isDocumentEnd) return false
+    val spaces = countSpaces()
+    val whiteSpaces = countWhiteSpaces(spaces)
+    consumeAndEmit(spaces, Indent)
+    consumeAndEmit(whiteSpaces, WhiteSpace)
+  }
+
   /**
     * If a line break is followed by an empty line, it is trimmed.
     * The first line break is discarded and the rest are retained as content.<p>
@@ -260,6 +269,9 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     case _ =>
       matches(multilineComment() && linePrefix(n, flow = true)) || separateInLine()
   }
+
+  def separateFlow(n :Int, ctx:YamlContext): Boolean = matches(separate(n, ctx)) ||
+    matches(multilineComment() && flowLinePrefix) || separateInLine()
 
   /**
     * Directives are instructions to the YAML processor.
@@ -726,7 +738,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     flowSequenceEntry(n, ctx) && {
       def isInvalid(chr: Int) = chr != ']' && chr != ',' && chr != EofChar
 
-      separate(n, ctx)
+      separateFlow(n, ctx)
       if (isInvalid(currentChar)) {
         consumeWhile(isInvalid)
         emit(Error)
@@ -735,7 +747,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
       if (c == ']' || c == EofChar) true
       else {
         emitIndicator()
-        separate(n, ctx)
+        separateFlow(n, ctx)
         flowSequenceEntries(n, ctx)
       }
     }
@@ -780,9 +792,9 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     */
   @tailrec private def flowMapEntries(n: Int, ctx: YamlContext): Boolean = currentChar != '}' && {
     flowMapEntry(n, ctx) && {
-      separate(n, ctx)
+      separateFlow(n, ctx)
       indicator(',') && {
-        separate(n, ctx)
+        separateFlow(n, ctx)
         flowMapEntries(n, ctx)
       }
     }
