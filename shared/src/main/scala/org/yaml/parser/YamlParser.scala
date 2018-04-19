@@ -5,7 +5,6 @@ import org.mulesoft.lexer.{AstToken, BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model
-import org.yaml.model.ParseErrorHandler.parseErrorHandler
 import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable
@@ -304,9 +303,9 @@ object YamlParser {
 }
 
 object JsonParser {
-  def apply(s: CharSequence)(implicit eh: ParseErrorHandler = parseErrorHandler): YamlParser =
+  def apply(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
     new YamlParser(YamlLexer(s))(eh)
 
-  def obj(s: CharSequence)(implicit eh: ParseErrorHandler = parseErrorHandler): YObj =
-    apply(s).documents().head.obj
+  def obj(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YObj =
+    apply(s)(eh).documents()(0).obj
 }
