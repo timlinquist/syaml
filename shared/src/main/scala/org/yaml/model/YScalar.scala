@@ -23,7 +23,7 @@ import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
   */
 class YScalar private[model] (val value: Any,
                               val text: String,
-                              val plain: Boolean = true,
+                              val mark: ScalarMark = NonMark,
                               c: IndexedSeq[YPart] = IndexedSeq.empty)
     extends YValue(c) {
 
@@ -38,7 +38,9 @@ class YScalar private[model] (val value: Any,
   }
 
   override def hashCode(): Int = value.hashCode
-  override def toString: String = if (plain) text else '"' + text.encode + '"'
+  def plain: Boolean = mark.plain
+
+  override def toString: String = mark.markText(text)
 }
 
 object YScalar {
@@ -47,12 +49,13 @@ object YScalar {
   def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value))
   val Null: YScalar = new YScalar(null, "null")
 
-  def nonPlain(value: String) = new YScalar(value, value, false)
+  def nonPlain(value: String) =
+    new YScalar(value, value, DoubleQuoteMark) // double quoted? or create a NonPlain object?
 
   def fromToken(astToken: AstToken, range: InputRange) =
     new YScalar(astToken.text,
                 astToken.text,
-                true,
+                NonMark,
                 Array(YNonContent(range, Array(astToken))))
 
   class Builder(text: String,
@@ -65,14 +68,13 @@ object YScalar {
     var error: Option[ParseException] = None
 
     val scalar: YScalar = {
-      var plain = mark.isEmpty
+      val scalarMark = ScalarMark(mark)
       val tt = if (t != null) {
         if (t.tagType != Empty) t.tagType
         else {
-          plain = false
           Str
         }
-      } else if (plain) Unknown
+      } else if (scalarMark == NonMark) Unknown
       else Str
 
       val valType = if (tt == Str) (text, Str) else parseText(tt)
@@ -86,7 +88,7 @@ object YScalar {
       val result = new YScalar(
         valType._1,
         if (mark == "'") text.replace("''", "'") else text,
-        plain,
+        scalarMark,
         parts)
 
       error.foreach(e => eh.handle(result, e))
@@ -133,5 +135,42 @@ object YScalar {
   private val floatRegex = "-?(?:0|[1-9]\\d*)(?:\\.\\d*)?(?:[eE][-+]?\\d+)?".r
   private val infinity = "([-+])?(?:\\.inf|\\.Inf|\\.INF)".r
 
+}
 
+trait ScalarMark {
+  def plain: Boolean
+  def markText(text:String ): String = text
+}
+
+trait QuotedMark extends ScalarMark{
+  val encodeChar:Char
+  override def plain: Boolean = false
+  override def markText(text: String): String = encodeChar + text.encode + encodeChar
+}
+
+object DoubleQuoteMark extends QuotedMark {
+  override val encodeChar: Char = '"'
+}
+object SingleQuoteMark extends QuotedMark {
+  override val encodeChar: Char = '''
+}
+
+object MultilineMark extends ScalarMark {
+  override def plain: Boolean = false
+}
+object UnkownMark extends ScalarMark {
+  override def plain: Boolean = false
+}
+object NonMark extends ScalarMark {
+  override def plain: Boolean = true
+}
+
+object ScalarMark {
+  def apply(mark: String): ScalarMark = mark match {
+    case "\"" => DoubleQuoteMark
+    case "'"  => SingleQuoteMark
+    case "|"  => MultilineMark
+    case ""   => NonMark
+    case _    => UnkownMark
+  }
 }
