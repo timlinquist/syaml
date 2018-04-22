@@ -258,20 +258,7 @@ object YamlRender {
         case '\t'                                => noTabs = false
         case '\r'                                => return QuotedScalar
         case _ if !isCPrintable(iterator.current) => return QuotedScalar
-        case _
-            if iterator.isFirst
-              && ((isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current))
-                || (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current,iterator.next))
-                || iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next)) => /** [126]	ns-plain-first(c)  && /* An ns-char preceding */ “#” */
-          flowChar = true
-        case _
-            if !iterator.isFirst && (isFlowIndicator(iterator.current)
-              || iterator.current == '#' && !isCharPreceding(iterator.previous, iterator.current) //  (  An ns-char preceding “#” )
-              || iterator.current == ':' &&
-                (!isCharFollowedBy(iterator.current, iterator.next)|| iterator.isLast))  => // ( “:” Followed by an ns-plain-safe(c)
-          flowChar = true /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
-                                                                                              || (  An ns-char preceding “#” )
-                                                                                              | ( “:” Followed by an ns-plain-safe(c)  )*/
+        case _ if CharQuotedScalarRules(iterator) => flowChar = true
         case _ => allSpaces = false
       }
     } while(iterator.advance)
@@ -282,6 +269,26 @@ object YamlRender {
     }
     else if (allSpaces) QuotedScalar
     else LiteralScalar
+  }
+
+  object CharQuotedScalarRules{
+    def apply(iterator: ScalarIterator): Boolean= {
+      if(iterator.isFirst){
+        /** [126]	ns-plain-first(c)  && /* An ns-char preceding */ “#” */
+        (isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current)) ||
+          (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current,iterator.next)) ||
+          iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next) /** [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” ) */
+      }else{
+        /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
+            || (  An ns-char preceding “#” )
+            | ( “:” Followed by an ns-plain-safe(c)  )*/
+        /*( isFlowIndicator(iterator.current) || */ //This is only valid when its flow map or seq, but i don't know when it is, and in amf always render implicits part
+                                                  // [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
+                                                  // todo: talk with Emilio how to know when it's inside a flow part
+        ((iterator.current == '#' && !isCharPreceding(iterator.previous, iterator.current)) //  (  An ns-char preceding “#” )
+          || (iterator.current == ':' && (!isCharFollowedBy(iterator.current, iterator.next)|| iterator.isLast))) // ( “:” Followed by an ns-plain-safe(c)
+      }
+    }
   }
 
 

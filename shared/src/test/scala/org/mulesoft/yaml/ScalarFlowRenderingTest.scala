@@ -78,16 +78,16 @@ trait ScalarFlowRenderingTest extends FunSuite with Matchers {
       b.obj { pb =>
         flowIndicators.foreach { i =>
           val str = i.encode
-          yamlBuilder.append("e: \"" + "a" + i + "b" + "\"\n")
+          yamlBuilder.append("e: " + "a" + i + "b" + "\n")
           pb.entry("e", "a"+i+"b")
 
-          yamlBuilder.append("e: \"" + "a " + i + " b" + "\"\n")
+          yamlBuilder.append("e: " + "a " + i + " b" + "\n")
           pb.entry("e", "a "+i+" b")
 
-          yamlBuilder.append("e: \"" + "a " + i + "\"\n")
+          yamlBuilder.append("e: " + "a " + i + "\n")
           pb.entry("e", "a "+i)
 
-          yamlBuilder.append("e: \"" + "a" + i + "\"\n")
+          yamlBuilder.append("e: " + "a" + i + "\n")
           pb.entry("e", "a"+i)
 
           yamlBuilder.append("e: \"" + str + " b" + "\"\n")
