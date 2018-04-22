@@ -1,7 +1,7 @@
 # Outside flow collection:
 - ::vector
 - ": - ()"
-- Up, up, and away!
+- "Up, up, and away!"
 - -123
 - http://example.com/foo#bar # Inside flow collection:
 - 

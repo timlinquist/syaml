@@ -2,7 +2,7 @@ package org.yaml.render
 
 import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.AstToken
-import org.yaml.lexer.YamlCharRules.isCPrintable
+import org.yaml.lexer.YamlCharRules._
 import org.yaml.model._
 import org.yaml.render.YamlRender._
 
@@ -84,10 +84,10 @@ class YamlRender(val expandReferences: Boolean) {
   private def renderMap(map: YMap): Unit = if (!renderParts(map)) {
     if (map.isEmpty) render("{}")
     else {
-        indent()
-        chopLast()
-        for (e <- map.entries) renderNewLine().renderIndent().renderMapEntry(e)
-        dedent()
+      indent()
+      chopLast()
+      for (e <- map.entries) renderNewLine().renderIndent().renderMapEntry(e)
+      dedent()
     }
   }
 
@@ -182,16 +182,16 @@ class YamlRender(val expandReferences: Boolean) {
   private def renderSeq(seq: YSequence): Unit = if (!renderParts(seq)) {
     if (seq.isEmpty) render("[]")
     else {
-        indent()
-        chopLast()
-        for (e <- seq.children) {
-            e match {
-                case n: YNode => renderNewLine().renderIndent().render("- ").render(n)
-                case c: YComment => render(c)
-                case _ =>
-            }
+      indent()
+      chopLast()
+      for (e <- seq.children) {
+        e match {
+          case n: YNode    => renderNewLine().renderIndent().render("- ").render(n)
+          case c: YComment => render(c)
+          case _           =>
         }
-        dedent()
+      }
+      dedent()
     }
   }
 
@@ -241,6 +241,7 @@ object YamlRender {
   final val LiteralScalar = 3
 
   private def analyzeScalar(scalar: YScalar): Int = {
+
     val text = scalar.text
     val l    = text.length
     if (l == 0) return if (scalar.plain) PlainScalar else QuotedScalar
@@ -249,19 +250,62 @@ object YamlRender {
     var oneLine   = true
     var allSpaces = true
     var noTabs    = true
-    for (c <- text) {
-      c match {
-        case '\n'                  => oneLine = false
-        case '\t'                  => noTabs = false
-        case '\r'                  => return QuotedScalar
-        case _ if !isCPrintable(c) => return QuotedScalar
-        case _                     => allSpaces = false
+    var flowChar = false
+    val iterator  = ScalarIterator(text)
+    do {
+      iterator.current match {
+        case '\n'                                => oneLine = false
+        case '\t'                                => noTabs = false
+        case '\r'                                => return QuotedScalar
+        case _ if !isCPrintable(iterator.current) => return QuotedScalar
+        case _
+            if iterator.isFirst
+              && ((isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current))
+                || (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current,iterator.next))
+                || iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next)) => /** [126]	ns-plain-first(c)  && /* An ns-char preceding */ “#” */
+          flowChar = true
+        case _
+            if !iterator.isFirst && (isFlowIndicator(iterator.current)
+              || iterator.current == '#' && !isCharPreceding(iterator.previous, iterator.current) //  (  An ns-char preceding “#” )
+              || iterator.current == ':' &&
+                (!isCharFollowedBy(iterator.current, iterator.next)|| iterator.isLast))  => // ( “:” Followed by an ns-plain-safe(c)
+          flowChar = true /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
+                                                                                              || (  An ns-char preceding “#” )
+                                                                                              | ( “:” Followed by an ns-plain-safe(c)  )*/
+        case _ => allSpaces = false
       }
-    }
+    } while(iterator.advance)
+
     if (oneLine) {
-      if (scalar.plain && noTabs && text.last != ' ') PlainScalar else QuotedScalar
+      if(flowChar) QuotedScalar
+      else if (scalar.plain && noTabs && text.last != ' ') PlainScalar else QuotedScalar
     }
     else if (allSpaces) QuotedScalar
     else LiteralScalar
   }
+
+
+  private case class ScalarIterator(text: String) {
+
+    private var c     = 0
+    var current: Char = text(c)
+    private val until = text.length - 1
+
+    def isFirst: Boolean = c == 0
+
+    def isLast: Boolean = c == until
+
+    def advance: Boolean = {
+      if(!isLast){
+        c = c + 1
+        current = text(c)
+        true
+      }else false
+    }
+
+    def next: Char = if (isLast) 0.toChar else text(c + 1)
+
+    def previous: Char = if (isFirst) 0.toChar else text(c - 1)
+  }
+
 }

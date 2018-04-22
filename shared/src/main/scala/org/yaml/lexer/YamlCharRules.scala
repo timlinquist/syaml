@@ -1,7 +1,6 @@
 package org.yaml.lexer
 
 import org.mulesoft.lexer.LexerInput.EofChar
-
 /**
   * An Object to contain Character rules for The YamlLexer
   */
@@ -34,13 +33,41 @@ object YamlCharRules {
    *                    | “#” | “&” | “*” | “!” | “|” | “>” | “'” | “"”
    *                    | “%” | “@” | “`”
    */
-  def isIndicator(c: Int): Boolean = "-?:,[]{}#&*!>'\"%@ `".indexOf(c) != -1
+  def isIndicator(c: Int): Boolean = "-?:,[]{}#&*!|>'\"%@ `".indexOf(c) != -1
 
+  /**
+    *  ( “?” | “:” | “-” )
+    * Followed by an ns-plain-safe(c)) )
+    */
+  def isFirstDiscriminators(c:Char):Boolean = "?:-".indexOf(c) != -1
   /**
     * [23]	c-flow-indicator	::=	“,” | “[” | “]” | “{” | “}”
     */
   def isFlowIndicator(chr: Int): Boolean = chr == '[' || chr == ']' || chr == '{' || chr == '}' || chr == ','
 
+  /**
+    * [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” )
+    *    | ( /* An ns-char preceding */ “#” )
+    *    | ( “:” /* Followed by an ns-plain-safe(c) */ )
+    */
+
+  def isCharPreceding(prev:Char, c:Char): Boolean = ("[^\\s\\\\]"+c+".*").r.pattern.matcher(StringBuilder.newBuilder.append(prev).append(c).mkString).matches()
+
+  /**
+    * ( “?” | “:” | “-” )
+    /* Followed by an ns-plain-safe(c)) */ )
+    */
+
+  def isCharFollowedBy(c:Char,next:Char): Boolean =
+    (".*"+escape(c)+"[^\\s\\\\]").r.pattern.matcher(StringBuilder.newBuilder.append(c).append(next).mkString).matches()
+
+  // Ugly => workarround forJS. If i don't escape the ? char, the up regexp not matches. Should move to common? Encodes for js should be diff of the JVM one?
+  //What other char can be encoded different in js?
+  // todo: talk about this with Emilio
+  private def escape(c:Char): String = c match {
+    case '?' => "\\?"
+    case _ => StringBuilder.newBuilder.append(c).mkString
+  }
   /**
     * Is the Break Line Char
     * [24] line-feed            ::= #xA
