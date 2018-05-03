@@ -5,19 +5,17 @@ ARG USER_HOME_DIR="/root"
 ENV SCALA_VERSION 2.11.8
 ENV SBT_VERSION 0.13.9
 
-# Install Docker
-RUN \
-  apt-get update && \
-  apt-get install apt-transport-https ca-certificates --assume-yes && \
-  apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D && \
-  echo "deb https://apt.dockerproject.org/repo ubuntu-xenial main" | tee /etc/apt/sources.list.d/docker.list && \
-  apt-get update && \
-  apt-get install linux-image-extra-virtual --assume-yes && \
-  apt-get install docker-engine --assume-yes
+# Update the repository sources list and install dependencies
+RUN apt-get update
 
-# Install Java
-RUN \
-  apt-get install default-jdk --assume-yes
+# Install JDK 8
+RUN apt-get install -y software-properties-common unzip htop rsync openssh-client jq
+RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
+RUN add-apt-repository -y ppa:webupd8team/java
+RUN apt-get update
+RUN apt-get install -y oracle-java8-installer
+RUN echo "JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> /etc/environment
+RUN echo "JRE_HOME=/usr/lib/jvm/java-8-oracle/jre" >> /etc/environment
 
 # Install Scala
 ## Piping curl directly in tar
