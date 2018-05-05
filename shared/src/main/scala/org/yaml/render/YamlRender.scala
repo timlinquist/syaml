@@ -23,7 +23,7 @@ class YamlRender(val expandReferences: Boolean) {
   private var hasDirectives = false
   private var endDocument   = false
 
-  private def render(part: YPart): YamlRender = {
+  private def render(part: YPart, yType: Option[YType] = None): YamlRender = {
     checkEndDocument(part)
     part match {
       case YComment(text, _, tokens) => renderComment(text, tokens)
@@ -33,7 +33,7 @@ class YamlRender(val expandReferences: Boolean) {
       case s: YSequence              => renderSeq(s)
       case m: YMap                   => renderMap(m)
       case e: YMapEntry              => doRenderParts(e.children)
-      case s: YScalar                => renderScalar(s)
+      case s: YScalar                => renderScalar(s, yType)
       case t: YTag                   => renderTag(t)
       case a: YAnchor                => renderAnchor(a)
       case n: YNode                  => renderNode(n)
@@ -65,7 +65,7 @@ class YamlRender(val expandReferences: Boolean) {
       case r: YNode.MutRef if expandReferences && r.target.isDefined =>
         render(r.target.get)
       case _ =>
-        doRenderParts(n.children)
+        doRenderParts(n.children, if (n.tag == YType.Str.tag) Some(YType.Str) else None)
     }
   }
 
@@ -146,9 +146,9 @@ class YamlRender(val expandReferences: Boolean) {
     this
   }
 
-  private def renderScalar(scalar: YScalar): Unit =
+  private def renderScalar(scalar: YScalar, yType: Option[YType] = None): Unit =
     if (!renderParts(scalar)) {
-      analyzeScalar(scalar) match {
+      analyzeScalar(scalar, yType) match {
         case PlainScalar   => render(scalar.text)
         case QuotedScalar  => render('"' + scalar.text.encode + '"')
         case LiteralScalar => renderAsLiteral(scalar)
@@ -214,7 +214,9 @@ class YamlRender(val expandReferences: Boolean) {
     hasTokens
   }
 
-  private def doRenderParts(children: IndexedSeq[YPart]): Unit = children foreach render
+  private def doRenderParts(children: IndexedSeq[YPart], yType: Option[YType] = None): Unit = children foreach {
+      render(_, yType)
+    }
 
 }
 
@@ -226,7 +228,7 @@ object YamlRender {
   /** Render a Seq of Parts as an String */
   def render(parts: Seq[YPart], expandReferences: Boolean): String = {
     val builder = new YamlRender(expandReferences)
-    parts.foreach(builder.render)
+    parts.foreach(builder.render(_))
     builder.toString
   }
 
@@ -240,57 +242,61 @@ object YamlRender {
   final val PlainScalar   = 2
   final val LiteralScalar = 3
 
-  private def analyzeScalar(scalar: YScalar): Int = {
+  private def analyzeScalar(scalar: YScalar, yType: Option[YType] = None): Int = {
 
     val text = scalar.text
     val l    = text.length
     if (l == 0) return if (scalar.plain) PlainScalar else QuotedScalar
     if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
 
+    // if its an str tag and the text its a number, it should be quoted, otherwise, we are transforming the string into a number
+    if (yType.contains(YType.Str) && scalar.text.matches("^-?\\d+(?:[,|\\.]\\d+)?$")) return QuotedScalar
+
     var oneLine   = true
     var allSpaces = true
     var noTabs    = true
-    var flowChar = false
+    var flowChar  = false
     val iterator  = ScalarIterator(text)
     do {
       iterator.current match {
-        case '\n'                                => oneLine = false
-        case '\t'                                => noTabs = false
-        case '\r'                                => return QuotedScalar
+        case '\n'                                 => oneLine = false
+        case '\t'                                 => noTabs = false
+        case '\r'                                 => return QuotedScalar
         case _ if !isCPrintable(iterator.current) => return QuotedScalar
         case _ if CharQuotedScalarRules(iterator) => flowChar = true
-        case _ => allSpaces = false
+        case _                                    => allSpaces = false
       }
-    } while(iterator.advance)
+    } while (iterator.advance)
 
     if (oneLine) {
-      if(flowChar) QuotedScalar
-      else if (scalar.plain && noTabs && text.last != ' ') PlainScalar else QuotedScalar
-    }
-    else if (allSpaces) QuotedScalar
+      if (flowChar) QuotedScalar
+      else if (scalar.plain && noTabs && text.last != ' ') PlainScalar
+      else QuotedScalar
+    } else if (allSpaces) QuotedScalar
     else LiteralScalar
   }
 
-  object CharQuotedScalarRules{
-    def apply(iterator: ScalarIterator): Boolean= {
-      if(iterator.isFirst){
+  object CharQuotedScalarRules {
+    def apply(iterator: ScalarIterator): Boolean = {
+      if (iterator.isFirst) {
+
         /** [126]	ns-plain-first(c)  && /* An ns-char preceding */ “#” */
         (isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current)) ||
-          (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current,iterator.next)) ||
-          iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next) /** [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” ) */
-      }else{
+        (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current, iterator.next)) ||
+        iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next) /** [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” ) */
+      } else {
+
         /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
             || (  An ns-char preceding “#” )
             | ( “:” Followed by an ns-plain-safe(c)  )*/
         /*( isFlowIndicator(iterator.current) || */ //This is only valid when its flow map or seq, but i don't know when it is, and in amf always render implicits part
-                                                  // [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
-                                                  // todo: talk with Emilio how to know when it's inside a flow part
+        // [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
+        // todo: talk with Emilio how to know when it's inside a flow part
         ((iterator.current == '#' && !isCharPreceding(iterator.previous, iterator.current)) //  (  An ns-char preceding “#” )
-          || (iterator.current == ':' && (!isCharFollowedBy(iterator.current, iterator.next)|| iterator.isLast))) // ( “:” Followed by an ns-plain-safe(c)
+        || (iterator.current == ':' && (!isCharFollowedBy(iterator.current, iterator.next) || iterator.isLast))) // ( “:” Followed by an ns-plain-safe(c)
       }
     }
   }
-
 
   private case class ScalarIterator(text: String) {
 
@@ -303,11 +309,11 @@ object YamlRender {
     def isLast: Boolean = c == until
 
     def advance: Boolean = {
-      if(!isLast){
+      if (!isLast) {
         c = c + 1
         current = text(c)
         true
-      }else false
+      } else false
     }
 
     def next: Char = if (isLast) 0.toChar else text(c + 1)
