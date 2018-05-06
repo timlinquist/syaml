@@ -781,7 +781,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     emit(BeginMapping) && emitIndicator() &&
     optional(separate(n: Int, c)) &&
     optional(flowMapEntries(n, inFlow(c))) &&
-    currentChar == '}' && emitIndicator() && emit(EndMapping)
+    currentChar == '}' && emitIndicator() && emit(EndMapping) && optional(separateInLine())
   }
 
   /**

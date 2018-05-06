@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "type"
+  : !!map {
+    ? !!str "ItemPost"
+    : !!map {
+      ? !!str "typeName"
+      : !!str "Customer"
+    }
+  }
+}
