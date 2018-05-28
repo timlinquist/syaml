@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "normalT"
+  : !!bool "true",
+  ? !!str "quotedT"
+  : !!str "true",
+  ? !!str "normalF"
+  : !!bool "false",
+  ? !!str "quotedF"
+  : !!str "false"
+}

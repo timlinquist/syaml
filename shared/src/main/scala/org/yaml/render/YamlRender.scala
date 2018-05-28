@@ -250,7 +250,7 @@ object YamlRender {
     if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
 
     // if its an str tag and the text its a number, it should be quoted, otherwise, we are transforming the string into a number
-    if (yType.contains(YType.Str) && scalar.text.matches("^-?\\d+(?:[,|\\.]\\d+)?$")) return QuotedScalar
+    if (yType.contains(YType.Str) && (scalar.text.matches("^-?\\d+(?:[,|\\.]\\d+)?$") || scalar.text.matches("true|false"))) return QuotedScalar
 
     var oneLine   = true
     var allSpaces = true
