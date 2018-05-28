@@ -1,20 +1,12 @@
 package org.yaml.model
 
 import java.lang.Long.parseLong
+import java.util.Objects.{hashCode => hash}
 
 import org.mulesoft.common.core.Strings
 import org.mulesoft.common.time.SimpleDateTime
 import org.mulesoft.lexer.{AstToken, InputRange}
-import org.yaml.model.YType.{
-  Bool,
-  Empty,
-  Float,
-  Int,
-  Str,
-  Timestamp,
-  Unknown,
-  Null => tNull
-}
+import org.yaml.model.YType.{Bool, Empty, Float, Int, Str, Timestamp, Unknown, Null => tNull}
 
 import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 
@@ -37,7 +29,7 @@ class YScalar private[model] (val value: Any,
     case _ => false
   }
 
-  override def hashCode(): Int = value.hashCode
+  override def hashCode(): Int = hash(value)
   def plain: Boolean = mark.plain
 
   override def toString: String = mark.markText(text)
