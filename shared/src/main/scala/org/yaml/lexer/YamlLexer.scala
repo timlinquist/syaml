@@ -1081,7 +1081,8 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     * </blockquote></pre>
     */
   def chompedLast(t: Char): Boolean =
-    currentChar == EofChar || t != '-' && breakAsLineFeed() || emit(EndScalar) && breakNonContent()
+    matches(currentChar == EofChar && t == '-' && emit(EndScalar)) ||
+      (currentChar == EofChar || t != '-' && breakAsLineFeed() || emit(EndScalar) && breakNonContent())
 
   /**
     * <blockquote><pre>

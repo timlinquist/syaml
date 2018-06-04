@@ -1,0 +1,6 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "multiline"
+  : !!str "this is a multiline comment\nanother comment"
+}
