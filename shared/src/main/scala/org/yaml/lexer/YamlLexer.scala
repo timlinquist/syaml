@@ -1281,7 +1281,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
 
   private def detectSequenceStart(n: Int) = {
     val spaces = countSpaces()
-    if (spaces > n && lookAhead(spaces) == '-' && !isNsChar(lookAhead(spaces + 1))) spaces - n else 0
+    if (lookAhead(spaces) == '-' && !isNsChar(lookAhead(spaces + 1))) spaces - n else 0
   }
 
   /**

@@ -1,0 +1,11 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "map"
+  : !!seq [
+    !!seq [
+      !!str "Row1-Column1 Data",
+      !!str "Row1-Column2 Data"
+    ]
+  ]
+}
