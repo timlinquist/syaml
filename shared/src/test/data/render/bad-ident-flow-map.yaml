@@ -1,0 +1,3 @@
+application/json:
+  example:
+    "message": "Error occured while getting account ID"

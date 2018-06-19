@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "application/json"
+  : !!map {
+    ? !!str "example"
+    : !!map {
+      ? !!str "message"
+      : !!str "Error occured while getting account ID"
+    }
+  }
+}

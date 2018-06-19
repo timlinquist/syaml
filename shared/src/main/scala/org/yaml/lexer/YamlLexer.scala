@@ -718,7 +718,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     */
   def flowSequence(n: Int, ctx: YamlContext): Boolean = currentChar == '[' && matches {
     emit(BeginSequence) && emitIndicator() &&
-    optional(separate(n: Int, ctx)) &&
+    optional(separateFlow(n: Int, ctx)) &&
     optional(flowSequenceEntries(n, inFlow(ctx))) &&
     currentChar == ']' && emitIndicator() && emit(EndSequence)
   }
@@ -779,7 +779,7 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
     */
   private def flowMapping(n: Int, c: YamlContext) = currentChar == '{' && matches {
     emit(BeginMapping) && emitIndicator() &&
-    optional(separate(n: Int, c)) &&
+    optional(separateFlow(n: Int, c)) &&
     optional(flowMapEntries(n, inFlow(c))) &&
     currentChar == '}' && emitIndicator() && emit(EndMapping) && optional(separateInLine())
   }
