@@ -270,8 +270,11 @@ final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](i
       matches(multilineComment() && linePrefix(n, flow = true)) || separateInLine()
   }
 
-  def separateFlow(n :Int, ctx:YamlContext): Boolean = matches(separate(n, ctx)) ||
-    matches(multilineComment() && flowLinePrefix) || separateInLine()
+  def separateFlow(n :Int, ctx:YamlContext): Boolean = ctx match {
+    case FlowKey | BlockKey => separateInLine()
+    case _ =>
+      matches(multilineComment() && (linePrefix(n, flow = true) || flowLinePrefix)) || separateInLine()
+  }
 
   /**
     * Directives are instructions to the YAML processor.
