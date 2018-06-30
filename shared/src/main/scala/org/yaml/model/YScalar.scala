@@ -16,8 +16,9 @@ import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 class YScalar private[model] (val value: Any,
                               val text: String,
                               val mark: ScalarMark = NonMark,
-                              c: IndexedSeq[YPart] = IndexedSeq.empty)
-    extends YValue(c) {
+                              c: IndexedSeq[YPart] = IndexedSeq.empty,
+                              override val sourceName:String)
+    extends YValue(c,sourceName) {
 
   override def equals(obj: Any): Boolean = obj match {
     case s: YScalar => s.value == this.value
@@ -37,23 +38,27 @@ class YScalar private[model] (val value: Any,
 
 object YScalar {
 
-  def apply(value: Int): YScalar = YScalar(value.asInstanceOf[Long])
-  def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value))
-  val Null: YScalar = new YScalar(null, "null")
+  def apply(value: Int): YScalar = YScalar(value.asInstanceOf[Long], "")
+  def apply(value: Any): YScalar = new YScalar(value, String.valueOf(value),sourceName="")
+  def apply(value: Int, sourceName:String): YScalar = YScalar(value.asInstanceOf[Long], sourceName)
+  def apply(value: Any, sourceName: String): YScalar = new YScalar(value, String.valueOf(value),sourceName = sourceName)
+  val Null: YScalar = new YScalar(null, "null",sourceName = "")
 
-  def nonPlain(value: String) =
-    new YScalar(value, value, DoubleQuoteMark) // double quoted? or create a NonPlain object?
+  def nonPlain(value: String, sourceName:String = "") =
+    new YScalar(value, value, DoubleQuoteMark,sourceName = sourceName) // double quoted? or create a NonPlain object?
 
-  def fromToken(astToken: AstToken, range: InputRange) =
+  def fromToken(astToken: AstToken, range: InputRange, sourceName: String = "") =
     new YScalar(astToken.text,
                 astToken.text,
                 NonMark,
-                Array(YNonContent(range, Array(astToken))))
+                Array(YNonContent(range, Array(astToken))),
+              sourceName)
 
   class Builder(text: String,
                 t: YTag,
                 mark: String = "",
-                parts: IndexedSeq[YPart] = IndexedSeq.empty)(
+                parts: IndexedSeq[YPart] = IndexedSeq.empty,
+                sourceName:String)(
       implicit eh: ParseErrorHandler) {
 
     var tag: YTag = _
@@ -81,7 +86,8 @@ object YScalar {
         valType._1,
         if (mark == "'") text.replace("''", "'") else text,
         scalarMark,
-        parts)
+        parts,
+        sourceName)
 
       error.foreach(e => eh.handle(result, e))
 

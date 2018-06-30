@@ -6,7 +6,7 @@ import scala.language.dynamics
 /**
   * A Yaml Map
   */
-class YMap private (c: IndexedSeq[YPart]) extends YValue(c) {
+class YMap private (c: IndexedSeq[YPart], sourceName:String) extends YValue(c,sourceName) {
 
   /** The Map Entries in order */
   val entries: IndexedSeq[YMapEntry] = c.collect { case a: YMapEntry => a }.toArray[YMapEntry]
@@ -33,18 +33,18 @@ class YMap private (c: IndexedSeq[YPart]) extends YValue(c) {
 }
 
 object YMap {
-  def apply(c: IndexedSeq[YPart]): YMap = new YMap(c)
-  val empty                             = YMap(IndexedSeq.empty)
+  def apply(c: IndexedSeq[YPart], sourceName:String): YMap = new YMap(c,sourceName)
+  val empty                             = YMap(IndexedSeq.empty,"")
 }
 
-class YMapEntry private (val key: YNode, val value: YNode, override val children: IndexedSeq[YPart]) extends YPart {
+class YMapEntry private (val key: YNode, val value: YNode, override val children: IndexedSeq[YPart], override val sourceName:String) extends YPart {
   override def toString: String = key + ": " + value
 }
 
 object YMapEntry {
   def apply(parts: IndexedSeq[YPart]): YMapEntry = {
     val kv = parts collect { case a: YNode => a }
-    new YMapEntry(kv(0), kv(1), parts)
+    new YMapEntry(kv(0), kv(1), parts,parts.headOption.map(_.sourceName).getOrElse(""))
   }
-  def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, Array(k, v))
+  def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, Array(k, v),k.sourceName)
 }

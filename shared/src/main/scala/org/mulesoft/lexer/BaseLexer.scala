@@ -7,9 +7,9 @@ import scala.collection.mutable.ArrayBuffer
 abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
   type TD = TokenData[T]
-  private val tokenQueue = new Queue[TD]
-  private var mark        = input.position
-
+  private val tokenQueue               = new Queue[TD]
+  private var mark                     = input.position
+  val sourceName: String               = input.sourceName
   private var _tokenData: TokenData[T] = _
 
   /** initialize the current _tokenData (may be invoking advance) */

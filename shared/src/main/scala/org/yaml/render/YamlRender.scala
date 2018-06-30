@@ -28,7 +28,7 @@ class YamlRender(val expandReferences: Boolean) {
     part match {
       case YComment(text, _, tokens) => renderComment(text, tokens)
       case YNonContent(_, tokens)    => tokens foreach renderToken
-      case YDocument(parts)          => renderDocument(parts)
+      case YDocument(parts, _)       => renderDocument(parts)
       case d: YDirective             => renderDirective(d)
       case s: YSequence              => renderSeq(s)
       case m: YMap                   => renderMap(m)

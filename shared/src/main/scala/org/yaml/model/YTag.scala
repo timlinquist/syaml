@@ -14,6 +14,8 @@ case class YTag(text: String,
 
   def synthesized: Boolean      = tagType.synthesized && tagType.tag == this
   override def toString: String = text
+
+  override val sourceName: String = ""
 }
 
 object YTag {

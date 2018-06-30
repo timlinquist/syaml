@@ -51,7 +51,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
     val header = parts.takeWhile(p => !p.isInstanceOf[YDocument])
     val docs: Array[YDocument] =
       parts.collect({ case d: YDocument => d })(collection.breakOut)
-    if (docs.nonEmpty) docs(0) = YDocument(header ++ docs(0).children)
+    if (docs.nonEmpty) docs(0) = YDocument(header ++ docs(0).children,lexer.sourceName)
     docs
   }
 
@@ -101,7 +101,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
       case BeginDirective =>
         directiveArgs = ListBuffer.empty
         push(td)
-      case EndDocument  => pop(YDocument(current.buildParts(td))); return td
+      case EndDocument  => pop(YDocument(current.buildParts(td),lexer.sourceName)); return td
       case EndComment   => return createComment(td)
       case EndSequence  => return createSequence(td)
       case EndNode      => return createNode(td)
@@ -151,7 +151,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
     addDirectiveArg()
     val parts = current.buildParts(td)
     parts collectFirst { case YTag(tag, _, _, _) => directiveArgs += tag }
-    pop(YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], parts))
+    pop(YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], parts,lexer.sourceName))
     metaTextBuilder.clear()
     directiveArgs = null
     td
@@ -167,7 +167,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
   }
 
   private def createAnchor(td: TD) = {
-    val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+    val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td),lexer.sourceName)
     pop(anchor)
     current.anchor = Some(anchor)
     td
@@ -179,7 +179,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
   }
 
   private def createSequence(td: TD) = {
-    val v = YSequence(current.buildParts(td))
+    val v = YSequence(current.buildParts(td),lexer.sourceName)
     pop(v)
     current.value = v
     current.tag = tagFor(current.tag, YType.Seq)
@@ -197,7 +197,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
       val n =
         if (includeTag.nonEmpty && tag.text == includeTag)
           new model.YNode.MutRef(current.value, tag, parts)
-        else YNode(current.value, tag, current.anchor, parts)
+        else YNode(current.value, tag, current.anchor, parts,lexer.sourceName)
       for (a <- current.anchor) aliases += a.name -> n
       pop(n)
     }
@@ -205,7 +205,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
   }
 
   private def createMap(td: TD) = {
-    val v = YMap(current.buildParts(td))
+    val v = YMap(current.buildParts(td),lexer.sourceName)
     pop(v)
     current.value = v
     current.tag = tagFor(current.tag, YType.Map)
@@ -215,7 +215,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
   private def createAlias(td: TD) = {
     val aliasName = buildMetaText()
     val alias =
-      YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td))
+      YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td),lexer.sourceName)
     pop(alias)
     current.alias = aliasName
     td
@@ -226,7 +226,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
     val c = stack.head
 
     val parts = current.buildParts(td)
-    val b     = new YScalar.Builder(buildText(), c.tag, scalarMark, parts)
+    val b     = new YScalar.Builder(buildText(), c.tag, scalarMark, parts,lexer.sourceName)
     c.value = b.scalar
     c.tag = b.tag
     c.parts += b.scalar
@@ -299,7 +299,8 @@ object YamlParser {
     new YamlParser(lexer)(eh)
   def apply(s: CharSequence)(implicit eh: ParseErrorHandler): YamlParser =
     apply(YamlLexer(s))(eh)
-
+  def apply(s: CharSequence, sourceName:String)(implicit eh: ParseErrorHandler): YamlParser =
+    apply(YamlLexer(s,sourceName))(eh)
 }
 
 object JsonParser {
@@ -308,4 +309,7 @@ object JsonParser {
 
   def obj(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YObj =
     apply(s)(eh).documents()(0).obj
+
+  def withSource(s: CharSequence, sourceName:String )(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
+    new YamlParser(YamlLexer(s,sourceName))(eh)
 }

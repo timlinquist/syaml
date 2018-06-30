@@ -3,7 +3,8 @@ package org.yaml.model
 /** Yaml Directive */
 case class YDirective(name: String,
                       args: IndexedSeq[String],
-                      override val children: IndexedSeq[YPart] = IndexedSeq.empty)
+                      override val children: IndexedSeq[YPart] = IndexedSeq.empty,
+                      override val sourceName:String = "")
     extends YPart {
 
   override def hashCode(): Int = name.hashCode + 31 * args.hashCode

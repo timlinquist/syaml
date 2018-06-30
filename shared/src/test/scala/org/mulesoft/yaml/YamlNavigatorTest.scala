@@ -270,7 +270,7 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     n == nodeDoc shouldBe true
   }
   test("Empty Doc") {
-    val emptyDoc = YDocument(YamlParser("# Just a comment").parse())
+    val emptyDoc = YDocument(YamlParser("# Just a comment").parse(),"")
     emptyDoc.node shouldBe YNode.Null
 
     emptyDoc.obj match {
