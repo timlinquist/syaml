@@ -44,7 +44,7 @@ class YMapEntry private (val key: YNode, val value: YNode, override val children
 object YMapEntry {
   def apply(parts: IndexedSeq[YPart]): YMapEntry = {
     val kv = parts collect { case a: YNode => a }
-    new YMapEntry(kv(0), kv(1), parts,parts.headOption.map(_.sourceName).getOrElse(""))
+    new YMapEntry(kv(0), kv(1), parts,kv(0).sourceName)
   }
   def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, Array(k, v),k.sourceName)
 }

@@ -58,7 +58,7 @@ object YScalar {
                 t: YTag,
                 mark: String = "",
                 parts: IndexedSeq[YPart] = IndexedSeq.empty,
-                sourceName:String)(
+                sourceName:String = "")(
       implicit eh: ParseErrorHandler) {
 
     var tag: YTag = _

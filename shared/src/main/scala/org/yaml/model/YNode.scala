@@ -99,9 +99,13 @@ object YNode {
 
   /** A Mutable Node reference */
   final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(cs) {
-    var target: Option[YNode]  = None
+    var target: Option[YNode] = None
+
     override def value: YValue = target.map(_.value).getOrElse(origValue)
-    override def tag: YTag     = target.map(_.tag).getOrElse(origTag)
+
+    override def tag: YTag = target.map(_.tag).getOrElse(origTag)
+
+    override val sourceName: String = value.sourceName
   }
 
   /** An Alias Node */

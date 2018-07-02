@@ -38,7 +38,9 @@ object YDocument {
 
   def apply(headComment: String): WithComment =
     new WithComment(if (headComment == null) "" else headComment, "")
+
   /** Constructor from a Builder */
+  def apply(f: PartBuilder => Unit, sourceName:String): YDocument = new WithComment("",sourceName)(f)
 
   def apply(f: PartBuilder => Unit): YDocument = YDocument("")(f)
 
@@ -72,7 +74,6 @@ object YDocument {
 
   /** Convert from an list to a document */
   implicit def fromSeq(seq: YSequence): YDocument = YDocument("", seq.sourceName)(YNode(seq))
-
   /** Auxiliary class to create a document that has a head comment */
   class WithComment(val comment: String, sourceName: String) {
 
