@@ -45,13 +45,13 @@ sealed abstract class YObj extends YNodeLike with Dynamic {
 case class YSuccess(node: YNode) extends YObj {
 
   /** Dereference the node as a Map it not a YMap or the key is not found it returns YNode.Null */
-  def selectDynamic(key: String): YObj = apply(YNode(key))
+  def selectDynamic(key: String): YObj = apply(YNode(key,node.sourceName))
 
   def apply(key: Int): YObj = node.value match {
     case s: YSequence =>
       val nodes = s.nodes
       if (key < 0 || key >= nodes.size) YFail(node, s"Index: $key out of range") else YSuccess(nodes(key))
-    case s: YMap => get(s, YNode(key))
+    case s: YMap => get(s, YNode(key,s.sourceName))
     case _       => YFail(node, "Scalar node")
   }
 

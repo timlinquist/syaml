@@ -3,7 +3,7 @@ package org.yaml.model
 /**
   * A Yaml Sequence
   */
-class YSequence private (c: IndexedSeq[YPart]) extends YValue(c) {
+class YSequence private (c: IndexedSeq[YPart], sourceName:String) extends YValue(c, sourceName) {
 
   /** The Sequence nodes */
   val nodes: IndexedSeq[YNode] = c.collect { case a: YNode => a }.toArray[YNode]
@@ -23,7 +23,7 @@ class YSequence private (c: IndexedSeq[YPart]) extends YValue(c) {
 }
 
 object YSequence {
-  val empty                                  = new YSequence(IndexedSeq.empty)
-  def apply(c: IndexedSeq[YPart]): YSequence = new YSequence(c)
-  def apply(elems: YNode*): YSequence        = new YSequence(elems.toArray[YNode])
+  val empty                                  = new YSequence(IndexedSeq.empty, "")
+  def apply(c: IndexedSeq[YPart], sourceName: String): YSequence = new YSequence(c,sourceName)
+  def apply(elems: YNode*)(implicit sourceName:String = ""): YSequence        = new YSequence(elems.toArray[YNode],sourceName)
 }

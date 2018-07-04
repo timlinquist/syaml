@@ -1,7 +1,7 @@
 package org.yaml.model
 
 /** A YamlValue is either a Scalar, a Sequence or a Map */
-abstract class YValue(override val children: IndexedSeq[YPart]) extends YValueLike with YPart
+abstract class YValue(override val children: IndexedSeq[YPart], override val sourceName:String) extends YValueLike with YPart
 
 /**
   *  Root class of all YamlElements that contains a Value
