@@ -277,7 +277,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
     }
     def addNonContent(td: TD): Unit =
       if (tokens.nonEmpty) {
-        val content = YNonContent(first rangeTo td, buildTokens())
+        val content = YNonContent(first rangeTo td, buildTokens(),lexer.sourceName)
         parts += content
         collectErrors(content)
       }
