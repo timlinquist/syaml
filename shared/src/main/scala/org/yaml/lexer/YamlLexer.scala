@@ -13,7 +13,8 @@ import scala.annotation.tailrec
 /**
   * Yaml Lexer for 1.2 Specification
   */
-final class YamlLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO ) extends BaseLexer[YamlToken](input) {
+final class YamlLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO)
+    extends BaseLexer[YamlToken](input) {
 
   //~ Methods ..........................................................................................................
 
@@ -84,12 +85,10 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     if ("#;/?:@&=+$,_.!~*'()[]".indexOf(currentChar) != -1 || isWordChar(currentChar)) {
       consume()
       true
-    }
-    else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
+    } else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
       consume(3)
       true
-    }
-    else false
+    } else false
 
   /**
     * A Tag char cannot contain the “!” character because is used to indicate the end of a named tag handle.
@@ -167,7 +166,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   private def flowLinePrefix(): Boolean = {
 
     if (isDirectivesEnd || isDocumentEnd) return false
-    val spaces = countSpaces()
+    val spaces      = countSpaces()
     val whiteSpaces = countWhiteSpaces(spaces)
     consumeAndEmit(spaces, Indent)
     consumeAndEmit(whiteSpaces, WhiteSpace)
@@ -270,7 +269,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
       matches(multilineComment() && linePrefix(n, flow = true)) || separateInLine()
   }
 
-  def separateFlow(n :Int, ctx:YamlContext): Boolean = ctx match {
+  def separateFlow(n: Int, ctx: YamlContext): Boolean = ctx match {
     case FlowKey | BlockKey => separateInLine()
     case _ =>
       matches(multilineComment() && (linePrefix(n, flow = true) || flowLinePrefix)) || separateInLine()
@@ -286,7 +285,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     */
   private def directive() =
     currentChar == '%' && emit(BeginDirective) && emitIndicator() && (
-        matches(yamlDirective()) || matches(tagDirective()) || matches(reservedDirective())
+      matches(yamlDirective()) || matches(tagDirective()) || matches(reservedDirective())
     ) && emit(EndDirective) && multilineComment()
 
   /**
@@ -405,11 +404,11 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     */
   private def nodeProperties(n: Int, c: YamlContext) = matches {
     emit(BeginProperties) && (
-        tagProperty() && optional(matches {
-          val b1 = separate(n, c)
-          b1 && anchorProperty()
-        }) ||
-        anchorProperty() && optional(matches(separate(n, c) && tagProperty()))
+      tagProperty() && optional(matches {
+        val b1 = separate(n, c)
+        b1 && anchorProperty()
+      }) ||
+      anchorProperty() && optional(matches(separate(n, c) && tagProperty()))
     ) &&
     emit(EndProperties)
   }
@@ -437,13 +436,13 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
       } ||
       matches {
         tagHandle() && (
-            matches {
-              tagChar() && {
-                while (tagChar()) {}
-                emit(MetaText)
-              }
-            } ||
-            emit(Error)
+          matches {
+            tagChar() && {
+              while (tagChar()) {}
+              emit(MetaText)
+            }
+          } ||
+          emit(Error)
         )
       }
     } &&
@@ -545,8 +544,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
             matches(breakNonContent() && emptyLine(n, c)) || consumeAndEmit(LineFold)
             indent(n)
             consumeAndEmit(countWhiteSpaces(), WhiteSpace)
-          }
-          else {
+          } else {
             inText = false
             emit(Error)
             done = true
@@ -575,8 +573,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
           if (isBBreak(lookAhead(spaces))) {
             emitText()
             consumeAndEmit(spaces, WhiteSpace)
-          }
-          else {
+          } else {
             inText = true
             consume(spaces)
           }
@@ -606,8 +603,8 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   @failfast private def plainFirst(ctx: YamlContext): Boolean = {
     val chr = currentChar
     val result = isNsChar(chr) && !isIndicator(chr) || (chr == '-' || chr == ':' || chr == '?') && isPlainSafe(
-        lookAhead(1),
-        ctx)
+      lookAhead(1),
+      ctx)
     if (result) consume()
     result
   }
@@ -766,9 +763,9 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     */
   def flowSequenceEntry(n: Int, ctx: YamlContext): Boolean = {
     matches(
-        emit(BeginNode) && emit(BeginMapping, BeginPair) &&
-          flowPair(n, ctx) &&
-          emit(EndPair, EndMapping) && emit(EndNode)) ||
+      emit(BeginNode) && emit(BeginMapping, BeginPair) &&
+        flowPair(n, ctx) &&
+        emit(EndPair, EndMapping) && emit(EndNode)) ||
     matches(emit(BeginNode) && flowNode(n, ctx) && emit(EndNode))
   }
 
@@ -848,9 +845,9 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     matches {
       val b1 = emit(BeginNode) && flowYamlNode(n, c)
       b1 && emit(EndNode) && (
-          matches {
-            optional(separate(n, c)) && flowMapSeparateValue(n, c)
-          } || emptyNode()
+        matches {
+          optional(separate(n, c)) && flowMapSeparateValue(n, c)
+        } || emptyNode()
       )
     } || flowMapEmptyKeyEntry(n, c) || flowMapJsonKeyEntry(n, c)
 
@@ -899,11 +896,11 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * )
     */
   private def flowMapAdjacentValue(n: Int, c: YamlContext) = indicator(':') && (
-      matches {
-        separate(n, c)
-        emit(BeginNode)
-        flowNode(n, c) && emit(EndNode)
-      } || emptyNode()
+    matches {
+      separate(n, c)
+      emit(BeginNode)
+      flowNode(n, c) && emit(EndNode)
+    } || emptyNode()
   )
 
   /**
@@ -1106,8 +1103,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     if (t != '+') {
       if (t != '-') emit(EndScalar)
       zeroOrMore(indentLessOrEqual(n) && breakNonContent()) //strip empty
-    }
-    else {
+    } else {
       zeroOrMore(emptyLine(n, BlockIn)) // keep empty
       emit(EndScalar)
     }
@@ -1603,8 +1599,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
           else if (chr != '"' || lookAhead(i - 1) != '\\')
             charStack = charStack.tail
         }
-      }
-      else if (chr == '"' || chr == '\'')
+      } else if (chr == '"' || chr == '\'')
         charStack = chr :: charStack
       else if (chr == '{')
         charStack = '}' :: charStack
@@ -1636,7 +1631,11 @@ object YamlLexer {
 
   def apply(): YamlLexer                  = new YamlLexer(CharSequenceLexerInput())
   def apply(input: LexerInput): YamlLexer = new YamlLexer(input)
-  def apply(cs: CharSequence): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs))
-  def apply(cs: CharSequence,sourceName:String): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs,sourceName = sourceName))
-  def apply(cs: CharSequence,offsetPosition: (Int,Int)): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs), offsetPosition)
+  def apply(cs: CharSequence): YamlLexer  = new YamlLexer(CharSequenceLexerInput(cs))
+  def apply(cs: CharSequence, sourceName: String): YamlLexer =
+    new YamlLexer(CharSequenceLexerInput(cs, sourceName = sourceName))
+  def apply(cs: CharSequence, offsetPosition: (Int, Int)): YamlLexer =
+    new YamlLexer(CharSequenceLexerInput(cs), offsetPosition)
+  def apply(cs: CharSequence, sourceName: String, offsetPosition: (Int, Int)): YamlLexer =
+    new YamlLexer(CharSequenceLexerInput(cs, sourceName = sourceName), offsetPosition)
 }

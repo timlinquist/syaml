@@ -301,6 +301,8 @@ object YamlParser {
     apply(YamlLexer(s))(eh)
   def apply(s: CharSequence, sourceName:String)(implicit eh: ParseErrorHandler): YamlParser =
     apply(YamlLexer(s,sourceName))(eh)
+  def apply(s: CharSequence, sourceName:String, offset:(Int,Int))(implicit eh: ParseErrorHandler): YamlParser =
+    apply(YamlLexer(s,sourceName,offset))(eh)
 }
 
 object JsonParser {
