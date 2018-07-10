@@ -1,13 +1,13 @@
 package org.yaml.lexer
 
-import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput}
+import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput, Position}
 import org.yaml.lexer.JsonLexer._
 import org.yaml.lexer.YamlToken._
 
 /**
   * Json Lexer
   */
-final class JsonLexer private (input: LexerInput) extends BaseLexer[YamlToken](input) {
+final class JsonLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO ) extends BaseLexer[YamlToken](input) {
 
   private var stack: List[YamlToken] = Nil
 
@@ -129,6 +129,9 @@ object JsonLexer {
   def apply(): JsonLexer                  = new JsonLexer(CharSequenceLexerInput())
   def apply(input: LexerInput): JsonLexer = new JsonLexer(input)
   def apply(cs: CharSequence): JsonLexer  = new JsonLexer(CharSequenceLexerInput(cs))
+  def apply(cs: CharSequence,sourceName:String): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs,sourceName = sourceName))
+  def apply(cs: CharSequence,offsetPosition: (Int,Int)): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs), offsetPosition)
+
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'
   private def isDigit(c: Int)      = c >= '0' && c <= '9'

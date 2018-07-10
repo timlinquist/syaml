@@ -7,14 +7,16 @@ import scala.collection.mutable.ArrayBuffer
 abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
   type TD = TokenData[T]
+  val offsetPosition: (Int, Int)
   private val tokenQueue               = new Queue[TD]
-  private var mark                     = input.position
+  private var mark                     = position
   val sourceName: String               = input.sourceName
   private var _tokenData: TokenData[T] = _
 
   /** initialize the current _tokenData (may be invoking advance) */
   initialize()
 
+  private def position = (input.position._1 + offsetPosition._1, input.position._2 + offsetPosition._2, input.position._3)
   /** Check if there are emitted tokens */
   def nonTokenEmitted: Boolean = tokenQueue.isEmpty
 
@@ -35,7 +37,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
   /** Emit a Token */
   @failfast def emit(token: T): Boolean = {
-    val newMark = input.position
+    val newMark = position
     tokenQueue += TokenData(token, InputRange(mark._1, mark._2, newMark._1, newMark._2), mark._3, newMark._3)
     mark = newMark
     true
@@ -47,7 +49,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
     emit(t2)
   }
 
-  protected def reset(): Unit = mark = input.position
+  protected def reset(): Unit = mark = position
 
   protected def findToken(chr: Int):Unit = {}
 
@@ -181,3 +183,6 @@ class Queue[T] {
 }
 
 
+object Position{
+  val ZERO: (Int, Int) = (0,0)
+}

@@ -5,6 +5,8 @@ import java.io.{CharArrayWriter, PrintWriter}
 import org.mulesoft.common.io.{FileSystem, Fs}
 import org.mulesoft.lexer.InputRange
 import org.mulesoft.test.GoldenSuite
+import org.scalatest.Assertion
+import org.yaml.lexer.YamlLexer
 import org.yaml.model._
 import org.yaml.parser.YamlParser
 
@@ -16,6 +18,7 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
   private val modelDir  = mkdir("target", "test", "model")
   private val yamlDir   = Fs syncFile "shared/src/test/data/yaml"
   private val goldenDir = Fs syncFile "shared/src/test/data/yts"
+  private val offsetGoldenDir = Fs syncFile "shared/src/test/data/yts/with-offset"
 
   private val file  = System.getProperty("yaml")
   private val files = if (file == null) yamlDir.list else Array(file)
@@ -41,6 +44,50 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
 
     }
   }
+
+  private val offsetFiles = Array("directives.yaml","example-2.1.yaml", "example-2.3.yaml","example-5.3.yaml","literalPlain-1.yaml")
+
+  private val offset:(Int,Int) = (5,5)
+
+  for (yaml <- offsetFiles) {
+    test("Parse and Dump Tokens with offset for " + yaml) {
+      val yamlFile = yamlDir / yaml
+      val yts = yaml.replace(".yaml", ".yts")
+      val ytsFile = modelDir / yts
+      val goldenFile = offsetGoldenDir / yts
+
+      val cw = new CharArrayWriter()
+      val writer = new PrintWriter(cw)
+      writer println s"File: $yaml"
+      val offsetParts = YamlParser(YamlLexer(yamlFile.read(), offset)).parse()
+      val parts = YamlParser(YamlLexer(yamlFile.read())).parse()
+      assertRanges(parts,offsetParts)
+      val n = dump(offsetParts, writer, "")
+      writer println s"$n tokens dumped."
+      writer.close()
+      ytsFile.write(cw.toCharArray)
+
+      if (!goldenFile.exists) goldenFile.write("")
+
+      doDeltas(ytsFile, goldenFile)
+
+    }
+  }
+
+  private def assertRanges(part:IndexedSeq[YPart], offsetPart:IndexedSeq[YPart]): Assertion = {
+    part.zip(offsetPart).foreach({case (a:YPart,b:YPart) => assertRangeDiff(a,b)})
+  succeed
+  }
+  private def assertRangeDiff(part:YPart, offsetPart:YPart):Assertion = {
+    part.range.lineFrom should be(offsetPart.range.lineFrom - offset._1)
+    part.range.columnFrom should be(offsetPart.range.columnFrom - offset._2)
+
+    part.range.lineTo should be(offsetPart.range.lineTo - offset._1)
+    part.range.columnTo should be(offsetPart.range.columnTo - offset._2)
+    assertRanges(part.children, offsetPart.children)
+    succeed
+  }
+
 
   private def dump(elements: IndexedSeq[YPart], writer: PrintWriter, indent: String): Int = {
     var n = 0

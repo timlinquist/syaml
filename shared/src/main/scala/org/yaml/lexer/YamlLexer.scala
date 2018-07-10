@@ -4,7 +4,7 @@ import java.lang.Integer.MAX_VALUE
 
 import org.mulesoft.common.core.countWhile
 import org.mulesoft.lexer.LexerInput.EofChar
-import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput, failfast}
+import org.mulesoft.lexer._
 import org.yaml.lexer.YamlCharRules._
 import org.yaml.lexer.YamlToken._
 
@@ -13,7 +13,7 @@ import scala.annotation.tailrec
 /**
   * Yaml Lexer for 1.2 Specification
   */
-final class YamlLexer private (input: LexerInput) extends BaseLexer[YamlToken](input) {
+final class YamlLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO ) extends BaseLexer[YamlToken](input) {
 
   //~ Methods ..........................................................................................................
 
@@ -1638,4 +1638,5 @@ object YamlLexer {
   def apply(input: LexerInput): YamlLexer = new YamlLexer(input)
   def apply(cs: CharSequence): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs))
   def apply(cs: CharSequence,sourceName:String): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs,sourceName = sourceName))
+  def apply(cs: CharSequence,offsetPosition: (Int,Int)): YamlLexer         = new YamlLexer(CharSequenceLexerInput(cs), offsetPosition)
 }
