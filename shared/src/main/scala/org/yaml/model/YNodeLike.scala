@@ -12,7 +12,7 @@ abstract class YNodeLike extends YValueLike {
     * Tries to convert the node into a T. An implicit YRead[T] must be defined.
     * Any error is mapped to None
     */
-  def asOption[T](implicit fjs: YRead[T]): Option[T] = to(fjs).toOption
+  def asOption[T:YRead]: Option[T] = to.toOption
 
   /**
     * Tries to convert the node into a T, throwing an exception if it can't. An implicit YRead[T] must be defined.
@@ -35,15 +35,15 @@ abstract class YNodeLike extends YValueLike {
   /**
     * Tries to convert the node and return either the value converted or an [[YError]]
     */
-  def to[T](implicit conversion: YRead[T]): Either[YError, T] = conversion.read(thisNode)
+  def to[T: YRead]: Either[YError, T] = YRead[T].read(thisNode)
 
   /**
     * Tries to convert the node,
     * then if successful performs an additional validation that must return Some(errorMessage) or None.
     * Finally return either the value converted or an [[YError]]
     */
-  def to[T](validation: T => Option[String])(implicit conversion: YRead[T]): Either[YError, T] =
-    to(conversion) match {
+  def to[T: YRead](validation: T => Option[String]): Either[YError, T] =
+    to match {
       case r @ Right(value) =>
         validation(value) match {
           case None      => r

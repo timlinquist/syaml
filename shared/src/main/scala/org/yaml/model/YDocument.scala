@@ -4,8 +4,7 @@ import org.yaml.convert.YRead
 import org.yaml.parser.{JsonParser, YamlParser}
 
 import scala.collection.mutable.ArrayBuffer
-import scala.language.dynamics
-import scala.language.implicitConversions
+import scala.language.{dynamics, implicitConversions}
 
 /**
   * A Yaml Document
@@ -24,7 +23,7 @@ case class YDocument(override val children: IndexedSeq[YPart], override val sour
 
   override def toString: String = "Document: " + node.toString
 
-  override def to[T](implicit conversion: YRead[T]): Either[YError, T] = obj.to(conversion)
+  override def to[T:YRead]: Either[YError, T] = obj.to
 
   override def obj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
 

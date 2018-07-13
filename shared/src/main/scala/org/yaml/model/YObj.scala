@@ -85,13 +85,13 @@ case class YSuccess(node: YNode) extends YObj {
   * Represents a failure when trying to access a particular  Node
   */
 case class YFail(error: YError) extends YObj {
-  override def isError: Boolean                               = true
-  override def selectDynamic(key: String): YObj               = this
-  override def apply(key: Int): YObj                          = this
-  override def apply(key: YNode): YObj                        = this
-  override def to[T](implicit c: YRead[T]): Either[YError, T] = Left(error)
-  override val tagType: YType                                 = YType.Unknown
-  override def equals(obj: Any): Boolean                      = false
+  override def isError: Boolean                 = true
+  override def selectDynamic(key: String): YObj = this
+  override def apply(key: Int): YObj            = this
+  override def apply(key: YNode): YObj          = this
+  override def to[T: YRead]: Either[YError, T]  = Left(error)
+  override val tagType: YType                   = YType.Unknown
+  override def equals(obj: Any): Boolean        = false
 
   override protected[model] def thisNode: YNode = {
     // $COVERAGE-OFF$ unreachable

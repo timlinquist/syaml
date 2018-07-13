@@ -19,7 +19,6 @@ import scala.language.higherKinds
     "No Yaml deserializer found for type ${T}. Try to implement an implicit YRead."
 )
 trait YRead[T] {
-
   /**
     * Convert the YNode into a T
     */
@@ -55,6 +54,9 @@ abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
   * Default deserializer type classes.
   */
 object YRead {
+
+  def apply[T](implicit yRead: YRead[T]): YRead[T] = yRead
+
   def error(node: YNode, err: String) = Left(YError(node, err))
 
   /**
