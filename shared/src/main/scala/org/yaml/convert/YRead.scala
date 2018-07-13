@@ -16,9 +16,10 @@ import scala.language.higherKinds
   * into values of the right type.
   */
 @implicitNotFound(
-    "No Yaml deserializer found for type ${T}. Try to implement an implicit YRead."
+  "No Yaml deserializer found for type ${T}. Try to implement an implicit YRead."
 )
 trait YRead[T] {
+
   /**
     * Convert the YNode into a T
     */
@@ -40,12 +41,14 @@ abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
   override def read(node: YNode): Either[YError, T] = {
     val tagType = node.tagType
     if (tagType != expectedType) return error(node, s"Expecting $expectedType and $tagType provided")
-    if (!node.value.isInstanceOf[YScalar]) return error(node, "Not an Scalar")
-    val v = node.value.asInstanceOf[YScalar].value
-    try {
-      Right(v.asInstanceOf[T])
-    } catch {
-      case e: ClassCastException => error(node, e.getMessage)
+    node.asScalar match {
+      case Some(v) =>
+        try {
+          Right(v.value.asInstanceOf[T])
+        } catch {
+          case e: ClassCastException => error(node, e.getMessage)
+        }
+      case _ => error(node, "Not an Scalar")
     }
   }
 }
@@ -63,9 +66,9 @@ object YRead {
     * Deserializer for Any Scalar
     */
   implicit object AnyYRead extends YRead[Any] {
-    override def read(node: YNode): Either[YError, Any] = node.value match {
-      case s: YScalar => Right(s.value)
-      case _          => error(node, "Not an Scalar")
+    override def read(node: YNode): Either[YError, Any] = node.asScalar match {
+      case Some(v) => Right(v.value)
+      case _       => error(node, "Not an Scalar")
     }
     override def defaultValue: Any = null
   }

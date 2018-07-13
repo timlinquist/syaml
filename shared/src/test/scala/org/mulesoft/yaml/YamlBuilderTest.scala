@@ -123,6 +123,9 @@ trait YamlBuilderTest
     obj1.aList shouldBe obj2.aList
     obj1.aMap shouldBe obj2.aMap
 
+    doc.node.isNull shouldBe false
+    doc.node.asScalar shouldBe None
+
     val types = for (e <- doc.as[YMap].entries)
       yield (e.key.tagType, e.value.tagType)
     types should contain theSameElementsInOrderAs List((Str, Str),

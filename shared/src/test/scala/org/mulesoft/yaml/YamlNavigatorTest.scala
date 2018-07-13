@@ -14,53 +14,53 @@ import org.yaml.parser.YamlParser
 trait YamlNavigatorTest extends FunSuite with Matchers {
 
   val addressBase: YNode = obj(
-      given = "Chris",
-      family = "Dumars",
-      address = obj(
-          lines = "458 Walkman Dr.\nSuite #292",
-          city = "Royal Oak",
-          state = "MI",
-          postal = 48046
-      )
+    given = "Chris",
+    family = "Dumars",
+    address = obj(
+      lines = "458 Walkman Dr.\nSuite #292",
+      city = "Royal Oak",
+      state = "MI",
+      postal = 48046
+    )
   )
   val address: YNode = addressBase.anchor("id001")
 
   val doc: YDocument = YDocument("Example 2.27 Invoice").obj(
-      invoice = 34843,
-      date = "2001-01-23",
-      billto = address,
-      shipTo = address.alias(),
-      product = list(
-          obj(
-              sku = "BL394D",
-              quantity = 4,
-              description = "Basketball",
-              price = 450.00
-          ),
-          obj(
-              sku = "BL4438H",
-              quantity = 1,
-              description = "Super Hoop",
-              price = 2392.00
-          )
+    invoice = 34843,
+    date = "2001-01-23",
+    billto = address,
+    shipTo = address.alias(),
+    product = list(
+      obj(
+        sku = "BL394D",
+        quantity = 4,
+        description = "Basketball",
+        price = 450.00
       ),
-      tax = 251.42,
-      total = 4443.52,
-      comments = "Late afternoon is best."
+      obj(
+        sku = "BL4438H",
+        quantity = 1,
+        description = "Super Hoop",
+        price = 2392.00
+      )
+    ),
+    tax = 251.42,
+    total = 4443.52,
+    comments = "Late afternoon is best."
   )
 
   val doc1: YDocument = YDocument(null: String).obj(
-      invoice = 34843,
-      date = "2001-01-23"
+    invoice = 34843,
+    date = "2001-01-23"
   )
 
   val doc3: YDocument = YDocument.obj(
-      a = list("aaa", "bbb"),
-      b = list("aaa", "bbb"),
-      c = list(10, 20)
+    a = list("aaa", "bbb"),
+    b = list("aaa", "bbb"),
+    c = list(10, 20)
   )
   val doc4: YDocument = YDocument.parseYaml(
-      """%YAML 1.2
+    """%YAML 1.2
         |# Reverse
         | date    : "2001-01-23"
         | invoice : 34843
@@ -115,7 +115,7 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
   test("Default handler") {
     implicit val h1 = IllegalTypeHandler.returnDefault
     val node        = doc.node
-    val seq = doc.obj.product
+    val seq         = doc.obj.product
 
     node.as[Int] shouldBe 0
     node.as[Any].asInstanceOf[AnyRef] shouldBe null
@@ -131,7 +131,7 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     node.as[Set[Any]].isEmpty shouldBe true
 
     seq.as[YMap] shouldBe YMap.empty
-    seq.as[Map[YNode,YNode]].isEmpty shouldBe true
+    seq.as[Map[YNode, YNode]].isEmpty shouldBe true
   }
 
   private def errorMsg(v: YObj) = v match {
@@ -258,6 +258,9 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     n == v shouldBe true
     n.value == v shouldBe true
 
+    n.asScalar.get.value shouldBe 10
+    n.isNull shouldBe false
+
     an[IllegalStateException] should be thrownBy n.alias()
 
     doc3.toString shouldBe "Document: {a: [aaa, bbb], b: [aaa, bbb], c: [10, 20]}"
@@ -270,8 +273,9 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     n == nodeDoc shouldBe true
   }
   test("Empty Doc") {
-    val emptyDoc = YDocument(YamlParser("# Just a comment").parse(),"")
+    val emptyDoc = YDocument(YamlParser("# Just a comment").parse(), "")
     emptyDoc.node shouldBe YNode.Null
+    emptyDoc.node.isNull shouldBe true
 
     emptyDoc.obj match {
       case YFail(yError) => yError.error shouldBe "Empty Document"

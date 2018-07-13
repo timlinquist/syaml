@@ -14,6 +14,15 @@ abstract class YNode(override val children: Parts, override val sourceName: Stri
   def anchor: Option[YAnchor] = None
   def tagType: YType          = tag.tagType
 
+  /** Returns true if the node is consider a null one */
+  def isNull: Boolean = tagType == YType.Null || asScalar.contains(null)
+
+  /** Returns true if the Node value is an YScalar */
+  def asScalar: Option[YScalar] = value match {
+      case s: YScalar => Some(s)
+      case _ => None
+  }
+
   override def equals(obj: scala.Any): Boolean = obj match {
     case _: YFail     => false
     case n: YNode     => this.tagType == n.tagType && this.value == n.value
@@ -41,31 +50,32 @@ abstract class YNode(override val children: Parts, override val sourceName: Stri
 object YNode {
 
   /** Create a direct Node Implementation */
-  def apply(v: YValue, t: YTag, a: Option[YAnchor] = None, cs: Parts = null, sourceName:String): YNode =
-    new YNode(if (cs == null) Array(v) else cs,sourceName) {
+  def apply(v: YValue, t: YTag, a: Option[YAnchor] = None, cs: Parts = null, sourceName: String): YNode =
+    new YNode(if (cs == null) Array(v) else cs, sourceName) {
       override def value: YValue           = v
       override def tag: YTag               = t
       override def anchor: Option[YAnchor] = a
     }
 
-  def apply(value: YValue, tt: YType, ref: YAnchor): YNode = YNode(value, tt.tag, Some(ref),sourceName=value.sourceName)
-  def apply(value: YValue, tt: YType): YNode               = YNode(value, tt.tag,sourceName=value.sourceName)
-  def apply(text: String,sourceName:String): YNode                           = YNode(YScalar(text,sourceName), YType.Str)
-  def apply(int: Int,sourceName:String ): YNode                               = YNode(YScalar(int,sourceName), YType.Int)
-  def apply(long: Long,sourceName:String ): YNode                             = YNode(YScalar(long,sourceName), YType.Int)
-  def apply(bool: Boolean,sourceName:String ): YNode                          = YNode(YScalar(bool,sourceName), YType.Bool)
-  def apply(double: Double,sourceName:String ): YNode                         = YNode(YScalar(double,sourceName), YType.Float)
+  def apply(value: YValue, tt: YType, ref: YAnchor): YNode =
+    YNode(value, tt.tag, Some(ref), sourceName = value.sourceName)
+  def apply(value: YValue, tt: YType): YNode           = YNode(value, tt.tag, sourceName = value.sourceName)
+  def apply(text: String, sourceName: String): YNode   = YNode(YScalar(text, sourceName), YType.Str)
+  def apply(int: Int, sourceName: String): YNode       = YNode(YScalar(int, sourceName), YType.Int)
+  def apply(long: Long, sourceName: String): YNode     = YNode(YScalar(long, sourceName), YType.Int)
+  def apply(bool: Boolean, sourceName: String): YNode  = YNode(YScalar(bool, sourceName), YType.Bool)
+  def apply(double: Double, sourceName: String): YNode = YNode(YScalar(double, sourceName), YType.Float)
 
-  def apply(text: String): YNode                           = YNode(YScalar(text,""), YType.Str)
-  def apply(int: Int ): YNode                               = YNode(YScalar(int,""), YType.Int)
-  def apply(long: Long ): YNode                             = YNode(YScalar(long,""), YType.Int)
-  def apply(bool: Boolean ): YNode                          = YNode(YScalar(bool,""), YType.Bool)
-  def apply(double: Double ): YNode                         = YNode(YScalar(double,""), YType.Float)
-  def apply(seq: YSequence): YNode                         = YNode(seq, YType.Seq)
-  def apply(map: YMap): YNode                              = YNode(map, YType.Map)
+  def apply(text: String): YNode   = YNode(YScalar(text, ""), YType.Str)
+  def apply(int: Int): YNode       = YNode(YScalar(int, ""), YType.Int)
+  def apply(long: Long): YNode     = YNode(YScalar(long, ""), YType.Int)
+  def apply(bool: Boolean): YNode  = YNode(YScalar(bool, ""), YType.Bool)
+  def apply(double: Double): YNode = YNode(YScalar(double, ""), YType.Float)
+  def apply(seq: YSequence): YNode = YNode(seq, YType.Seq)
+  def apply(map: YMap): YNode      = YNode(map, YType.Map)
 
   val Null  = YNode(YScalar.Null, YType.Null)
-  val Empty = YNode(new YScalar(null, "",sourceName = ""), YType.Null)
+  val Empty = YNode(new YScalar(null, "", sourceName = ""), YType.Null)
 
   // Implicit conversions
 
@@ -83,8 +93,8 @@ object YNode {
   implicit def fromMap(map: YMap): YNode         = YNode(map)
 
   /** An Include Node */
-  def include(uri: String,sourceName:String = ""): MutRef = {
-    val v = YScalar(uri,sourceName)
+  def include(uri: String, sourceName: String = ""): MutRef = {
+    val v = YScalar(uri, sourceName)
     val t = YType.Include.tag
     new MutRef(v, t, Array(t, v))
   }
@@ -95,7 +105,7 @@ object YNode {
   /**
     * A Yaml Node Reference, methods are redirected to the target node
     */
-  abstract class Ref(cs: Parts) extends YNode(cs,"")
+  abstract class Ref(cs: Parts) extends YNode(cs, "")
 
   /** A Mutable Node reference */
   final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(cs) {
