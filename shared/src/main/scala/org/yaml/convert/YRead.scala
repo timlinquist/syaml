@@ -79,6 +79,16 @@ object YRead {
   implicit object LongYRead extends ScalarYRead(YType.Int, 0L)
 
   /**
+    * Deserializer for Number types.
+    */
+  implicit object NumberYRead extends ScalarYRead[Number](YType.Int, 0L) {
+      override def read(node: YNode): Either[YError, Number] = super.read(node) match {
+          case v @ Right(_) => v
+          case _ => DoubleYRead.read(node).asInstanceOf[Either[YError, Number]]
+      }
+  }
+
+  /**
     * Deserializer for Int types.
     */
   implicit object IntYRead extends ScalarYRead(YType.Int, 0) {
@@ -92,7 +102,12 @@ object YRead {
   /**
     * Deserializer for Double types.
     */
-  implicit object DoubleYRead extends ScalarYRead[Double](YType.Float, 0.0)
+  implicit object DoubleYRead extends ScalarYRead[Double](YType.Float, 0.0)  {
+      override def read(node: YNode): Either[YError, Double] = super.read(node) match {
+          case v @ Right(_) => v
+          case _ => LongYRead.read(node).map(v => v.doubleValue())
+      }
+  }
 
   /**
     * Deserializer for Boolean types.

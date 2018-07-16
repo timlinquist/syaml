@@ -145,7 +145,7 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
 
     val s2 = doc.as[Seq[YNode]].map(_.to[Int])
-    s2(0) shouldBe Right(100)
+    s2.head shouldBe Right(100)
     s2(1).left.get.error shouldBe "Out of range"
 
     // Use validation
@@ -166,7 +166,11 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
                                          | - 2001-01-01 10:00:00
                                        """.stripMargin)
 
-    doc2.obj(0).as[Long] shouldBe 123456789012345678L
+    val num = doc2.obj(0)
+    num.as[Long] shouldBe 123456789012345678L
+    num.as[Number] shouldBe 123456789012345678L
+    num.as[Double] shouldBe 123456789012345680.0
+
     val seq       = doc2.obj.as[Seq[Any]]
     val maybeTime = SimpleDateTime.parse("2001-01-01T10:00")
     val list1     = List(123456789012345678L, maybeTime.get)
