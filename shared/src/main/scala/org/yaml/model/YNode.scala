@@ -15,12 +15,12 @@ abstract class YNode(override val children: Parts, override val sourceName: Stri
   def tagType: YType          = tag.tagType
 
   /** Returns true if the node is consider a null one */
-  def isNull: Boolean = tagType == YType.Null || asScalar.contains(null)
+  override def isNull: Boolean = tagType == YType.Null || asScalar.contains(null)
 
   /** Returns true if the Node value is an YScalar */
   def asScalar: Option[YScalar] = value match {
-      case s: YScalar => Some(s)
-      case _ => None
+    case s: YScalar => Some(s)
+    case _          => None
   }
 
   override def equals(obj: scala.Any): Boolean = obj match {

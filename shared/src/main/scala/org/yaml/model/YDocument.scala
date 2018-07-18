@@ -55,7 +55,11 @@ object YDocument {
   /** Build an Object(Map) (Using dynamics) */
   object obj extends Dynamic {
     def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName:String = ""): YMap = method match {
-      case "apply" => YMap(args.map(t => YMapEntry(YNode(t._1, sourceName), t._2)).toArray[YPart], sourceName)
+      case "apply" => YMap(args.map { t =>
+          val key = YNode(t._1, sourceName)
+          val value = if (t._2 eq null) YNode.Null else t._2
+          YMapEntry(key, value)
+      }.toArray[YPart], sourceName)
     }
   }
 

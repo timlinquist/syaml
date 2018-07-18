@@ -12,7 +12,7 @@ abstract class YNodeLike extends YValueLike {
     * Tries to convert the node into a T. An implicit YRead[T] must be defined.
     * Any error is mapped to None
     */
-  def asOption[T:YRead]: Option[T] = to.toOption
+  def asOption[T: YRead]: Option[T] = to.toOption
 
   /**
     * Tries to convert the node into a T, throwing an exception if it can't. An implicit YRead[T] must be defined.
@@ -57,6 +57,8 @@ abstract class YNodeLike extends YValueLike {
     */
   def obj: YObj
   def tagType: YType
+  def isNull: Boolean = thisNode.isNull
+
   protected[model] def thisNode: YNode
 }
 

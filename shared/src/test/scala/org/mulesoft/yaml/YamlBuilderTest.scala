@@ -5,14 +5,12 @@ import org.yaml.model.YDocument.{list, obj, objFromBuilder}
 import org.yaml.model.YType._
 import org.yaml.model._
 import org.yaml.render.YamlRender
+import org.yaml.model.YNode._
 
 /**
   * Test Builders
   */
-trait YamlBuilderTest
-    extends FunSuite
-    with Matchers
-    with IgnoreParseErrorTest {
+trait YamlBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTest {
 
   test("Build Simple Scalar") {
     val doc1 = YDocument(_ += "A Document")
@@ -51,9 +49,7 @@ trait YamlBuilderTest
     }
     doc.tagType shouldBe Seq
     val seq = doc.node.as[Seq[YNode]]
-    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str,
-                                                                    Str,
-                                                                    Bool)
+    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool)
 
     doc.obj(2).as[Boolean] shouldBe true
 
@@ -74,10 +70,7 @@ trait YamlBuilderTest
     }
     doc.tagType shouldBe Seq
     val seq = doc.node.as[Seq[YNode]]
-    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str,
-                                                                    Str,
-                                                                    Bool,
-                                                                    YType.Seq)
+    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Bool, YType.Seq)
 
     doc.obj(3).as[List[String]] shouldBe List("A", "B")
 
@@ -128,11 +121,7 @@ trait YamlBuilderTest
 
     val types = for (e <- doc.as[YMap].entries)
       yield (e.key.tagType, e.value.tagType)
-    types should contain theSameElementsInOrderAs List((Str, Str),
-                                                       (Str, Int),
-                                                       (Str, Seq),
-                                                       (Str, Map),
-                                                       (Seq, Seq))
+    types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
 
     obj1.anInt.as[Int] shouldBe 120
     val m = obj1.aMap
@@ -145,20 +134,20 @@ trait YamlBuilderTest
 
     // Short way when you don't need a Builder
     val doc3 = YDocument("An Object").obj(
-      aString = "Value1",
-      anInt = 120,
-      aList = list(1, 2, 100),
-      anotherList = list("One", "Two"),
-      aMap = obj(one = 1, two = 2)
+        aString = "Value1",
+        anInt = 120,
+        aList = list(1, 2, 100),
+        anotherList = list("One", "Two"),
+        aMap = obj(one = 1, two = 2),
+        aNull = null
     )
 
     val o = doc3.obj
     o.aMap.one.as[Int] shouldBe 1
     o.anotherList(0).to[String].getOrElse("") shouldBe "One"
     o.anotherList(1).to[Int].getOrElse(-1) shouldBe -1
-    o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List(
-      "One",
-      "Two")
+    o.anotherList.as[Seq[String]] should contain theSameElementsInOrderAs List("One", "Two")
+    o.aNull.isNull shouldBe true
 
     // Comments inside a Map
 
@@ -178,26 +167,21 @@ trait YamlBuilderTest
       b.anInt = 120
       b.aList = list(1, 2)
       b.aMap = obj(
-        One = 1,
-        Two = 2
+          One = 1,
+          Two = 2
       )
       b.entry(list("a", "b"), list(1, 2))
     }
 
     val types = for (e <- doc.as[YMap].entries)
       yield (e.key.tagType, e.value.tagType)
-    types should contain theSameElementsInOrderAs List((Str, Str),
-                                                       (Str, Int),
-                                                       (Str, Seq),
-                                                       (Str, Map),
-                                                       (Seq, Seq))
+    types should contain theSameElementsInOrderAs List((Str, Str), (Str, Int), (Str, Seq), (Str, Map), (Seq, Seq))
 
     doc.obj.anInt.as[Int] shouldBe 120
     val m = doc.obj.aMap
     m("One").as[Int] shouldBe 1
     m("Two").as[Int] shouldBe 2
-    doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1,
-                                                                             2)
+    doc.obj.aList.as[List[Int]] should contain theSameElementsInOrderAs List(1, 2)
 
     doc
       .obj(YSequence("a", "b"))
@@ -207,8 +191,8 @@ trait YamlBuilderTest
 
     val doc2 = objFromBuilder { b =>
       b.aMap = obj(
-        One = 1,
-        Two = 2
+          One = 1,
+          Two = 2
       )
       b.entry("emptyMap", _.obj(_ => {}))
     }
@@ -219,9 +203,9 @@ trait YamlBuilderTest
     val node = YNode("Value1").anchor("001")
 
     val doc = YDocument("A Map with references").obj(
-      a = node,
-      b = 120,
-      c = node.alias()
+        a = node,
+        b = 120,
+        c = node.alias()
     )
 
     doc.obj.c.as[String] shouldBe "Value1"
