@@ -1,14 +1,15 @@
 package org.yaml.render
 
+import java.io.{StringWriter, Writer}
+
 import org.mulesoft.common.core.Strings
 import org.yaml.model.YType._
 import org.yaml.model._
 
 /**
-  * Yaml Render
+  * Json Render
   */
-class JsonRender private () {
-  private val builder           = new StringBuilder
+class JsonRender private (private val builder: Writer) {
   override def toString: String = builder.toString
 
   private var indentation    = 0
@@ -32,11 +33,10 @@ class JsonRender private () {
     else {
       render("[\n")
       indent()
-      var finished = false
       val total = seq.nodes.size
       var c     = 0
       while (c < total) {
-        var node = seq.nodes(c)
+        val node = seq.nodes(c)
         renderIndent().render(node)
         if (c < total-1) {
           render(",\n")
@@ -51,19 +51,16 @@ class JsonRender private () {
       renderIndent().render("]")
     }
 
-  private def chopLastComma() = builder.deleteCharAt(builder.length - 2)
-
   private def renderMap(map: YMap) =
     if (map.isEmpty) render("{}")
     else {
       render("{\n")
       indent()
-      var finished = false
       val total = map.entries.size
       var c     = 0
 
       while (c < total) {
-        var entry = map.entries(c)
+        val entry = map.entries(c)
         renderIndent().render(entry.key).render(": ").render(entry.value)
         if (c < total-1) {
           render(",\n")
@@ -95,10 +92,13 @@ class JsonRender private () {
 
 object JsonRender {
 
-  /** Render a Seq of Parts as an String */
-  def render(doc: YDocument): String = {
-    val builder = new JsonRender()
+  /** Render a Seq of Parts to a writer */
+  def render(doc: YDocument, writer: Writer): Writer = {
+    val builder = new JsonRender(writer)
     builder.render(doc.node).render("\n")
-    builder.toString
+    writer
   }
+
+  /** Render a Seq of Parts as a String */
+  def render(doc: YDocument): String = render(doc, new StringWriter()).toString
 }
