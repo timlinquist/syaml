@@ -39,6 +39,15 @@ trait ParseInvalidJsonTest extends FunSuite {
     assert(handler.errors.head.inputRange.equals(InputRange(5, 4, 5, 57)))
   }
 
+  test("Parse unclosed map") {
+    val handler = getErrorsFor(jsonDir / "unclosed-map.json")
+
+    assert(handler.errors.lengthCompare(1) == 0)
+    val error = handler.errors.head
+    assert(error.error.getMessage.startsWith("Error node ','"))
+    assert(handler.errors.head.inputRange.equals(InputRange(3, 56, 3, 57)))
+
+  }
 
   private def getErrorsFor(jsonFile:SyncFile): TestErrorHandler = {
     val handler = TestErrorHandler()

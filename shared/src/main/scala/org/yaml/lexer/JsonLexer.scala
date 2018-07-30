@@ -1,5 +1,6 @@
 package org.yaml.lexer
 
+import org.mulesoft.lexer.CharSequenceLexerInput.InputState
 import org.mulesoft.lexer.LexerInput.EofChar
 import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput, Position}
 import org.yaml.lexer.JsonLexer._
@@ -21,7 +22,17 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
     * Process all pending tokens. Trivial implementation just emit the EofToken
     * More complex ones can continue returning pending tokens until they emit the EofToken
     */
-  override protected def processPending(): Unit = emit(EndDocument, EndStream)
+  override protected def processPending(): Unit ={
+    if(stack.nonEmpty){
+      val last = tokenData
+      val current = input.createMark()
+      input.reset(InputState(last.range.lineFrom, last.range.columnFrom,last.start))
+      reset()
+      input.reset(current)
+      emit(Error)
+    }
+    emit(EndDocument, EndStream)
+  }
 
   override protected def findToken(chr: Int): Unit = {
     chr match {
