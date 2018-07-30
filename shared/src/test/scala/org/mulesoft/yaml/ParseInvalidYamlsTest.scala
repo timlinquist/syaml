@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Test handling errors
   */
-class ParseInvalidYamlsTest extends FunSuite {
+trait ParseInvalidYamlsTest extends FunSuite {
 
   private val yamlDir = Fs syncFile "shared/src/test/data/parser/invalid"
 

@@ -49,6 +49,14 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
     emit(t2)
   }
 
+  /** Emit 2 Tokens with same mark */
+  @failfast protected def emitForMark(t1: T, t2: T): Boolean = {
+    val initialMark = mark
+    emit(t1)
+    mark = initialMark
+    emit(t2)
+  }
+
   protected def reset(): Unit = mark = position
 
   protected def findToken(chr: Int):Unit = {}

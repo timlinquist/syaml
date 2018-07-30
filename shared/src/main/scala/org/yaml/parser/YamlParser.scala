@@ -3,7 +3,7 @@ package org.yaml.parser
 import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.{AstToken, BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
-import org.yaml.lexer.{YamlLexer, YamlToken}
+import org.yaml.lexer.{JsonLexer, YamlLexer, YamlToken}
 import org.yaml.model
 import org.yaml.model.{YTag, _}
 
@@ -307,11 +307,14 @@ object YamlParser {
 
 object JsonParser {
   def apply(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
-    new YamlParser(YamlLexer(s))(eh)
+    new YamlParser(JsonLexer(s))(eh)
 
   def obj(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YObj =
     apply(s)(eh).documents()(0).obj
 
   def withSource(s: CharSequence, sourceName:String )(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
-    new YamlParser(YamlLexer(s,sourceName))(eh)
+    new YamlParser(JsonLexer(s,sourceName))(eh)
+
+  def withSourceOffset(s: CharSequence, sourceName:String,offset:(Int,Int) )(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
+    new YamlParser(JsonLexer(s,sourceName,offset))(eh)
 }

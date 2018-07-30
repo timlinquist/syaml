@@ -1,5 +1,6 @@
 package org.yaml.lexer
 
+import org.mulesoft.lexer.LexerInput.EofChar
 import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput, Position}
 import org.yaml.lexer.JsonLexer._
 import org.yaml.lexer.YamlToken._
@@ -10,7 +11,6 @@ import org.yaml.lexer.YamlToken._
 final class JsonLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO ) extends BaseLexer[YamlToken](input) {
 
   private var stack: List[YamlToken] = Nil
-
   /** Init must initialize the stack and the current _tokenData (may be invoking advance) */
   override protected def initialize(): Unit = {
     emit(BeginDocument)
@@ -40,12 +40,39 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
       case 'n' => checkKeyword("null")
       case 't' => checkKeyword("true")
       case 'f' => checkKeyword("false")
-      case _ =>
-        consume()
+      case _ => tryToRecover()
+    }
+  }
+
+  private def tryToRecover(): Unit = {
+    /* I use option in case that the json is only a scalar unquoted so there will not be any mark */
+    stack.headOption match {
+      case Some(BeginMapping) => advanceForError('}')
+      case Some(BeginPair)  => advanceForError(',',':','}')
+      case Some(EndPair) => advanceForError(',','}')
+      case Some(BeginSequence) => advanceForError(',',']')
+      case _ => advanceForError() // to the end
+    }
+  }
+
+  private def advanceForError(until: Int*):Unit = {
+    nodeStart(BeginScalar, indicator = false)
+    consumeWhile((c:Int) => (! until.contains(c)) && c != EofChar)
+    emitForMark(Error,Text)
+    nodeEnd(EndScalar, indicator = false)
+    if((stack.headOption contains BeginPair) && currentChar==','){ // try to compose entry value to avoid parser error.
+      stack = EndPair :: stack.tail
+      nodeStart(BeginScalar,indicator = false)
+      nodeEnd(EndScalar, indicator = false)
     }
   }
 
   private def endEntry(): Unit = {
+    if(stack.headOption contains BeginPair) {
+      // entry with key and without value. { a: a, a, a:a}
+      stack = stack.tail
+      emit(EndPair)
+    }
     consumeAndEmit(Indicator)
     if (stack.head == BeginMapping) stack = BeginPair :: stack
   }
@@ -69,6 +96,8 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
   }
 
   private def nodeEnd(block: YamlToken, indicator: Boolean = true): Unit = {
+    if((stack.headOption contains BeginPair) && block== EndMapping) stack = stack.tail
+
     stack = stack.tail
     if (indicator) consumeAndEmit(Indicator)
     emit(block, EndNode)
@@ -105,7 +134,7 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
     def emitText(): Unit = if (hasText) { emit(Text); hasText = false }
 
     nodeStart(BeginScalar)
-    while (currentChar != '"') {
+    while (currentChar != '"' && currentChar != EofChar ) {
       if (currentChar == '\\') {
         emitText()
         emit(BeginEscape)
@@ -131,6 +160,8 @@ object JsonLexer {
   def apply(cs: CharSequence): JsonLexer  = new JsonLexer(CharSequenceLexerInput(cs))
   def apply(cs: CharSequence,sourceName:String): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs,sourceName = sourceName))
   def apply(cs: CharSequence,offsetPosition: (Int,Int)): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs), offsetPosition)
+
+  def apply(cs: CharSequence,sourceName:String,offsetPosition: (Int,Int)): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), offsetPosition)
 
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'

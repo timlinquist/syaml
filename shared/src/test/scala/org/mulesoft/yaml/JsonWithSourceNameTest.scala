@@ -37,8 +37,7 @@ trait JsonWithSourceNameTest extends WithSourceNameTest {
     """.stripMargin
 
 
-  private val rootScalar =
-    """\"scalar\""".stripMargin
+  private val rootScalar = "\"scalar\""
   override protected val sourceName = "sourcename.json"
 
   test("assert source name root map"){
