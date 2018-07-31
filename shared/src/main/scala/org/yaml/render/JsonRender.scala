@@ -96,6 +96,7 @@ object JsonRender {
   def render(doc: YDocument, writer: Writer): Writer = {
     val builder = new JsonRender(writer)
     builder.render(doc.node).render("\n")
+    writer.flush()
     writer
   }
 
