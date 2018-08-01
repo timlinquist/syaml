@@ -54,12 +54,12 @@ object YDocument {
 
   /** Build an Object(Map) (Using dynamics) */
   object obj extends Dynamic {
-    def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName:String = ""): YMap = method match {
-      case "apply" => YMap(args.map { t =>
+    def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName:String = ""): YNode = method match {
+      case "apply" => YNode.fromMap(YMap(args.map { t =>
           val key = YNode(t._1, sourceName)
           val value = if (t._2 eq null) YNode.Null else t._2
           YMapEntry(key, value)
-      }.toArray[YPart], sourceName)
+      }.toArray[YPart], sourceName))
     }
   }
 
@@ -70,13 +70,11 @@ object YDocument {
   def list(f: PartBuilder => Unit): YDocument = YDocument("", "").list(f)
 
   /** Build a list of Nodes */
-  def list(elems: YNode*)(implicit sourceName:String = ""): YSequence = YSequence(elems.toArray[YNode], sourceName)
+  def list(elems: YNode*)(implicit sourceName:String = ""): YNode = YNode(YSequence(elems.toArray[YNode], sourceName))
 
-  /** Convert from an object to a document */
-  implicit def fromObj(map: YMap): YDocument = YDocument("", map.sourceName)(YNode(map))
+  /** Convert from an node to a document */
+  implicit def fromNode(node: YNode): YDocument = YDocument("", node.sourceName)(node)
 
-  /** Convert from an list to a document */
-  implicit def fromSeq(seq: YSequence): YDocument = YDocument("", seq.sourceName)(YNode(seq))
   /** Auxiliary class to create a document that has a head comment */
   class WithComment(val comment: String, sourceName: String) {
 
@@ -92,12 +90,12 @@ object YDocument {
     def apply(mainNode: YNode): YDocument = createDoc(mainNode)
 
     /** Build from a list of Nodes */
-    def list(elems: YNode*)(implicit sourceName:String = ""): YDocument = apply(YNode(YDocument.list(elems: _*)(sourceName)))
+    def list(elems: YNode*)(implicit sourceName:String = ""): YDocument = apply(YDocument.list(elems: _*)(sourceName))
 
     /** Build an Object (Using dynamics) */
     object obj extends Dynamic {
       def applyDynamicNamed(method: String)(args: (String, YNode)*): YDocument =
-        createDoc(YNode(YDocument.obj.applyDynamicNamed(method)(args: _*)(sourceName)))
+        createDoc(YDocument.obj.applyDynamicNamed(method)(args: _*)(sourceName))
     }
 
     /** Build an Object document using a builder */
@@ -161,14 +159,14 @@ object YDocument {
 
   }
 
-  private def createSeqNode(f: (PartBuilder) => Unit, sourceName: String) = {
+  private def createSeqNode(f: PartBuilder => Unit, sourceName: String) = {
     val b = new PartBuilder(sourceName)
     f(b)
     val node = YNode(YSequence(b.builder.result, sourceName), YType.Seq)
     node
   }
 
-  private def createMapNode(f: (EntryBuilder) => Unit, sourceName: String) = {
+  private def createMapNode(f: EntryBuilder => Unit, sourceName: String) = {
     val b = new EntryBuilder(sourceName)
     f(b)
     YNode(YMap(b.builder.result, sourceName), YType.Map)

@@ -3,8 +3,8 @@ package org.mulesoft.yaml
 import org.mulesoft.common.time.SimpleDateTime
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.convert.YRead.DoubleYRead
-import org.yaml.model.YDocument._
 import org.yaml.model._
+import org.yaml.model.YDocument._
 import org.yaml.parser.YamlParser
 
 /**
@@ -14,60 +14,59 @@ import org.yaml.parser.YamlParser
 trait YamlNavigatorTest extends FunSuite with Matchers {
 
   val addressBase: YNode = obj(
-    given = "Chris",
-    family = "Dumars",
-    address = obj(
-      lines = "458 Walkman Dr.\nSuite #292",
-      city = "Royal Oak",
-      state = "MI",
-      postal = 48046
-    )
+      given = "Chris",
+      family = "Dumars",
+      address = obj(
+          lines = "458 Walkman Dr.\nSuite #292",
+          city = "Royal Oak",
+          state = "MI",
+          postal = 48046
+      )
   )
   val address: YNode = addressBase.anchor("id001")
 
   val doc: YDocument = YDocument("Example 2.27 Invoice").obj(
-    invoice = 34843,
-    date = "2001-01-23",
-    billto = address,
-    shipTo = address.alias(),
-    product = list(
-      obj(
-        sku = "BL394D",
-        quantity = 4,
-        description = "Basketball",
-        price = 450.00
+      invoice = 34843,
+      date = "2001-01-23",
+      billto = address,
+      shipTo = address.alias(),
+      product = list(
+          obj(
+              sku = "BL394D",
+              quantity = 4,
+              description = "Basketball",
+              price = 450.00
+          ),
+          obj(
+              sku = "BL4438H",
+              quantity = 1,
+              description = "Super Hoop",
+              price = 2392.00
+          )
       ),
-      obj(
-        sku = "BL4438H",
-        quantity = 1,
-        description = "Super Hoop",
-        price = 2392.00
-      )
-    ),
-    tax = 251.42,
-    total = 4443.52,
-    comments = "Late afternoon is best."
+      tax = 251.42,
+      total = 4443.52,
+      comments = "Late afternoon is best."
   )
 
   val doc1: YDocument = YDocument(null: String).obj(
-    invoice = 34843,
-    date = "2001-01-23"
+      invoice = 34843,
+      date = "2001-01-23"
   )
 
   val doc3: YDocument = YDocument.obj(
-    a = list("aaa", "bbb"),
-    b = list("aaa", "bbb"),
-    c = list(10, 20)
+      a = list("aaa", "bbb"),
+      b = list("aaa", "bbb"),
+      c = list(10, 20)
   )
   val doc4: YDocument = YDocument.parseYaml(
-    """%YAML 1.2
+      """%YAML 1.2
         |# Reverse
         | date    : "2001-01-23"
         | invoice : 34843
       """.stripMargin
   )
-
-  test("Error handling") {
+  test("Error handling Default") {
     doc.headComment shouldBe "Example 2.27 Invoice"
 
     // Check Returning default
@@ -76,9 +75,11 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     an[YException] should be thrownBy {
       doc.node.as[Int]
     }
+  }
 
-    var badNode: YNodeLike = null
-    implicit val h         = IllegalTypeHandler(e => badNode = e.node)
+  test("Error handling") {
+    var badNode: YNodeLike             = null
+    implicit val h: IllegalTypeHandler = IllegalTypeHandler(e => badNode = e.node)
 
     val map = doc.node.as[Map[YNode, YNode]]
     badNode shouldBe null
@@ -113,9 +114,9 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
 
   }
   test("Default handler") {
-    implicit val h1 = IllegalTypeHandler.returnDefault
-    val node        = doc.node
-    val seq         = doc.obj.product
+    implicit val h1: IllegalTypeHandler = IllegalTypeHandler.returnDefault
+    val node                            = doc.node
+    val seq                             = doc.obj.product
 
     node.as[Int] shouldBe 0
     node.as[Any].asInstanceOf[AnyRef] shouldBe null
@@ -140,6 +141,11 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
   }
 
   test("Scalar Validation") {
+
+    val node: YNode = 123
+
+    node.asOption[Double] shouldBe Some(123.0)
+
     val doc = YDocument.parseJson("[ 100, 123456789012345678]")
     val s   = doc.as[Seq[Long]]
     s should contain theSameElementsInOrderAs List(100L, 123456789012345678L)
