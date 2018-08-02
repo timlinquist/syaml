@@ -95,7 +95,7 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
       consume(l)
       emit(Text)
       nodeEnd(EndScalar, indicator = false)
-    }
+    } else tryToRecover()
   }
 
   private def nodeStart(block: YamlToken, indicator: Boolean = true): Unit = {
