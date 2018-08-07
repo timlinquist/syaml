@@ -15,7 +15,7 @@ trait ParseInvalidJsonTest extends FunSuite {
 
   private val jsonDir = Fs syncFile "shared/src/test/data/invalid-json"
 
-  test("Parse unquoted key") {
+  ignore("Parse unquoted key") {
     val handler = getErrorsFor(jsonDir / "unquoted-key.json")
 
     assert(handler.errors.lengthCompare(1) == 0)
@@ -23,7 +23,7 @@ trait ParseInvalidJsonTest extends FunSuite {
 
   }
 
-  test("Parse unquoted value in seq") {
+  ignore("Parse unquoted value in seq") {
     val handler = getErrorsFor(jsonDir / "unquoted-value-seq.json")
 
     assert(handler.errors.lengthCompare(1) == 0)
@@ -31,7 +31,7 @@ trait ParseInvalidJsonTest extends FunSuite {
     assert(handler.errors.head.inputRange.equals(InputRange(3, 10, 3, 17)))
   }
 
-  test("Parse scalar in map entry in map") {
+  ignore("Parse scalar in map entry in map") {
     val handler = getErrorsFor(jsonDir / "scalar-in-map-entry.json")
 
     assert(handler.errors.lengthCompare(1) == 0)
@@ -39,7 +39,7 @@ trait ParseInvalidJsonTest extends FunSuite {
     assert(handler.errors.head.inputRange.equals(InputRange(5, 4, 5, 57)))
   }
 
-  test("Parse unclosed map") {
+  ignore("Parse unclosed map") {
     val handler = getErrorsFor(jsonDir / "unclosed-map.json")
 
     assert(handler.errors.lengthCompare(1) == 0)
