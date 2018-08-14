@@ -1,0 +1,62 @@
+#%Vocabulary 1.0
+external:
+  schema-org: http://schema.org/
+classTerms:
+  schema-org.Product:
+    displayName: Product
+    description: The product being showcased
+    properties:
+      - resources
+  Speaker:
+    displayName: Speaker
+    description: Product demonstration presenter
+    extends: schema-org.Person
+    properties:
+      - nickName
+  Presentation:
+    displayName: Presentation
+    description: Product demonstrations
+    properties:
+      - demoDate
+      - speakers
+      - showcases
+propertyTerms:
+  nickName:
+    displayName: nick
+    description: nick name of the speaker
+    extends: schema-org.alternateName
+    range: string
+  isRecorded:
+    displayName: is recorded
+    description: notifies if this demo was recorded
+    range: boolean
+  speakers:
+    displayName: speakers
+    description: list of speakers
+    range: Speaker
+  resources:
+    displayName: resources
+    description: list of materials about the showcased product
+    range: string
+  demoDate:
+    description: day the demo took place
+    displayName: demo date
+    range: date
+    extends: schema-org.dateCreated
+  semantic-version:
+    extends: schema-org.version
+    displayName: semantic version
+    description: "semantic version standard: M.m.r"
+    range: string
+  code:
+    extends: schema-org.name
+    description: product code
+    displayName: code
+    range: string
+  showcases:
+    displayName: showcases
+    description: Product being showcased in a presentation
+    range: schema-org.Product
+base: http://mulesoft.com/vocabularies/eng-demos#
+vocabulary: Eng Demos
+usage: Engineering Demonstrations @ MuleSoft

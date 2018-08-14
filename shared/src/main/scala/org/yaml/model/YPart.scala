@@ -7,16 +7,14 @@ import org.mulesoft.lexer.{InputRange, AstToken}
   */
 trait YPart {
   def children: IndexedSeq[YPart] = IndexedSeq.empty
-  val range: InputRange = if (children.isEmpty) InputRange.Zero else children.head.range.extent(children.last.range)
-  val sourceName :String
+  val range: InputRange           = if (children.isEmpty) InputRange.Zero else children.head.range.extent(children.last.range)
+  val sourceName: String
 }
 
 /** A Set of Yaml Tokens */
 abstract class YTokens(override val range: InputRange, val tokens: IndexedSeq[AstToken]) extends YPart
 
 /** Ignorable content */
-abstract class YIgnorable(range: InputRange, ts: IndexedSeq[AstToken]) extends YTokens(range, ts){
+abstract class YIgnorable(range: InputRange, ts: IndexedSeq[AstToken]) extends YTokens(range, ts) {
   override val sourceName: String = ""
 }
-
-

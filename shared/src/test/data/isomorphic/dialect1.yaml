@@ -1,0 +1,81 @@
+#%Dialect 1.0
+
+# Name of the dialect, this will define the header of the dialect documents
+dialect: Eng Demos
+
+external:
+  schema-org: http://schema.org/
+
+documents:
+  root:
+    encodes: PresentationNode
+  library:
+    declares:
+      products: ProductNode
+
+# Vocabularies and externals can be referenced to use those terms in the dialect nodess
+uses:
+  demos: https://kgs.devx.msap.io/vocabulary/81cd9673-a0af-4d32-bcce-d50242517a6c
+version: 0.1
+
+nodeMappings:
+
+  PresentationNode:
+    mapping:
+      about:
+        propertyTerm: schema-org.description
+        range: string
+        mandatory: true
+      title:
+        mandatory: true
+        propertyTerm: schema-org.name
+        range: string
+      recorded:
+        range: boolean
+        propertyTerm: demos.isRecorded
+      date:
+        mandatory: true
+        range: date
+        propertyTerm: demos.demoDate
+      speakers:
+        mapKey: demos.nickName
+        mandatory: true
+        range: SpeakerNode
+        propertyTerm: demos.speakers
+      product:
+        propertyTerm: demos.showcases
+        mandatory: true
+        range: ProductNode
+    classTerm: demos.Presentation
+
+  ProductNode:
+    classTerm: schema-org.Product
+    mapping:
+      code:
+        mandatory: true
+        propertyTerm: demos.code
+        range: string
+      description:
+        range: string
+        propertyTerm: schema-org.description
+      version:
+        propertyTerm: demos.semantic-version
+        range: string
+      resources:
+        allowMultiple: true
+        range: string
+        propertyTerm: demos.resources
+
+  SpeakerNode:
+    mapping:
+      email:
+        range: string
+        propertyTerm: schema-org.email
+      nick:
+        mandatory: true
+        propertyTerm: demos.nickName
+        range: string
+      age:
+        propertyTerm: schema-org.age
+        range: integer
+    classTerm: demos.Speaker

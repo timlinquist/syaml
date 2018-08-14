@@ -28,9 +28,15 @@ case class YDocument(override val children: IndexedSeq[YPart], override val sour
   override def obj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
 
   override protected[model] def thisNode: YNode = node
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case doc: YDocument => doc.node.equals(this.node)
+    case _              => false
+  }
 }
 
 object YDocument {
+
   /** Build supplying a Head comment */
   def apply(headComment: String, sourceName: String): WithComment =
     new WithComment(if (headComment == null) "" else headComment, sourceName)
@@ -39,7 +45,7 @@ object YDocument {
     new WithComment(if (headComment == null) "" else headComment, "")
 
   /** Constructor from a Builder */
-  def apply(f: PartBuilder => Unit, sourceName:String): YDocument = new WithComment("",sourceName)(f)
+  def apply(f: PartBuilder => Unit, sourceName: String): YDocument = new WithComment("", sourceName)(f)
 
   def apply(f: PartBuilder => Unit): YDocument = YDocument("")(f)
 
@@ -54,13 +60,14 @@ object YDocument {
 
   /** Build an Object(Map) (Using dynamics) */
   object obj extends Dynamic {
-    def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName:String = ""): YNode = method match {
-      case "apply" => YNode.fromMap(YMap(args.map { t =>
+    def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName: String = ""): YNode =
+      method match {
+        case "apply" => YNode.fromMap(YMap(args.map { t =>
           val key = YNode(t._1, sourceName)
           val value = if (t._2 eq null) YNode.Null else t._2
           YMapEntry(key, value)
       }.toArray[YPart], sourceName))
-    }
+      }
   }
 
   /** Build an Object document using a builder */
@@ -70,7 +77,7 @@ object YDocument {
   def list(f: PartBuilder => Unit): YDocument = YDocument("", "").list(f)
 
   /** Build a list of Nodes */
-  def list(elems: YNode*)(implicit sourceName:String = ""): YNode = YNode(YSequence(elems.toArray[YNode], sourceName))
+  def list(elems: YNode*)(implicit sourceName: String = ""): YNode = YNode(YSequence(elems.toArray[YNode], sourceName))
 
   /** Convert from an node to a document */
   implicit def fromNode(node: YNode): YDocument = YDocument("", node.sourceName)(node)
@@ -90,7 +97,8 @@ object YDocument {
     def apply(mainNode: YNode): YDocument = createDoc(mainNode)
 
     /** Build from a list of Nodes */
-    def list(elems: YNode*)(implicit sourceName:String = ""): YDocument = apply(YDocument.list(elems: _*)(sourceName))
+    def list(elems: YNode*)(implicit sourceName: String = ""): YDocument =
+      apply(YDocument.list(elems: _*)(sourceName))
 
     /** Build an Object (Using dynamics) */
     object obj extends Dynamic {

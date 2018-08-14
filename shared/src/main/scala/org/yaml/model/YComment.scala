@@ -19,7 +19,9 @@ case class YComment(metaText: String,
 }
 
 /** Non Content (Whitespace, Indentation and Indicators) */
-case class YNonContent(override val range: InputRange, override val tokens: IndexedSeq[AstToken], override val sourceName:String = "")
+case class YNonContent(override val range: InputRange,
+                       override val tokens: IndexedSeq[AstToken],
+                       override val sourceName: String = "")
     extends YIgnorable(range, tokens) {
   override def toString: String = tokens.mkString(", ")
 }
