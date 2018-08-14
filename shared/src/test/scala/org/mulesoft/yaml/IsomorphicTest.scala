@@ -18,7 +18,7 @@ trait IsomorphicTest extends GoldenSuite {
 
   private lazy val zipped: Array[(String, String)] = {
     val partition = isomorphicDir.list.partition(_.endsWith("1.yaml"))
-    partition._2.zip(partition._1)
+    partition._2.sorted.zip(partition._1.sorted)
   }
 
   private val files: Array[(String, String)] = if (file != null && file1 != null) Array((file, file1)) else zipped
