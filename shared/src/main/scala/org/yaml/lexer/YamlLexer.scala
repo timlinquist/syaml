@@ -1590,10 +1590,12 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   def lineContainsMapIndicator(): Boolean = {
     var i                    = 0
     var chr: Int             = 0
+    var ind: Boolean         = false
     var charStack: List[Int] = Nil
     do {
       chr = lookAhead(i)
-      if (charStack.nonEmpty) {
+      ind = isMappingIndicator(chr, lookAhead(i + 1))
+      if (charStack.nonEmpty && !ind) {
         if (chr == charStack.head) {
           if (chr == '\'' && lookAhead(i + 1) == '\'') i = i + 1
           else if (chr != '"' || lookAhead(i - 1) != '\\')
@@ -1605,7 +1607,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
         charStack = '}' :: charStack
       else if (chr == '[')
         charStack = ']' :: charStack
-      else if (isMappingIndicator(chr, lookAhead(i + 1))) return true
+      else if (ind) return true
       i += 1
     } while (!isBreakComment(chr))
     false
