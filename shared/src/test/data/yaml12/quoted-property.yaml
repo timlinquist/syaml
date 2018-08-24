@@ -1,0 +1,12 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "property-a"
+  : !!str "a",
+  ? !!str "proeprty-b\""
+  : !!str "b\n",
+  ? !!str "property-c"
+  : !!str "c",
+  ? !!str "proper\"ty-d"
+  : !!str "c"
+}
