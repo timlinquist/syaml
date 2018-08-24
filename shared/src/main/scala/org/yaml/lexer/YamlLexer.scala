@@ -1592,22 +1592,25 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     var chr: Int             = 0
     var ind: Boolean         = false
     var charStack: List[Int] = Nil
+    val first = lookAhead(i)
+    if ( first == '"' || first== '\''){
+      i= i + 1
+      charStack = first :: charStack
+    }
     do {
       chr = lookAhead(i)
-      ind = isMappingIndicator(chr, lookAhead(i + 1))
-      if (charStack.nonEmpty && !ind) {
+      if (charStack.nonEmpty) {
         if (chr == charStack.head) {
           if (chr == '\'' && lookAhead(i + 1) == '\'') i = i + 1
           else if (chr != '"' || lookAhead(i - 1) != '\\')
             charStack = charStack.tail
         }
-      } else if (chr == '"' || chr == '\'')
-        charStack = chr :: charStack
+      }
       else if (chr == '{')
         charStack = '}' :: charStack
       else if (chr == '[')
         charStack = ']' :: charStack
-      else if (ind) return true
+      else if (isMappingIndicator(chr, lookAhead(i + 1))) return true
       i += 1
     } while (!isBreakComment(chr))
     false

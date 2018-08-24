@@ -17,7 +17,7 @@ trait YamlToYeastTest extends GoldenSuite {
   private val file  = System.getProperty("yaml")
   private val files = if (file == null) yamlDir.list else Array(file)
   for (yaml <- files) {
-    test("HERE_HERE Generate Yeast for " + yaml) {
+    test("Generate Yeast for " + yaml) {
       val yamlFile   = fs.syncFile(yamlDir, yaml)
       val yeast      = yaml replaceExtension (if (yaml endsWith "yaml") "yt" else "jyt")
       val yeastFile  = fs.syncFile(yeastDir, yeast)

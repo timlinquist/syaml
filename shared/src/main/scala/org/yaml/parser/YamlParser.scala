@@ -205,6 +205,7 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
   }
 
   private def createMap(td: TD) = {
+
     val v = YMap(current.buildParts(td), lexer.sourceName)
     pop(v)
     current.value = v
