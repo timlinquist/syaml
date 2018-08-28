@@ -10,7 +10,7 @@ object Common {
   val releases = "MuleSoft releases" at s"$nexus/releases"
 
   val settings: Seq[Def.Setting[_]] = Seq(
-    scalaVersion := "2.12.2",
+    scalaVersion := "2.12.6",
     parallelExecution in Test := false,
     fork in Test := false,
     scalacOptions ++= Seq("-unchecked", "-deprecation", "-Xfatal-warnings"),

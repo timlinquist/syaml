@@ -1,5 +1,6 @@
 import org.scalajs.core.tools.linker.ModuleKind
 import sbt.Keys.{libraryDependencies, resolvers}
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "syaml"
 
@@ -9,7 +10,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   version := "0.4.1-SNAPSHOT",
 
   libraryDependencies ++= Seq(
-    "org.mule.common" %%% "scala-common" % "0.1.3",
+    "org.mule.common" %%% "scala-common" % "0.1.5",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
 
@@ -40,7 +41,7 @@ lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM).enablePlugins
   }
 )
 
-lazy val syaml = crossProject
+lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
   .settings(settings: _*)
   .jvmSettings(

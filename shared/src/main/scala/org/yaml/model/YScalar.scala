@@ -150,7 +150,7 @@ object DoubleQuoteMark extends QuotedMark {
   override val encodeChar: Char = '"'
 }
 object SingleQuoteMark extends QuotedMark {
-  override val encodeChar: Char = '''
+  override val encodeChar: Char = '\''
 }
 
 object MultilineMark extends ScalarMark {
