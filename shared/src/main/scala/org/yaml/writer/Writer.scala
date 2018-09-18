@@ -39,5 +39,5 @@ case class WrappedWriter(private val wrapped: JavaWriter) extends Writer {
 }
 
 @JSExportAll
-@JSExportTopLevel("org.yaml.writer.ExitGenerationException")
-case class ExitGenerationException() extends Throwable()
+@JSExportTopLevel("org.yaml.writer.ExitRenderException")
+case class ExitRenderException() extends Throwable()

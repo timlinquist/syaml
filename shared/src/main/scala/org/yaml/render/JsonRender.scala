@@ -3,7 +3,7 @@ package org.yaml.render
 import org.mulesoft.common.core.Strings
 import org.yaml.model.YType._
 import org.yaml.model._
-import org.yaml.writer.{DefaultWriter, ExitGenerationException, Writer}
+import org.yaml.writer.{DefaultWriter, ExitRenderException, Writer}
 
 /**
   * Json Render
@@ -98,7 +98,7 @@ object JsonRender {
       builder.render(doc.node).render("\n")
       writer.flush()
     } catch {
-      case _: ExitGenerationException =>
+      case _: ExitRenderException =>
         writer.flush()
     }
   }
