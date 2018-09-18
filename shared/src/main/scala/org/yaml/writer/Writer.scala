@@ -10,6 +10,8 @@ trait Writer {
   def string(): String
 
   def flush(): this.type
+
+  def close(): this.type
 }
 
 @JSExportAll
@@ -27,6 +29,11 @@ case class WrappedWriter(private val wrapped: JavaWriter) extends Writer {
 
   override def flush(): this.type = {
     wrapped.flush()
+    this
+  }
+
+  override def close(): WrappedWriter.this.type = {
+    wrapped.close()
     this
   }
 }

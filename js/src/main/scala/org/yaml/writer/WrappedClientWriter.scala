@@ -16,4 +16,9 @@ class WrappedClientWriter(private val wrapped: ClientWriter) extends Writer {
     wrapped.flush()
     this
   }
+
+  override def close(): this.type = {
+    wrapped.close()
+    this
+  }
 }

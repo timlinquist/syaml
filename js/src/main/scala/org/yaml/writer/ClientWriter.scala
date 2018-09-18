@@ -9,4 +9,6 @@ trait ClientWriter extends js.Object {
   def string(): String = js.native
 
   def flush(): this.type = js.native
+
+  def close(): this.type = js.native
 }
