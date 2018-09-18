@@ -1,10 +1,9 @@
 package org.yaml.render
 
-import java.io.{StringWriter, Writer}
-
 import org.mulesoft.common.core.Strings
 import org.yaml.model.YType._
 import org.yaml.model._
+import org.yaml.writer.{DefaultWriter, ExitGenerationException, Writer}
 
 /**
   * Json Render
@@ -16,7 +15,7 @@ class JsonRender private (private val builder: Writer) {
   private def indent(): Unit = indentation += 2
   private def dedent(): Unit = indentation -= 2
   private def renderIndent(): JsonRender = {
-    for (_ <- 0 until indentation) builder append ' '
+    for (_ <- 0 until indentation) builder append " "
     this
   }
   private def render(node: YNode): JsonRender = {
@@ -94,12 +93,16 @@ object JsonRender {
 
   /** Render a Seq of Parts to a writer */
   def render(doc: YDocument, writer: Writer): Writer = {
-    val builder = new JsonRender(writer)
-    builder.render(doc.node).render("\n")
-    writer.flush()
-    writer
+    try {
+      val builder = new JsonRender(writer)
+      builder.render(doc.node).render("\n")
+      writer.flush()
+    } catch {
+      case _: ExitGenerationException =>
+        writer.flush()
+    }
   }
 
   /** Render a Seq of Parts as a String */
-  def render(doc: YDocument): String = render(doc, new StringWriter()).toString
+  def render(doc: YDocument): String = render(doc, new DefaultWriter()).string()
 }

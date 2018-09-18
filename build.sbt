@@ -46,6 +46,7 @@ lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .settings(settings: _*)
   .jvmSettings(
     // JVM-specific settings here
+    libraryDependencies += "org.scala-js"           %% "scalajs-stubs"          % scalaJSVersion % "provided"
   )
   .jsSettings(
     // JS-specific settings here
