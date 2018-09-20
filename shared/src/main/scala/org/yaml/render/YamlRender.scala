@@ -1,6 +1,10 @@
 package org.yaml.render
 
+import java.io.StringWriter
+
 import org.mulesoft.common.core.Strings
+import org.mulesoft.common.io.Output
+import org.mulesoft.common.io.Output._
 import org.mulesoft.lexer.AstToken
 import org.yaml.lexer.YamlCharRules._
 import org.yaml.model._
@@ -9,25 +13,46 @@ import org.yaml.render.YamlRender._
 /**
   * Yaml Render
   */
-class YamlRender(val expandReferences: Boolean) {
-  private val builder           = new StringBuilder
-  override def toString: String = builder.toString
+class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
+  private val buffer = new StringBuilder
 
   private var indentation    = -2
   private def indent(): Unit = indentation += 2
   private def dedent(): Unit = indentation -= 2
-  private def renderIndent(): YamlRender = {
-    for (_ <- 0 until indentation) builder append ' '
+  private def renderIndent(): this.type = {
+    for (_ <- 0 until indentation) buffer append ' '
     this
   }
   private var hasDirectives = false
   private var endDocument   = false
 
-  private def render(part: YPart, yType: Option[YType] = None): YamlRender = {
+  def renderParts(parts: Seq[YPart]) {
+    parts.foreach(render(_, None))
+    flushBuffer()
+  }
+
+  private def flushBuffer(): Unit = if (buffer.nonEmpty) {
+    writer.append(buffer.toString)
+    buffer.clear()
+  }
+  private def print(value: String) = {
+    buffer.append(value)
+    this
+  }
+  private def println() = if (buffer.isEmpty) this
+  else {
+    val last = buffer.length - 1
+    if (last >= 0 && buffer(last).isWhitespace) buffer.setLength(last)
+    buffer.append('\n')
+    flushBuffer()
+    this
+  }
+
+  private def render(part: YPart, yType: Option[YType] = None): this.type = {
     checkEndDocument(part)
     part match {
       case YComment(text, _, tokens) => renderComment(text, tokens)
-      case YNonContent(_, tokens, _)    => tokens foreach renderToken
+      case YNonContent(_, tokens, _) => tokens foreach renderToken
       case YDocument(parts, _)       => renderDocument(parts)
       case d: YDirective             => renderDirective(d)
       case s: YSequence              => renderSeq(s)
@@ -44,24 +69,24 @@ class YamlRender(val expandReferences: Boolean) {
   private def checkEndDocument(part: YPart) = {
     if (endDocument) {
       endDocument = false
-      render("...\n")
+      print("...\n")
       part match {
-        case doc: YDocument if doc.tagType == YType.Null => render("---\n")
+        case doc: YDocument if doc.tagType == YType.Null => print("---\n")
         case _                                           =>
       }
     }
   }
 
-  private def renderTag(t: YTag) = if (!renderTokens(t.tokens) && !t.synthesized) render(t.toString + " ")
+  private def renderTag(t: YTag) = if (!renderTokens(t.tokens) && !t.synthesized) print(t.toString + " ")
 
   private def renderNode(n: YNode): Unit = if (expandReferences && n.isInstanceOf[YNode.Ref] || !renderParts(n)) {
     if (hasDirectives) {
-      render("---\n")
+      print("---\n")
       hasDirectives = false
     }
     n match {
       case a: YNode.Alias =>
-        if (expandReferences) render(a.target) else render(a.toString)
+        if (expandReferences) render(a.target) else print(a.toString)
       case r: YNode.MutRef if expandReferences && r.target.isDefined =>
         render(r.target.get)
       case _ =>
@@ -69,24 +94,23 @@ class YamlRender(val expandReferences: Boolean) {
     }
   }
 
-  private def renderAnchor(anchor: YAnchor) = if (!renderTokens(anchor.tokens)) render(anchor + " ")
+  private def renderAnchor(anchor: YAnchor) = if (!renderTokens(anchor.tokens)) print(anchor + " ")
   private def renderDirective(d: YDirective): Unit = {
-    if (!renderParts(d)) render(d.toString).renderNewLine()
+    if (!renderParts(d)) print(d.toString).println()
     hasDirectives = true
   }
 
   private def renderDocument(parts: IndexedSeq[YPart]): Unit = {
     doRenderParts(parts)
-    if (builder.last != '\n') render("\n")
+    println()
     endDocument = true
   }
 
   private def renderMap(map: YMap): Unit = if (!renderParts(map)) {
-    if (map.isEmpty) render("{}")
+    if (map.isEmpty) print("{}")
     else {
       indent()
-      chopLast()
-      for (e <- map.entries) renderNewLine().renderIndent().renderMapEntry(e)
+      for (e <- map.entries) println().renderIndent().renderMapEntry(e)
       dedent()
     }
   }
@@ -99,12 +123,12 @@ class YamlRender(val expandReferences: Boolean) {
         renderTag(key.tag)
         for (r <- key.anchor) render(r)
         if (s.text contains "\n")
-          render('"' + s.text.encode + '"')
+          print('"' + s.text.encode + '"')
         else
           renderScalar(s)
-        render(": ")
+        print(": ")
       case _ =>
-        render("?").render(key).renderNewLine().renderIndent().render(": ")
+        print("?").render(key).println().renderIndent().print(": ")
     }
 
     // Capture comments before and after the value
@@ -118,8 +142,7 @@ class YamlRender(val expandReferences: Boolean) {
     dedent()
 
     // Render the value (special case Null as Empty)
-    if (value.tagType == YType.Null && value.toString.isEmpty && before.isEmpty && after.isEmpty) chopLast()
-    else render(value)
+    if (value.tagType != YType.Null || value.toString.nonEmpty) render(value)
 
     // Render after comments
     if (after.nonEmpty) {
@@ -127,30 +150,19 @@ class YamlRender(val expandReferences: Boolean) {
       indent()
       for (c <- after.tail) renderIndent().render(c)
       dedent()
-      chopLast()
     }
   }
 
-  private def chopLast(): Unit = {
-    val last = builder.length - 1
-    if (last >= 0 && builder(last).isWhitespace) builder.setLength(last)
-  }
-
   private def renderComment(text: String, tks: IndexedSeq[AstToken]) = if (!renderTokens(tks)) {
-    if (builder.nonEmpty && !builder.last.isWhitespace) render(" ")
-    render("#" + text + '\n')
-  }
-
-  private def render(value: String) = {
-    builder.append(value)
-    this
+    if (buffer.nonEmpty && !buffer.last.isWhitespace) print(" ")
+    print("#" + text).println()
   }
 
   private def renderScalar(scalar: YScalar, yType: Option[YType] = None): Unit =
     if (!renderParts(scalar)) {
       analyzeScalar(scalar, yType) match {
-        case PlainScalar   => render(scalar.text)
-        case QuotedScalar  => render('"' + scalar.text.encode + '"')
+        case PlainScalar   => print(scalar.text)
+        case QuotedScalar  => print('"' + scalar.text.encode + '"')
         case LiteralScalar => renderAsLiteral(scalar)
       }
     }
@@ -158,35 +170,34 @@ class YamlRender(val expandReferences: Boolean) {
   private def renderAsLiteral(scalar: YScalar): Unit = {
     val text = scalar.text
     if (indentation < 0) indentation = 0
-    render("|")
+    print("|")
     indent()
 
     val l = text.length
-    if (text.head == ' ') render(indentation.toString)
-    if (text(l - 1) != '\n') render("-")
-    else if (l > 1 && text(l - 2) == '\n') render("+")
+    if (text.head == ' ') print(indentation.toString)
+    if (text(l - 1) != '\n') print("-")
+    else if (l > 1 && text(l - 2) == '\n') print("+")
 
-    render(scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse(""))
+    print(scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse(""))
     var start = 0
     var end   = 0
     do {
       end = text.indexOf('\n', start)
       val str = if (end == -1) text.substring(start) else text.substring(start, end)
-      render("\n")
-      if (str.nonEmpty) renderIndent().render(str)
+      print("\n")
+      if (str.nonEmpty) renderIndent().print(str)
       start = end + 1
     } while (end != -1)
     dedent()
   }
 
   private def renderSeq(seq: YSequence): Unit = if (!renderParts(seq)) {
-    if (seq.isEmpty) render("[]")
+    if (seq.isEmpty) print("[]")
     else {
       indent()
-      chopLast()
       for (e <- seq.children) {
         e match {
-          case n: YNode    => renderNewLine().renderIndent().render("- ").render(n)
+          case n: YNode    => println().renderIndent().print("- ").render(n)
           case c: YComment => render(c)
           case _           =>
         }
@@ -195,17 +206,13 @@ class YamlRender(val expandReferences: Boolean) {
     }
   }
 
-  private def renderNewLine() = {
-    if (builder.nonEmpty && builder.last != '\n') builder.append('\n')
-    this
-  }
 
   private def renderTokens(tks: IndexedSeq[AstToken]): Boolean = {
     val hasTokens = tks.nonEmpty
     if (hasTokens) tks foreach renderToken
     hasTokens
   }
-  private def renderToken(t: AstToken): Unit = render(t.text)
+  private def renderToken(t: AstToken): Unit = print(t.text)
 
   private def renderParts(parts: YPart): Boolean = {
     val nodes     = parts.children
@@ -215,29 +222,46 @@ class YamlRender(val expandReferences: Boolean) {
   }
 
   private def doRenderParts(children: IndexedSeq[YPart], yType: Option[YType] = None): Unit = children foreach {
-      render(_, yType)
-    }
+    render(_, yType)
+  }
 
 }
 
 object YamlRender {
+
+  /** Render a Seq of Parts to a Writer */
+  def render[W:Output](writer: W, parts: Seq[YPart]): Unit = render(parts, expandReferences = false)
+
+  /** Render a Seq of Parts to a Writer */
+  def render[W:Output](writer: W, parts: Seq[YPart], expandReferences: Boolean): Unit =
+    new YamlRender(writer, expandReferences).renderParts(parts)
+
+  /** Render a YamlPart to a Writer */
+  def render[W:Output](writer: W, part: YPart): Unit = render(part, expandReferences = false)
+
+  /** Render a YamlPart to a Writer */
+  def render[W:Output](writer: W, part: YPart, expandReferences: Boolean): Unit = render(writer, Seq(part), expandReferences)
 
   /** Render a Seq of Parts as an String */
   def render(parts: Seq[YPart]): String = render(parts, expandReferences = false)
 
   /** Render a Seq of Parts as an String */
   def render(parts: Seq[YPart], expandReferences: Boolean): String = {
-    val builder = new YamlRender(expandReferences)
-    parts.foreach(builder.render(_))
-    builder.toString
+    val s = new StringWriter
+    render(s, parts, expandReferences)
+    s.toString
   }
 
   /** Render a YamlPart as an String */
-  def render(part: YPart, expandReferences: Boolean = false): String = {
-    val render = new YamlRender(expandReferences)
-    render.render(part)
-    render.toString
+  def render(part: YPart): String = render(part, expandReferences = false)
+
+  /** Render a YamlPart as an String */
+  def render(part: YPart, expandReferences: Boolean): String = {
+    val s = new StringWriter
+    render(s, part, expandReferences)
+    s.toString
   }
+
   final val QuotedScalar  = 1
   final val PlainScalar   = 2
   final val LiteralScalar = 3
@@ -250,7 +274,8 @@ object YamlRender {
     if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
 
     // if its an str tag and the text its a number, it should be quoted, otherwise, we are transforming the string into a number
-    if (yType.contains(YType.Str) && (scalar.text.matches("^-?\\d+(?:[,|\\.]\\d+)?$") || scalar.text.matches("true|false"))) return QuotedScalar
+    if (yType.contains(YType.Str) && (scalar.text.matches("^-?\\d+(?:[,|\\.]\\d+)?$") || scalar.text.matches(
+            "true|false"))) return QuotedScalar
 
     var oneLine   = true
     var allSpaces = true
@@ -272,7 +297,8 @@ object YamlRender {
       if (flowChar) QuotedScalar
       else if (scalar.plain && noTabs && text.last != ' ') PlainScalar
       else QuotedScalar
-    } else if (allSpaces) QuotedScalar
+    }
+    else if (allSpaces) QuotedScalar
     else LiteralScalar
   }
 
@@ -284,11 +310,12 @@ object YamlRender {
         (isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current)) ||
         (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current, iterator.next)) ||
         iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next) /** [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” ) */
-      } else {
+      }
+      else {
 
         /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
-            || (  An ns-char preceding “#” )
-            | ( “:” Followed by an ns-plain-safe(c)  )*/
+          *|| (  An ns-char preceding “#” )
+          *| ( “:” Followed by an ns-plain-safe(c)  )*/
         /*( isFlowIndicator(iterator.current) || */ //This is only valid when its flow map or seq, but i don't know when it is, and in amf always render implicits part
         // [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
         // todo: talk with Emilio how to know when it's inside a flow part
@@ -313,7 +340,8 @@ object YamlRender {
         c = c + 1
         current = text(c)
         true
-      } else false
+      }
+      else false
     }
 
     def next: Char = if (isLast) 0.toChar else text(c + 1)

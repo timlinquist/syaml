@@ -10,7 +10,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   version := "0.4.1-SNAPSHOT",
 
   libraryDependencies ++= Seq(
-    "org.mule.common" %%% "scala-common" % "0.1.5",
+    "org.mule.common" %%% "scala-common" % "0.3.3",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
 
@@ -22,24 +22,25 @@ val settings = Common.settings ++ Common.publish ++ Seq(
 lazy val url = sys.env.getOrElse("SONAR_SERVER_URL", "Not found url.")
 lazy val token = sys.env.getOrElse("SONAR_SERVER_TOKEN", "Not found token.")
 
-lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM).enablePlugins(SonarRunnerPlugin).settings(
-  sonarProperties := {
-    Map(
-      "sonar.host.url" -> url,
-      "sonar.login" -> token,
-      "sonar.projectKey" -> "mulesoft.syaml",
-      "sonar.projectName" -> "SYaml",
-      "sonar.github.repository" -> "mulesoft/syaml",
-      "sonar.projectVersion" -> "0.0.1",
-      "sonar.sourceEncoding" -> "UTF-8",
-      "sonar.modules" -> ".",
-      "..sonar.sources" -> "shared/src/main/scala",
-      "..sonar.exclusions" -> "shared/src/test/resources/**",
-      "..sonar.tests" -> "shared/src/test/scala",
-      "..sonar.scoverage.reportPath" -> "jvm/target/scala-2.12/scoverage-report/scoverage.xml"
-    )
-  }
-)
+lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM)
+//			.enablePlugins(SonarRunnerPlugin).settings(
+//  sonarProperties := {
+//    Map(
+//      "sonar.host.url" -> url,
+//      "sonar.login" -> token,
+//      "sonar.projectKey" -> "mulesoft.syaml",
+//      "sonar.projectName" -> "SYaml",
+//      "sonar.github.repository" -> "mulesoft/syaml",
+//      "sonar.projectVersion" -> "0.0.1",
+//      "sonar.sourceEncoding" -> "UTF-8",
+//      "sonar.modules" -> ".",
+//      "..sonar.sources" -> "shared/src/main/scala",
+//      "..sonar.exclusions" -> "shared/src/test/resources/**",
+//      "..sonar.tests" -> "shared/src/test/scala",
+//      "..sonar.scoverage.reportPath" -> "jvm/target/scala-2.12/scoverage-report/scoverage.xml"
+//    )
+//  }
+//)
 
 lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))

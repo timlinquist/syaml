@@ -19,10 +19,10 @@ object Common {
 
   val publish: Seq[Def.Setting[_]] = Seq(
     publishTo := Some(if (isSnapshot.value) snapshots else releases),
-    publishConfiguration ~= { config =>
-      val newArts = config.artifacts.filterKeys(_.`type` != Artifact.SourceType)
-      new PublishConfiguration(config.ivyFile, config.resolverName, newArts, config.checksums, config.logging, overwrite = true)
-    }
+//    publishConfiguration ~= { config =>
+//      val newArts = config.artifacts.filterKeys(_.`type` != Artifact.SourceType)
+//      new PublishConfiguration(config.ivyFile, config.resolverName, newArts, config.checksums, config.logging, overwrite = true)
+//    }
   )
 
   def credentials(): Seq[Credentials] = {

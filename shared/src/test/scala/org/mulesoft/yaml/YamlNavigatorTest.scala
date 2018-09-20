@@ -3,8 +3,8 @@ package org.mulesoft.yaml
 import org.mulesoft.common.time.SimpleDateTime
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.convert.YRead.DoubleYRead
-import org.yaml.model._
 import org.yaml.model.YDocument._
+import org.yaml.model._
 import org.yaml.parser.YamlParser
 
 /**
@@ -177,9 +177,9 @@ trait YamlNavigatorTest extends FunSuite with Matchers {
     num.as[Number] shouldBe 123456789012345678L
     num.as[Double] shouldBe 123456789012345680.0
 
-    val seq       = doc2.obj.as[Seq[Any]]
-    val maybeTime = SimpleDateTime.parse("2001-01-01T10:00")
-    val list1     = List(123456789012345678L, maybeTime.get)
+    val seq   = doc2.obj.as[Seq[Any]]
+    val time  = SimpleDateTime.parse("2001-01-01T10:00")
+    val list1 = List(123456789012345678L, time.right.get)
     seq should contain theSameElementsAs list1
     val list = doc2.obj.as[List[Any]]
     list should contain theSameElementsInOrderAs seq

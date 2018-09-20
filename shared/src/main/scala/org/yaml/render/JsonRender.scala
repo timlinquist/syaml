@@ -1,24 +1,27 @@
 package org.yaml.render
 
-import org.mulesoft.common.core.Strings
+import java.io.StringWriter
+
+import org.mulesoft.common.core._
+import org.mulesoft.common.io.Output
+import org.mulesoft.common.io.Output._
 import org.yaml.model.YType._
 import org.yaml.model._
-import org.yaml.writer.{DefaultWriter, ExitRenderException, Writer}
 
 /**
   * Json Render
   */
-class JsonRender private (private val builder: Writer) {
-  override def toString: String = builder.toString
+class JsonRender[W: Output] private (private val writer: W) {
+  override def toString: String = writer.toString
 
   private var indentation    = 0
   private def indent(): Unit = indentation += 2
   private def dedent(): Unit = indentation -= 2
-  private def renderIndent(): JsonRender = {
-    for (_ <- 0 until indentation) builder append " "
+  private def renderIndent(): this.type = {
+    if (indentation > 0) writer.append(" " * indentation)
     this
   }
-  private def render(node: YNode): JsonRender = {
+  private def render(node: YNode): this.type = {
     node.value match {
       case m: YMap      => renderMap(m)
       case s: YSequence => renderSeq(s)
@@ -36,16 +39,9 @@ class JsonRender private (private val builder: Writer) {
       var c     = 0
       while (c < total) {
         val node = seq.nodes(c)
-        renderIndent().render(node)
-        if (c < total-1) {
-          render(",\n")
-        } else {
-          render("\n")
-        }
+        renderIndent().render(node).render(if (c < total - 1) ",\n" else "\n")
         c += 1
       }
-
-      // chopLastComma()
       dedent()
       renderIndent().render("]")
     }
@@ -60,15 +56,9 @@ class JsonRender private (private val builder: Writer) {
 
       while (c < total) {
         val entry = map.entries(c)
-        renderIndent().render(entry.key).render(": ").render(entry.value)
-        if (c < total-1) {
-          render(",\n")
-        } else {
-          render("\n")
-        }
+        renderIndent().render(entry.key).render(": ").render(entry.value).render(if (c < total - 1) ",\n" else "\n")
         c += 1
       }
-      // chopLastComma()
       dedent()
       renderIndent().render("}")
     }
@@ -84,25 +74,27 @@ class JsonRender private (private val builder: Writer) {
     })
 
   private def render(value: String) = {
-    builder.append(value)
+    writer.append(value)
     this
   }
 }
 
 object JsonRender {
 
-  /** Render a Seq of Parts to a writer */
-  def render(doc: YDocument, writer: Writer): Writer = {
+  /** Render a Seq of Parts to an Output */
+  def render[W: Output](doc: YDocument, writer: W): Unit = {
     try {
       val builder = new JsonRender(writer)
       builder.render(doc.node).render("\n")
-      writer.flush()
-    } catch {
-      case _: ExitRenderException =>
-        writer.flush()
+    } finally {
+      writer.flush
     }
   }
 
   /** Render a Seq of Parts as a String */
-  def render(doc: YDocument): String = render(doc, new DefaultWriter()).string()
+  def render(doc: YDocument): String = {
+    val s = new StringWriter()
+    render(doc, s)
+    s.toString
+  }
 }
