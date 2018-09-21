@@ -12,7 +12,7 @@ pipeline {
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
           withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'sonarqube-official', passwordVariable: 'SONAR_SERVER_TOKEN', usernameVariable: 'SONAR_SERVER_URL']]) {
-            sh 'sbt clean coverage test coverageReport sonar'
+            sh 'sbt clean coverage test coverageReport'
           }
         }
       }
