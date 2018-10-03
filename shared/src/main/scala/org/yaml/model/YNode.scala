@@ -79,11 +79,11 @@ object YNode {
 
   // Implicit conversions
 
-  implicit def toString(node: YNode): String     = node.as[String]
-  implicit def toInt(node: YNode): Int           = node.as[Int]
-  implicit def toLong(node: YNode): Long         = node.as[Long]
-  implicit def toBoolean(node: YNode): Boolean   = node.as[Boolean]
-  implicit def toDouble(node: YNode): Double     = node.as[Double]
+  implicit def toString(node: YNode)(implicit iv: IllegalTypeHandler): String     = node.as[String]
+  implicit def toInt(node: YNode)(implicit iv: IllegalTypeHandler): Int           = node.as[Int]
+  implicit def toLong(node: YNode)(implicit iv: IllegalTypeHandler): Long         = node.as[Long]
+  implicit def toBoolean(node: YNode)(implicit iv: IllegalTypeHandler): Boolean   = node.as[Boolean]
+  implicit def toDouble(node: YNode)(implicit iv: IllegalTypeHandler): Double     = node.as[Double]
   implicit def fromString(str: String): YNode    = YNode(str)
   implicit def fromInt(int: Int): YNode          = YNode(int)
   implicit def fromLong(long: Long): YNode       = YNode(long)
