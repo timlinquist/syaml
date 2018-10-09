@@ -48,7 +48,7 @@ abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
         } catch {
           case e: ClassCastException => error(node, e.getMessage)
         }
-      case _ => error(node, "Not an Scalar")
+      case _ => error(node, "Scalar expected")
     }
   }
 }
@@ -68,7 +68,7 @@ object YRead {
   implicit object AnyYRead extends YRead[Any] {
     override def read(node: YNode): Either[YError, Any] = node.asScalar match {
       case Some(v) => Right(v.value)
-      case _       => error(node, "Not an Scalar")
+      case _       => error(node, "Scalar expected")
     }
     override def defaultValue: Any = null
   }
@@ -166,7 +166,7 @@ object YRead {
   implicit object YScalarYRead extends YRead[YScalar] {
     def read(node: YNode): Either[YError, YScalar] = node.value match {
       case s: YScalar => Right(s)
-      case _          => error(node, "Not a YScalar")
+      case _          => error(node, "Yaml scalar expected")
     }
     override def defaultValue: YScalar = YScalar.Null
   }
@@ -177,7 +177,7 @@ object YRead {
   implicit object SeqNodeYRead extends YRead[Seq[YNode]] {
     def read(node: YNode): Either[YError, Seq[YNode]] = node.value match {
       case s: YSequence => Right(s.nodes)
-      case _            => error(node, "Not a YSequence")
+      case _            => error(node, "Yaml sequence expected")
     }
     override def defaultValue: Seq[YNode] = IndexedSeq.empty
   }
@@ -188,7 +188,7 @@ object YRead {
   implicit object YMapYRead extends YRead[YMap] {
     def read(node: YNode): Either[YError, YMap] = node.value match {
       case m: YMap => Right(m)
-      case _       => error(node, "Not a YMap")
+      case _       => error(node, "Yaml map expected")
     }
     override def defaultValue: YMap = YMap.empty
   }
@@ -199,7 +199,7 @@ object YRead {
   implicit object YSeqYRead extends YRead[YSequence] {
     def read(node: YNode): Either[YError, YSequence] = node.value match {
       case s: YSequence => Right(s)
-      case _            => error(node, "Not a YSequence")
+      case _            => error(node, "Yaml sequence expected")
     }
     override def defaultValue: YSequence = YSequence.empty
   }

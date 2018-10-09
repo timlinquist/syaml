@@ -33,8 +33,8 @@ trait ParseInvalidYamlsTest extends FunSuite {
     YamlParser(yamlFile.read())(handler).parse()
 
     assert(handler.errors.lengthCompare(2) == 0)
-    assert(handler.errors.head.error.getMessage.equals("Error node ' name'"))
-    assert(handler.errors.last.error.getMessage.equals("Error node '  get:\n  post:'"))
+    assert(handler.errors.head.error.getMessage.equals("Syntax error in the following text: ' name'"))
+    assert(handler.errors.last.error.getMessage.equals("Syntax error in the following text: '  get:\n  post:'"))
   }
 
   case class TestErrorHandler() extends ParseErrorHandler {
