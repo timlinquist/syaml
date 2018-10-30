@@ -230,7 +230,7 @@ class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
 object YamlRender {
 
   /** Render a Seq of Parts to a Writer */
-  def render[W:Output](writer: W, parts: Seq[YPart]): Unit = render(parts, expandReferences = false)
+  def render[W:Output](writer: W, parts: Seq[YPart]): Unit = render(writer, parts, expandReferences = false)
 
   /** Render a Seq of Parts to a Writer */
   def render[W:Output](writer: W, parts: Seq[YPart], expandReferences: Boolean): Unit =

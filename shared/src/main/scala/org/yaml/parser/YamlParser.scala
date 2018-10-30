@@ -192,7 +192,8 @@ class YamlParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit eh: 
       val target = aliases.getOrElse(current.alias, YNode.Null)
       // Manage Error if (target == YNode.Null)
       pop(new YNode.Alias(current.alias, target, parts))
-    } else {
+    }
+    else {
       val tag = current.tag
       val n =
         if (includeTag.nonEmpty && tag.text == includeTag)
@@ -316,6 +317,7 @@ object JsonParser {
                                                         ParseErrorHandler.parseErrorHandler): YamlParser =
     new YamlParser(YamlLexer(s, sourceName))(eh)
 
-  def withSourceOffset(s: CharSequence, sourceName:String,offset:(Int,Int) )(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
-    new YamlParser(YamlLexer(s,sourceName,offset))(eh)
+  def withSourceOffset(s: CharSequence, sourceName: String, offset: (Int, Int))(
+      implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YamlParser =
+    new YamlParser(YamlLexer(s, sourceName, offset))(eh)
 }
