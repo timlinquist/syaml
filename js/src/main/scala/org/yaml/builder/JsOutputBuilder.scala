@@ -4,7 +4,10 @@ import org.yaml.builder.DocBuilder.{Entry, Part, Scalar}
 
 import scala.scalajs.js
 import scala.scalajs.js.Dynamic
+import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 
+@JSExportAll
+@JSExportTopLevel("org.yaml.builder.JsOutputBuilder")
 class JsOutputBuilder extends DocBuilder[js.Any] {
 
   private var obj: js.Any         = _
