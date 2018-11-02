@@ -6,14 +6,12 @@ import org.mulesoft.common.core.Strings
 import org.mulesoft.common.io.Output
 import org.mulesoft.common.io.Output._
 import org.mulesoft.lexer.AstToken
-import org.yaml.lexer.YamlCharRules._
 import org.yaml.model._
-import org.yaml.render.YamlRender._
 
 /**
   * Yaml Render
   */
-class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
+class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
   private val buffer = new StringBuilder
 
   private var indentation    = -2
@@ -39,14 +37,15 @@ class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
     buffer.append(value)
     this
   }
-  private def println() = if (buffer.isEmpty) this
-  else {
-    val last = buffer.length - 1
-    if (last >= 0 && buffer(last).isWhitespace) buffer.setLength(last)
-    buffer.append('\n')
-    flushBuffer()
-    this
-  }
+  private def println() =
+    if (buffer.isEmpty) this
+    else {
+      val last = buffer.length - 1
+      if (last >= 0 && buffer(last).isWhitespace) buffer.setLength(last)
+      buffer.append('\n')
+      flushBuffer()
+      this
+    }
 
   private def render(part: YPart, yType: Option[YType] = None): this.type = {
     checkEndDocument(part)
@@ -58,7 +57,7 @@ class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
       case s: YSequence              => renderSeq(s)
       case m: YMap                   => renderMap(m)
       case e: YMapEntry              => doRenderParts(e.children)
-      case s: YScalar                => renderScalar(s, yType)
+      case s: YScalar                => renderScalar(s, yType.contains(YType.Str))
       case t: YTag                   => renderTag(t)
       case a: YAnchor                => renderAnchor(a)
       case n: YNode                  => renderNode(n)
@@ -158,38 +157,17 @@ class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
     print("#" + text).println()
   }
 
-  private def renderScalar(scalar: YScalar, yType: Option[YType] = None): Unit =
+  private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
     if (!renderParts(scalar)) {
-      analyzeScalar(scalar, yType) match {
-        case PlainScalar   => print(scalar.text)
-        case QuotedScalar  => print('"' + scalar.text.encode + '"')
-        case LiteralScalar => renderAsLiteral(scalar)
-      }
+      val str = ScalarRender.renderScalar(
+          text = scalar.text,
+          mustBeString = mustBeString,
+          plain = scalar.plain,
+          indentation = indentation,
+          firstLineComment = scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse("")
+      )
+      print(str.toString)
     }
-
-  private def renderAsLiteral(scalar: YScalar): Unit = {
-    val text = scalar.text
-    if (indentation < 0) indentation = 0
-    print("|")
-    indent()
-
-    val l = text.length
-    if (text.head == ' ') print(indentation.toString)
-    if (text(l - 1) != '\n') print("-")
-    else if (l > 1 && text(l - 2) == '\n') print("+")
-
-    print(scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse(""))
-    var start = 0
-    var end   = 0
-    do {
-      end = text.indexOf('\n', start)
-      val str = if (end == -1) text.substring(start) else text.substring(start, end)
-      print("\n")
-      if (str.nonEmpty) renderIndent().print(str)
-      start = end + 1
-    } while (end != -1)
-    dedent()
-  }
 
   private def renderSeq(seq: YSequence): Unit = if (!renderParts(seq)) {
     if (seq.isEmpty) print("[]")
@@ -205,7 +183,6 @@ class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
       dedent()
     }
   }
-
 
   private def renderTokens(tks: IndexedSeq[AstToken]): Boolean = {
     val hasTokens = tks.nonEmpty
@@ -230,17 +207,18 @@ class YamlRender[W:Output](val writer: W, val expandReferences: Boolean) {
 object YamlRender {
 
   /** Render a Seq of Parts to a Writer */
-  def render[W:Output](writer: W, parts: Seq[YPart]): Unit = render(writer, parts, expandReferences = false)
+  def render[W: Output](writer: W, parts: Seq[YPart]): Unit = render(writer, parts, expandReferences = false)
 
   /** Render a Seq of Parts to a Writer */
-  def render[W:Output](writer: W, parts: Seq[YPart], expandReferences: Boolean): Unit =
+  def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean): Unit =
     new YamlRender(writer, expandReferences).renderParts(parts)
 
   /** Render a YamlPart to a Writer */
-  def render[W:Output](writer: W, part: YPart): Unit = render(part, expandReferences = false)
+  def render[W: Output](writer: W, part: YPart): Unit = render(part, expandReferences = false)
 
   /** Render a YamlPart to a Writer */
-  def render[W:Output](writer: W, part: YPart, expandReferences: Boolean): Unit = render(writer, Seq(part), expandReferences)
+  def render[W: Output](writer: W, part: YPart, expandReferences: Boolean): Unit =
+    render(writer, Seq(part), expandReferences)
 
   /** Render a Seq of Parts as an String */
   def render(parts: Seq[YPart]): String = render(parts, expandReferences = false)
@@ -261,92 +239,4 @@ object YamlRender {
     render(s, part, expandReferences)
     s.toString
   }
-
-  final val QuotedScalar  = 1
-  final val PlainScalar   = 2
-  final val LiteralScalar = 3
-
-  private def analyzeScalar(scalar: YScalar, yType: Option[YType] = None): Int = {
-
-    val text = scalar.text
-    val l    = text.length
-    if (l == 0) return if (scalar.plain) PlainScalar else QuotedScalar
-    if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
-
-    // if its an str tag and the text its a number, it should be quoted, otherwise, we are transforming the string into a number
-    if (yType.contains(YType.Str) && (scalar.text.matches("^-?\\d+(?:[,|\\.]\\d+)?$") || scalar.text.matches(
-            "true|false"))) return QuotedScalar
-
-    var oneLine   = true
-    var allSpaces = true
-    var noTabs    = true
-    var flowChar  = false
-    val iterator  = ScalarIterator(text)
-    do {
-      iterator.current match {
-        case '\n'                                 => oneLine = false
-        case '\t'                                 => noTabs = false
-        case '\r'                                 => return QuotedScalar
-        case _ if !isCPrintable(iterator.current) => return QuotedScalar
-        case _ if CharQuotedScalarRules(iterator) => flowChar = true
-        case _                                    => allSpaces = false
-      }
-    } while (iterator.advance)
-
-    if (oneLine) {
-      if (flowChar) QuotedScalar
-      else if (scalar.plain && noTabs && text.last != ' ') PlainScalar
-      else QuotedScalar
-    }
-    else if (allSpaces) QuotedScalar
-    else LiteralScalar
-  }
-
-  object CharQuotedScalarRules {
-    def apply(iterator: ScalarIterator): Boolean = {
-      if (iterator.isFirst) {
-
-        /** [126]	ns-plain-first(c)  && /* An ns-char preceding */ “#” */
-        (isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current)) ||
-        (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current, iterator.next)) ||
-        iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next) /** [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” ) */
-      }
-      else {
-
-        /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
-          *|| (  An ns-char preceding “#” )
-          *| ( “:” Followed by an ns-plain-safe(c)  )*/
-        /*( isFlowIndicator(iterator.current) || */ //This is only valid when its flow map or seq, but i don't know when it is, and in amf always render implicits part
-        // [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
-        // todo: talk with Emilio how to know when it's inside a flow part
-        ((iterator.current == '#' && !isCharPreceding(iterator.previous, iterator.current)) //  (  An ns-char preceding “#” )
-        || (iterator.current == ':' && (!isCharFollowedBy(iterator.current, iterator.next) || iterator.isLast))) // ( “:” Followed by an ns-plain-safe(c)
-      }
-    }
-  }
-
-  private case class ScalarIterator(text: String) {
-
-    private var c     = 0
-    var current: Char = text(c)
-    private val until = text.length - 1
-
-    def isFirst: Boolean = c == 0
-
-    def isLast: Boolean = c == until
-
-    def advance: Boolean = {
-      if (!isLast) {
-        c = c + 1
-        current = text(c)
-        true
-      }
-      else false
-    }
-
-    def next: Char = if (isLast) 0.toChar else text(c + 1)
-
-    def previous: Char = if (isFirst) 0.toChar else text(c - 1)
-  }
-
 }

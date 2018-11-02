@@ -7,21 +7,17 @@ import org.mulesoft.common.io.Output._
 import org.yaml.builder.DocBuilder.SType._
 import org.yaml.builder.DocBuilder.{Entry, Part, Scalar}
 
-class JsonOutputBuilder[W: Output](val writer: W, val prettyPrint: Boolean) extends DocBuilder[W] {
+class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends BaseOutputBuilder(writer, prettyPrint) {
 
-  override def result: W = writer
+  override def doc(f: Part => Unit): W = { new MyPart().execute(f); writer }
 
-  override def list(f: Part => Unit): W = { emitSeq(f); writer }
-  override def obj(f: Entry => Unit): W = { emitMap(f); writer }
-  override def doc(f: Part => Unit): W  = { new MyPart().execute(f); writer }
-
-  class MyPart extends Part with LifeCycle[Part] {
+  class MyPart extends DocBuilder.Part with LifeCycle[Part] {
     override def +=(scalar: Scalar): Unit    = { before(); emitNode(scalar) }
     override def list(f: Part => Unit): Unit = { before(); emitSeq(f) }
     override def obj(f: Entry => Unit): Unit = { before(); emitMap(f) }
   }
 
-  class MyEntry extends Entry with LifeCycle[Entry] {
+  class MyEntry extends DocBuilder.Entry with LifeCycle[Entry] {
     override def entry(key: String, value: Scalar): Unit = {
       emitKey(key)
       emitNode(value)
@@ -49,27 +45,17 @@ class JsonOutputBuilder[W: Output](val writer: W, val prettyPrint: Boolean) exte
     case _ =>
   }
 
-  private def emitMap(f: Entry => Unit): Unit = {
+  protected def emitMap(f: Entry => Unit): Unit = {
     writer.append('{')
     new MyEntry().execute(f)
     writer.append('}')
   }
-  private def emitSeq(f: Part => Unit): Unit = {
+
+  protected def emitSeq(f: Part => Unit): Unit = {
     writer.append('[')
     new MyPart().execute(f)
     writer.append(']')
   }
-
-  private var indentation = ""
-
-  private def indent(): Unit = indentation += "  "
-  private def dedent(): Unit = indentation = indentation.substring(2)
-
-  private def newLine(): Unit = {
-    writer.append("\n")
-    if (prettyPrint && indentation.nonEmpty) writer.append(indentation)
-  }
-
   trait LifeCycle[T] { outer: T =>
     private var start          = true
     private var newLineOnStart = false
@@ -83,7 +69,7 @@ class JsonOutputBuilder[W: Output](val writer: W, val prettyPrint: Boolean) exte
       }
     }
 
-    protected def before(): Unit = {
+    def before(): Unit = {
       if (start) {
         if (newLineOnStart) {
           indent()

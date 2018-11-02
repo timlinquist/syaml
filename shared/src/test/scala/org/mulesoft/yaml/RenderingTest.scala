@@ -1,6 +1,7 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
+import org.yaml.builder.JsonOutputBuilder
 import org.yaml.model._
 import org.yaml.parser.YamlParser
 import org.yaml.render.{JsonRender, YamlRender}
