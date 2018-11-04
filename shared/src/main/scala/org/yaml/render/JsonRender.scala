@@ -68,7 +68,7 @@ class JsonRender[W: Output] private (private val writer: W) {
       case Int | Bool => scalar.value.toString
       case Float =>
         val s = scalar.value.toString
-        if (s.indexOf('.') == -1) s + ".0" else s // Bug in scala-js toString
+        if (s.indexOf('.') == -1 && !s.contains('e') && !s.contains('E')) s + ".0" else s // Bug in scala-js toString
       case Null => "null"
       case _    => '"' + scalar.text.encode + '"'
     })

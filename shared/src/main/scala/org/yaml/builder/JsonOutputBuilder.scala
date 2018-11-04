@@ -40,7 +40,7 @@ class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends Base
     case (Int, l: Long)     => writer.append(l.toString)
     case (Float, v: Double) =>
       var s = v.toString
-      if (s.indexOf('.') == -1) s += ".0" // Bug in scala-js toString
+      if (s.indexOf('.') == -1 && !s.contains('e') && !s.contains('E')) s += ".0" // Bug in scala-js toString
       writer.append(s)
     case _ =>
   }

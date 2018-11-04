@@ -71,6 +71,21 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
     testYaml(doc, ydoc)
 
   }
+
+  test("Build json float") {
+    val float    = 0.00000005
+
+    /* They are the same, but toString outputs a different but equivalent result in js and jvm. */
+    val jsString = "5e-8"
+    val jvmString = "5.0E-8"
+    val ydoc = YDocumentBuilder().doc(_ += float)
+
+    ydoc.as[Double] shouldBe float
+
+    JsonOutputBuilder().doc(_ += float).toString.trim should (equal(jsString) or equal(jvmString))
+    JsonRender.render(ydoc).trim should (equal(jsString) or equal(jvmString))
+  }
+
   private def testJson(f: BuildDoc[StringWriter], ydoc: YDocument) = {
     val jDoc = f(JsonOutputBuilder(true)).toString
     val str  = JsonRender.render(ydoc)
