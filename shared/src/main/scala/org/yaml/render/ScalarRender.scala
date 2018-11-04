@@ -1,8 +1,6 @@
 package org.yaml.render
 import org.mulesoft.common.core._
 import org.yaml.lexer.YamlCharRules._
-import org.yaml.model.YType
-import org.yaml.parser.ScalarParser
 
 object ScalarRender {
   final val QuotedScalar  = 1
@@ -52,6 +50,11 @@ object ScalarRender {
     if (l == 0) return if (plain) PlainScalar else QuotedScalar
     if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
 
+    // TODO remove this
+    // if its a str tag and the text is a number, it should be quoted, otherwise, we are transforming the string into a number
+    if (mustBeString && (text.matches("^-?\\d+(?:[,|\\.]\\d+)?$") || text.matches(
+      "true|false"))) return QuotedScalar
+
     var oneLine   = true
     var allSpaces = true
     var noTabs    = true
@@ -71,13 +74,16 @@ object ScalarRender {
     if (oneLine) {
       if (flowChar) QuotedScalar
       else if (plain && noTabs && text.last != ' ') {
-        if (!mustBeString) PlainScalar
+        // TODO and replace PlainScalar return with comment:
+        /* if (!mustBeString) PlainScalar
         else {
           val sp = ScalarParser(text)
           sp.parse()
           if (sp.ytype == YType.Str) PlainScalar else QuotedScalar
-        }
+        }*/
+        PlainScalar
       }
+
       else QuotedScalar
     }
     else if (allSpaces) QuotedScalar
