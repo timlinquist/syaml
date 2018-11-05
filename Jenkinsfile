@@ -18,9 +18,14 @@ pipeline {
       }
     }
     stage('Publish') {
+      when {
+        branch 'master'
+      }
       steps {
-        sh 'sbt syamlJS/publish'
-        sh 'sbt syamlJVM/publish'
+        wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
+          sh 'sbt syamlJS/publish'
+          sh 'sbt syamlJVM/publish'
+        }
       }
     }
   }
