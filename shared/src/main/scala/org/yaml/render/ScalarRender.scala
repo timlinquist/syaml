@@ -1,18 +1,22 @@
 package org.yaml.render
 import org.mulesoft.common.core._
 import org.yaml.lexer.YamlCharRules._
+import org.yaml.model.YType
+import org.yaml.parser.ScalarParser
 
 object ScalarRender {
   final val QuotedScalar  = 1
   final val PlainScalar   = 2
   final val LiteralScalar = 3
 
+  /** Core schema is the YAML schema that supports all of our types but not timestamp type. */
   def renderScalar(text: String,
                    mustBeString: Boolean = true,
                    plain: Boolean = true,
                    indentation: Int = 0,
-                   firstLineComment: String = ""): CharSequence = {
-    analyzeScalar(text, plain, mustBeString) match {
+                   firstLineComment: String = "",
+                   isCoreSchema: Boolean = true): CharSequence = {
+    analyzeScalar(text, plain, mustBeString, isCoreSchema) match {
       case PlainScalar   => text
       case QuotedScalar  => '"' + text.encode + '"'
       case LiteralScalar => renderAsLiteral(text, firstLineComment, indentation)
@@ -45,15 +49,10 @@ object ScalarRender {
     builder
   }
 
-  def analyzeScalar(text: String, plain: Boolean, mustBeString: Boolean): Int = {
+  def analyzeScalar(text: String, plain: Boolean, mustBeString: Boolean, isCoreSchema: Boolean = true): Int = {
     val l = text.length
     if (l == 0) return if (plain) PlainScalar else QuotedScalar
     if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
-
-    // TODO remove this
-    // if its a str tag and the text is a number, it should be quoted, otherwise, we are transforming the string into a number
-    if (mustBeString && (text.matches("^-?\\d+(?:[,|\\.]\\d+)?$") || text.matches(
-      "true|false"))) return QuotedScalar
 
     var oneLine   = true
     var allSpaces = true
@@ -74,14 +73,12 @@ object ScalarRender {
     if (oneLine) {
       if (flowChar) QuotedScalar
       else if (plain && noTabs && text.last != ' ') {
-        // TODO and replace PlainScalar return with comment:
-        /* if (!mustBeString) PlainScalar
+        if (!mustBeString) PlainScalar
         else {
           val sp = ScalarParser(text)
           sp.parse()
-          if (sp.ytype == YType.Str) PlainScalar else QuotedScalar
-        }*/
-        PlainScalar
+          if (sp.ytype == YType.Str || (isCoreSchema && sp.ytype == YType.Timestamp)) PlainScalar else QuotedScalar
+        }
       }
 
       else QuotedScalar

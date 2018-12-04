@@ -8,16 +8,16 @@ import org.yaml.render.ScalarRender.renderScalar
   */
 trait YamScalarRenderTest extends GoldenSuite {
 
-  def render(text: String): CharSequence = renderScalar(text, mustBeString = false)
+  def render(text: String, isCoreSchema: Boolean = true): CharSequence = renderScalar(text, mustBeString = false, isCoreSchema = isCoreSchema)
 
   test("Render Simple Values") {
     renderScalar("aaaa") shouldBe "aaaa"
     renderScalar("10") shouldBe "\"10\""
     renderScalar("true") shouldBe "\"true\""
-    // TODO uncomment test when reverting the use of ScalarParser in ScalarRender.
-//    renderScalar("+10") shouldBe "\"+10\""
-//    renderScalar("2002-12-14") shouldBe "\"2002-12-14\""
-//    renderScalar(".NaN") shouldBe "\".NaN\""
+    renderScalar("+10") shouldBe "\"+10\""
+    renderScalar("2002-12-14") shouldBe "2002-12-14"
+    renderScalar("2002-12-14", isCoreSchema = false) shouldBe "\"2002-12-14\""
+    renderScalar(".NaN") shouldBe "\".NaN\""
 
     render("aaaa") shouldBe "aaaa"
     render("10") shouldBe "10"
