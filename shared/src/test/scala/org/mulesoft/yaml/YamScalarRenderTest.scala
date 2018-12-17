@@ -18,6 +18,11 @@ trait YamScalarRenderTest extends GoldenSuite {
     renderScalar("2002-12-14") shouldBe "2002-12-14"
     renderScalar("2002-12-14", isCoreSchema = false) shouldBe "\"2002-12-14\""
     renderScalar(".NaN") shouldBe "\".NaN\""
+    renderScalar("aaaa", plain = false) shouldBe "\"aaaa\""
+    renderScalar("") shouldBe "\"\""
+    renderScalar("", plain = false) shouldBe "\"\""
+    renderScalar("", mustBeString = false) shouldBe ""
+    renderScalar("", mustBeString = false, plain = false) shouldBe "\"\""
 
     render("aaaa") shouldBe "aaaa"
     render("10") shouldBe "10"
@@ -25,7 +30,5 @@ trait YamScalarRenderTest extends GoldenSuite {
     render("+10") shouldBe "+10"
     render("2002-12-14") shouldBe "2002-12-14"
     render(".NaN") shouldBe ".NaN"
-
-    renderScalar("aaaa", plain = false) shouldBe "\"aaaa\""
   }
 }

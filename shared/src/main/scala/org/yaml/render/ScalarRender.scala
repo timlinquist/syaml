@@ -51,7 +51,7 @@ object ScalarRender {
 
   def analyzeScalar(text: String, plain: Boolean, mustBeString: Boolean, isCoreSchema: Boolean = true): Int = {
     val l = text.length
-    if (l == 0) return if (plain) PlainScalar else QuotedScalar
+    if (l == 0) return if (mustBeString || !plain) QuotedScalar else PlainScalar
     if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
 
     var oneLine   = true
