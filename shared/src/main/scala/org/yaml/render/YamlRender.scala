@@ -124,7 +124,7 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
         if (s.text contains "\n")
           print('"' + s.text.encode + '"')
         else
-          renderScalar(s)
+          renderScalar(s, key.tagType == YType.Str)
         print(": ")
       case _ =>
         print("?").render(key).println().renderIndent().print(": ")

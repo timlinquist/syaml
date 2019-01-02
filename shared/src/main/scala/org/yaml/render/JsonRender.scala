@@ -56,14 +56,14 @@ class JsonRender[W: Output] private (private val writer: W) {
 
       while (c < total) {
         val entry = map.entries(c)
-        renderIndent().render(entry.key).render(": ").render(entry.value).render(if (c < total - 1) ",\n" else "\n")
+        renderIndent().renderScalar(YType.Str, entry.key.as[YScalar]).render(": ").render(entry.value).render(if (c < total - 1) ",\n" else "\n")
         c += 1
       }
       dedent()
       renderIndent().render("}")
     }
 
-  private def renderScalar(t: YType, scalar: YScalar): Unit =
+  private def renderScalar(t: YType, scalar: YScalar) =
     render(t match {
       case Int | Bool => scalar.value.toString
       case Float =>
