@@ -1,4 +1,4 @@
-import org.scalajs.core.tools.linker.ModuleKind
+git import org.scalajs.core.tools.linker.ModuleKind
 import sbt.Keys.{libraryDependencies, resolvers}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
@@ -7,7 +7,7 @@ name := "syaml"
 val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
-  version := "0.6.3",
+  version := "0.6.4",
 
   libraryDependencies ++= Seq(
     "org.mule.common" %%% "scala-common" % "0.4.0",
