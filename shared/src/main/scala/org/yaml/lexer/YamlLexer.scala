@@ -1184,7 +1184,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * [175]	s-nb-folded-text(n)	  ::=	[[indent s-indent(n)]] [[isNsChar ns-char]] [[isNBChar nb-char]]*
     */
   private def foldedText(n: Int) =
-    if (countSpaces() != n || !isNsChar(lookAhead(n + 1))) false
+    if (countSpaces() != n || !isNsChar(lookAhead(n))) false
     else {
       consumeAndEmit(n, Indent)
       consumeWhile(isNBChar)
