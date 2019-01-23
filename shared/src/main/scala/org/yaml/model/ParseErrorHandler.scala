@@ -14,5 +14,5 @@ object ParseErrorHandler {
     throw new RuntimeException(s"${e.getMessage} at ${node.range}", e)
   }
 
-  val ignoreErrors: ParseErrorHandler = (node: YPart, e: SyamlException) => Unit
+  val ignoreErrors: ParseErrorHandler = (_: YPart, _: SyamlException) => Unit
 }

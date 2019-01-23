@@ -15,6 +15,17 @@ trait ParseInvalidYamlsTest extends FunSuite {
 
   private val yamlDir = Fs syncFile "shared/src/test/data/parser/invalid"
 
+  test("Parse duplicate key") {
+    val yamlFile = yamlDir / "duplicate-key.yaml"
+    val handler = TestErrorHandler()
+
+    YamlParser(yamlFile.read())(handler).parse()
+
+    assert(handler.errors.lengthCompare(1) == 0)
+    assert(handler.errors.head.error.getMessage.equals("Duplicate key : 'first'"))
+    assert(handler.errors.head.inputRange.equals(InputRange(3, 0, 3, 5)))
+  }
+
   test("Parse number overflow yaml ") {
     val yamlFile = yamlDir / "number-overflow.yaml"
     val handler = TestErrorHandler()

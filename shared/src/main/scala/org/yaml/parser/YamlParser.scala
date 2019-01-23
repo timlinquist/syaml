@@ -1,20 +1,21 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{AstToken, BaseLexer, InputRange, TokenData}
+import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model
 import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable
-import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.collection.mutable.ListBuffer
 
 /**
   * A Yaml Parser that covers Steps Parse and Compose of the spec.
   * [[http://www.yaml.org/spec/1.2/spec.html#id2762107 Yaml 1.2 Processes]]
   */
-class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(override implicit val eh: ParseErrorHandler) extends BaseParser(lexer) {
+class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(override implicit val eh: ParseErrorHandler)
+    extends BaseParser(lexer) {
 
   private val aliases                           = mutable.Map.empty[String, YNode]
   private var escaping                          = false
@@ -190,9 +191,20 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
     td
   }
 
-  private def createMap(td: TD) = {
+  private def duplicates(parts: Array[YPart]): Unit = {
+    val keys = mutable.Set[String]()
+    for (part <- parts) part match {
+      case entry: YMapEntry =>
+        val key = entry.key.toString
+        if (!keys.add(key)) eh.handle(entry.key, DuplicateKeyException(key))
+      case _ =>
+    }
+  }
 
-    val v = YMap(current.buildParts(td), lexer.sourceName)
+  private def createMap(td: TD) = {
+    val parts = current.buildParts(td)
+    duplicates(parts)
+    val v     = YMap(parts, lexer.sourceName)
     pop(v)
     current.value = v
     current.tag = tagFor(current.tag, YType.Map)
@@ -227,7 +239,6 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
     else if (tag.tagType == YType.Empty) tag.copy(tagType = defaultType)
     else tag
 
-
   override type B = YamlBuilder
   override protected def newBuilder: YamlBuilder = new YamlBuilder
 
@@ -236,7 +247,6 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
     var anchor: Option[YAnchor] = None
     var alias: String           = ""
     var tag: YTag               = _
-
 
     def buildParts(td: TD, text: String = ""): Array[YPart] = {
       this append (td, text)

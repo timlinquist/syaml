@@ -9,5 +9,8 @@ case class LexerException(text: String, cause: Exception = null)
 case class ParserException(text: String, cause: Exception = null)
   extends SyamlException(s"Syntax error : $text", cause)
 
+case class DuplicateKeyException(key: String, cause: Exception = null)
+  extends SyamlException(s"Duplicate key : '$key'", cause)
+
 abstract class SyamlException(message: String, cause: Exception)
   extends RuntimeException(message, cause) {}
