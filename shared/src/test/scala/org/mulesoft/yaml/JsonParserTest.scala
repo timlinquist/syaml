@@ -115,6 +115,18 @@ trait JsonParserTest extends FunSuite {
     assert(handler.errors.head.error.getMessage.startsWith("Syntax error : Unexpected '}'"))
   }
 
+  test("Parse trailing comma in sequence") {
+    val handler = getErrorsFor(jsonDir / "trailing-comma-seq.json")
+    assert(handler.errors.lengthCompare(1) == 0)
+    assert(handler.errors.head.error.getMessage.startsWith("Syntax error : Expecting 'value' but ']' found"))
+  }
+
+  test("Parse trailing comma in map") {
+    val handler = getErrorsFor(jsonDir / "trailing-comma-map.json")
+    assert(handler.errors.lengthCompare(1) == 0)
+    assert(handler.errors.head.error.getMessage.startsWith("Syntax error : Expecting 'value' but '}' found"))
+  }
+
   // todo: generad valid jsons test
   test("Check text with spaces at begin") {
     val handler = getErrorsFor(jsonDir / "space-at-begin.json")

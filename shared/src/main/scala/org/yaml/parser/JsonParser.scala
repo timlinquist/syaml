@@ -21,7 +21,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   }
 
   private def parseDocument(): YDocument = {
-    if(consumeOrError(BeginDocument)){
+    if (consumeOrError(BeginDocument)) {
       process()
       consumeOrError(EndDocument)
     }
@@ -41,19 +41,19 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   def unexpected(expected: YamlToken): Unit = {
     defaultText(expected) match {
-      case Some(e)=>unexpected(e)
-      case _ => unexpected()
+      case Some(e) => unexpected(e)
+      case _       => unexpected()
     }
   }
 
-  private def defaultText(token:YamlToken): Option[String] = {
+  private def defaultText(token: YamlToken): Option[String] = {
     token match {
-      case BeginScalar => Some("\"")
-      case BeginMapping => Some("{")
+      case BeginScalar   => Some("\"")
+      case BeginMapping  => Some("{")
       case BeginSequence => Some("[")
-      case EndMapping => Some("}")
-      case EndSequence => Some("]")
-      case _ => None
+      case EndMapping    => Some("}")
+      case EndSequence   => Some("]")
+      case _             => None
 
     }
   }
@@ -63,7 +63,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       case BeginSequence => parseSeq()
       case BeginMapping  => parseMap()
       case BeginScalar   => parseScalar()
-      case _             =>
+      case _ =>
         unexpected()
         false
     }
@@ -84,7 +84,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     current = stack.head
   }
 
-  private def parseMap():Boolean = {
+  private def parseMap(): Boolean = {
     push()
     val r = parseList(BeginMapping, EndMapping, MapEntryParser())
     val v = YMap(current.buildParts(), lexer.sourceName)
@@ -92,7 +92,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     r
   }
 
-  private def parseSeq():Boolean = {
+  private def parseSeq(): Boolean = {
     push()
     val r = parseList(BeginSequence, EndSequence, SequenceValueParser()) // should check if i parse something? empty pop if not?
     val v = YSequence(current.buildParts(), lexer.sourceName)
@@ -106,60 +106,66 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       currentToken() match {
         case Indicator => metaTextBuilder.append(lexer.tokenString)
         case LineBreak => metaTextBuilder.clear()
-        case MetaText => metaTextBuilder.append(lexer.tokenString)
-        case _ =>
+        case MetaText  => metaTextBuilder.append(lexer.tokenString)
+        case _         =>
       }
       consume()
     }
     metaTextBuilder.mkString.decode(ignoreErrors = true)
   }
 
-  private def parseScalar():Boolean = {
-    if(currentOrError(BeginScalar)){
+  private def parseScalar(): Boolean = {
+    if (currentOrError(BeginScalar)) {
       push()
       val textBuilder = new StringBuilder
-      var scalarMark = ""
-      while(notCurrent(EndScalar)){
+      var scalarMark  = ""
+      while (notCurrent(EndScalar)) {
         currentToken() match {
-          case BeginEscape => textBuilder.append( parseEscaped())
-          case Indicator => scalarMark = currentText()
-          case Text => textBuilder.append(lexer.tokenText)
-          case _ =>
+          case BeginEscape => textBuilder.append(parseEscaped())
+          case Indicator   => scalarMark = currentText()
+          case Text        => textBuilder.append(lexer.tokenText)
+          case _           =>
         }
         consume()
       }
       consumeOrError(EndScalar)
-      val tagType = if(scalarMark == DoubleQuoteMark.encodeChar.toString) YType.Str.tag else null
-      val b     = new YScalar.Builder(textBuilder.toString(),tagType , scalarMark, current.buildParts(), lexer.sourceName) // always enter with begin scalar
+      val tagType = if (scalarMark == DoubleQuoteMark.encodeChar.toString) YType.Str.tag else null
+      val b       = new YScalar.Builder(textBuilder.toString(), tagType, scalarMark, current.buildParts(), lexer.sourceName) // always enter with begin scalar
       stackParts(buildNode(b.scalar, b.tag))
       true
-    }else false
+    }
+    else false
   }
 
-  private def parseList(leftToken: YamlToken, rightToken: YamlToken,parser:ElementParser) = {
+  private def parseList(leftToken: YamlToken, rightToken: YamlToken, parser: ElementParser) = {
     if (consumeOrError(leftToken)) {
       while (notCurrent(rightToken)) {
         parser.parse()
         if (notCurrent(rightToken)) {
-          if(currentByTextOrError(Indicator, ","))consume()
+          if (currentByTextOrError(Indicator, ",")) {
+            consume()
+            // These if are to get trailing commas
+            if (currentToken() == rightToken) unexpected("value")
+          }
         }
       }
       consumeOrError(rightToken)
       true
-    }else
+    }
+    else
       false
   }
 
-  trait ElementParser{
+  trait ElementParser {
     def parse(): Unit
   }
 
-  case class SequenceValueParser() extends ElementParser{
+  case class SequenceValueParser() extends ElementParser {
     override def parse(): Unit = {
       val r = process()
-      if(!r) {
+      if (!r) {
         discardIf(Error)
-        advanceToByText((Indicator,Some(",")),(EndSequence,None))
+        advanceToByText((Indicator, Some(",")), (EndSequence, None))
       }
     }
   }
@@ -177,27 +183,28 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
     private def parseKey() = {
       val r = parseScalar()
-      if(!r) {
+      if (!r) {
         discardIf(Error)
         advanceTo(Indicator, EndMapping)
       }
       r
     }
 
-    private def parseEntry():Boolean = {
+    private def parseEntry(): Boolean = {
       val k = parseKey()
-      if (k || currentByText(Indicator, ":")){
-        if(currentByTextOrError(Indicator, ":"))consume()
+      if (k || currentByText(Indicator, ":")) {
+        if (currentByTextOrError(Indicator, ":")) consume()
         k & parseValue()
-      } else{
-        advanceToByText((Indicator,Some(",")), (EndMapping, None))
+      }
+      else {
+        advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
       }
     }
 
-    private def parseValue(): Boolean  = {
+    private def parseValue(): Boolean = {
       val r = process()
-      if(!r){
+      if (!r) {
         discardIf(Error)
         advanceTo(Indicator, EndMapping)
       }
@@ -222,25 +229,25 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     lexer.advance()
   }
 
-  private def discardIf(token: YamlToken): Unit = if(isCurrent(token)) discard()
+  private def discardIf(token: YamlToken): Unit = if (isCurrent(token)) discard()
 
   private def discard(): Unit = lexer.advance()
 
   private def advanceIf(token: YamlToken): Unit = if (isCurrent(token)) consume()
 
-  private def advanceTo(tokens:YamlToken*): Unit = {
-    while(!eof && !currentAnyOf(tokens: _*)){
+  private def advanceTo(tokens: YamlToken*): Unit = {
+    while (!eof && !currentAnyOf(tokens: _*)) {
       consume()
     }
   }
 
-  private def advanceToByText(tokensText:(YamlToken, Option[String])*): Unit = {
-    def current(t:(YamlToken, Option[String])):Boolean = t._2 match {
+  private def advanceToByText(tokensText: (YamlToken, Option[String])*): Unit = {
+    def current(t: (YamlToken, Option[String])): Boolean = t._2 match {
       case Some(text) => currentByTextOrError(t._1, text)
-      case _ => isCurrent(t._1)
+      case _          => isCurrent(t._1)
     }
 
-    while(!eof && !tokensText.exists(current)){
+    while (!eof && !tokensText.exists(current)) {
       consume()
     }
   }
@@ -249,23 +256,23 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   private def notCurrent(token: YamlToken) = currentToken() != token && !eof()
 
-  private def currentAnyOf(tokens:YamlToken*) = tokens.contains(currentToken())
+  private def currentAnyOf(tokens: YamlToken*) = tokens.contains(currentToken())
 
-  private def isCurrent(token:YamlToken): Boolean = currentToken() == token
+  private def isCurrent(token: YamlToken): Boolean = currentToken() == token
 
   private def currentByText(token: YamlToken, text: String) = isCurrent(token) && currentText() == text
 
-  private def currentByTextOrError(token: YamlToken, text:String): Boolean = {
+  private def currentByTextOrError(token: YamlToken, text: String): Boolean = {
     if (currentByText(token, text)) true
-    else{
-       unexpected(text)
+    else {
+      unexpected(text)
       false
     }
   }
 
-  private def currentOrError(token:YamlToken) = {
+  private def currentOrError(token: YamlToken) = {
     if (isCurrent(token)) true
-    else{
+    else {
       unexpected(token)
       false
     }
@@ -275,16 +282,15 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     if (currentOrError(token)) {
       consume()
       true
-    } else false
+    }
+    else false
   }
-
 
   private def buildNode(value: YValue, tag: YTag) = YNode(value, tag, sourceName = lexer.sourceName)
 
-
   override protected def newBuilder: JsonBuilder = new JsonBuilder
 
-  class JsonBuilder extends Builder{
+  class JsonBuilder extends Builder {
     def append(): Unit = append(lexer.tokenData, lexer.tokenString)
 
     def appendCustom(text: String): Unit = {
@@ -299,7 +305,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
-        val content = YNonContent( rangeFromTo(first.range ,tokens.last.range) , buildTokens(), lexer.sourceName)
+        val content = YNonContent(rangeFromTo(first.range, tokens.last.range), buildTokens(), lexer.sourceName)
         parts += content
         collectErrors(content)
       }
@@ -315,9 +321,8 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       }
     }
 
-    private def rangeFromTo(begin:InputRange, end:InputRange) =
+    private def rangeFromTo(begin: InputRange, end: InputRange) =
       InputRange(begin.lineFrom, begin.columnFrom, end.lineTo, end.columnTo)
-
 
   }
 }
