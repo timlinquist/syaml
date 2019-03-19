@@ -26,17 +26,6 @@ trait ParseInvalidYamlsTest extends FunSuite {
     assert(handler.errors.head.inputRange.equals(InputRange(3, 0, 3, 5)))
   }
 
-  test("Parse number overflow yaml ") {
-    val yamlFile = yamlDir / "number-overflow.yaml"
-    val handler = TestErrorHandler()
-
-    YamlParser(yamlFile.read())(handler).parse()
-
-    assert(handler.errors.lengthCompare(1) == 0)
-    assert(handler.errors.head.inputRange.equals(InputRange(3, 9, 3, 28)))
-
-  }
-
   test("Parse invalid entry value as scalar and map") {
     val yamlFile = yamlDir / "invalid-entry-value.yaml"
     val handler = TestErrorHandler()

@@ -1,0 +1,10 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "maximum"
+  : !!int "922337203685477600009283479023840923874092",
+  ? !!str "minimum"
+  : !!int "0",
+  ? !!str "type"
+  : !!str "number"
+}

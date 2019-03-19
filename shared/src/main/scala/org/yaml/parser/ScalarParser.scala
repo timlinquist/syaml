@@ -23,7 +23,11 @@ class ScalarParser(text: String, var ytype: YType) {
           Right(false)
         case intRegex() if typeIs(Int)     =>
           ytype = Int
-          Right(text.toLong)
+          try Right(text.toLong)
+          catch {
+            case _: NumberFormatException => Right(BigInt(text).toDouble)  // TODO support BigInt in amf so we don't have to cast to double.
+            case e: Exception => Left(ParseException(ytype, text, e))
+          }
         case hexRegex(s) if typeIs(Int)    =>
           ytype = Int
           Right(parseLong(s, 16))
