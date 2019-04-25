@@ -7,40 +7,28 @@ name := "syaml"
 val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
-  version := "0.6.8",
+  version := {
+    val major = 0
+    val minor = 7
+
+    lazy val build  = sys.env.getOrElse("BUILD_NUMBER", "0")
+    lazy val branch = sys.env.get("BRANCH_NAME")
+
+    if (branch.contains("master"))
+      major.toString + "." + minor.toString + "." + build
+    else
+      major.toString + "." + (minor + 1).toString + ".0-SNAPSHOT"
+  },
 
   libraryDependencies ++= Seq(
-    "org.mule.common" %%% "scala-common" % "0.4.0",
+    "org.mule.common" %%% "scala-common" % "0.5.55",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
-
+    
   resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
 
   credentials ++= Common.credentials()
 )
-
-lazy val url = sys.env.getOrElse("SONAR_SERVER_URL", "Not found url.")
-lazy val token = sys.env.getOrElse("SONAR_SERVER_TOKEN", "Not found token.")
-
-lazy val root = project.in(file(".")).aggregate(syamlJS, syamlJVM)
-//			.enablePlugins(SonarRunnerPlugin).settings(
-//  sonarProperties := {
-//    Map(
-//      "sonar.host.url" -> url,
-//      "sonar.login" -> token,
-//      "sonar.projectKey" -> "mulesoft.syaml",
-//      "sonar.projectName" -> "SYaml",
-//      "sonar.github.repository" -> "mulesoft/syaml",
-//      "sonar.projectVersion" -> "0.0.1",
-//      "sonar.sourceEncoding" -> "UTF-8",
-//      "sonar.modules" -> ".",
-//      "..sonar.sources" -> "shared/src/main/scala",
-//      "..sonar.exclusions" -> "shared/src/test/resources/**",
-//      "..sonar.tests" -> "shared/src/test/scala",
-//      "..sonar.scoverage.reportPath" -> "jvm/target/scala-2.12/scoverage-report/scoverage.xml"
-//    )
-//  }
-//)
 
 lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
