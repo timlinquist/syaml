@@ -8,14 +8,14 @@ ENV SBT_VERSION 0.13.9
 # Update the repository sources list and install dependencies
 RUN apt-get update
 
-# Install JDK 8
 RUN apt-get install -y software-properties-common unzip htop rsync openssh-client jq
-RUN echo oracle-java8-installer shared/accepted-oracle-license-v1-1 select true | debconf-set-selections
-RUN add-apt-repository -y ppa:webupd8team/java
-RUN apt-get update
-RUN apt-get install -y oracle-java8-installer
-RUN echo "JAVA_HOME=/usr/lib/jvm/java-8-oracle" >> /etc/environment
-RUN echo "JRE_HOME=/usr/lib/jvm/java-8-oracle/jre" >> /etc/environment
+
+# Install JDK 8
+RUN \
+  apt-get update && \
+  add-apt-repository ppa:openjdk-r/ppa && \
+  apt-get update && \
+  apt-get install openjdk-8-jdk --assume-yes
 
 # Install Scala
 ## Piping curl directly in tar
