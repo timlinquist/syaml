@@ -32,30 +32,19 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   def unexpected(): Unit =
     current.appendAndCheck(TokenData(Error, currentRange()), s"Unexpected '${currentText()}'")
 
-  def unexpected(expected: String): Unit = {
-    if (currentText().isEmpty)
-      current.appendAndCheck(TokenData(Error, currentRange()), s"Missing '$expected'")
-    else
-      current.appendAndCheck(TokenData(Error, currentRange()), s"Expecting '$expected' but '${currentText()}' found")
-  }
+  def expected(expected: String): Unit =
+    current.appendAndCheck(
+        TokenData(Error, currentRange()),
+        if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
 
-  def unexpected(expected: YamlToken): Unit = {
-    defaultText(expected) match {
-      case Some(e) => unexpected(e)
-      case _       => unexpected()
-    }
-  }
-
-  private def defaultText(token: YamlToken): Option[String] = {
+  private def expected(token: YamlToken): Boolean = {
     token match {
-      case BeginScalar   => Some("\"")
-      case BeginMapping  => Some("{")
-      case BeginSequence => Some("[")
-      case EndMapping    => Some("}")
-      case EndSequence   => Some("]")
-      case _             => None
-
+      case BeginScalar => expected("\"")
+      case EndMapping  => expected("}")
+      case EndSequence => expected("]")
+      case _           => unexpected()
     }
+    false
   }
 
   private def process(): Boolean = {
@@ -138,22 +127,19 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   }
 
   private def parseList(leftToken: YamlToken, rightToken: YamlToken, parser: ElementParser) = {
-    if (consumeOrError(leftToken)) {
-      while (notCurrent(rightToken)) {
-        parser.parse()
-        if (notCurrent(rightToken)) {
-          if (currentByTextOrError(Indicator, ",")) {
-            consume()
-            // These if are to get trailing commas
-            if (currentToken() == rightToken) unexpected("value")
-          }
+    assert(isCurrent(leftToken))
+    consume()
+    while (notCurrent(rightToken)) {
+      parser.parse()
+      if (notCurrent(rightToken)) {
+        if (currentByTextOrError(Indicator, ",")) {
+          consume()
+          // These if are to get trailing commas
+          if (currentToken() == rightToken) expected("value")
         }
       }
-      consumeOrError(rightToken)
-      true
     }
-    else
-      false
+    consumeOrError(rightToken)
   }
 
   trait ElementParser {
@@ -224,16 +210,15 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   private def currentRange(): InputRange = lexer.tokenData.range
 
-  private def consume(): Unit = {
+  private def consume() = {
     current.append()
     lexer.advance()
+    true
   }
 
   private def discardIf(token: YamlToken): Unit = if (isCurrent(token)) discard()
 
   private def discard(): Unit = lexer.advance()
-
-  private def advanceIf(token: YamlToken): Unit = if (isCurrent(token)) consume()
 
   private def advanceTo(tokens: YamlToken*): Unit = {
     while (!eof && !currentAnyOf(tokens: _*)) {
@@ -265,26 +250,14 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   private def currentByTextOrError(token: YamlToken, text: String): Boolean = {
     if (currentByText(token, text)) true
     else {
-      unexpected(text)
+      expected(text)
       false
     }
   }
 
-  private def currentOrError(token: YamlToken) = {
-    if (isCurrent(token)) true
-    else {
-      unexpected(token)
-      false
-    }
-  }
+  private def currentOrError(token: YamlToken) = if (isCurrent(token)) true else expected(token)
 
-  private def consumeOrError(token: YamlToken): Boolean = {
-    if (currentOrError(token)) {
-      consume()
-      true
-    }
-    else false
-  }
+  private def consumeOrError(token: YamlToken): Boolean = if (currentOrError(token)) consume() else false
 
   private def buildNode(value: YValue, tag: YTag) = YNode(value, tag, sourceName = lexer.sourceName)
 

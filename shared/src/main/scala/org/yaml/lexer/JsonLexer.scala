@@ -8,9 +8,9 @@ import org.yaml.lexer.YamlToken._
 /**
   * Json Lexer
   */
-final class JsonLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO ) extends BaseLexer[YamlToken](input) {
+final class JsonLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO)
+    extends BaseLexer[YamlToken](input) {
 
-  private var stack: List[YamlToken] = Nil
   /** Init must initialize the stack and the current _tokenData (may be invoking advance) */
   override protected def initialize(): Unit = {
     emit(BeginDocument)
@@ -37,28 +37,19 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
       case ' ' | '\t' | '\r' =>
         consumeWhile(isWhitespace)
         emit(WhiteSpace)
-      case 'n' if !(stack.headOption contains Error)=> checkKeyword("null")
-      case 't' if !(stack.headOption contains Error)=> checkKeyword("true")
-      case 'f' if !(stack.headOption contains Error)=> checkKeyword("false")
+      case 'n' => checkKeyword("null")
+      case 't' => checkKeyword("true")
+      case 'f' => checkKeyword("false")
       case _ =>
-        advanceToTokens(Set('[',']','{','}', ':',','))
+        advanceToTokens(Set('[', ']', '{', '}', ':', ','))
     }
   }
 
-  private def advanceToTokens(tokens:Set[Int]): Unit = {
-    while( (!tokens.contains(currentChar.toChar)) && nonEof){
+  private def advanceToTokens(tokens: Set[Int]): Unit = {
+    while ((!tokens.contains(currentChar.toChar)) && nonEof) {
       consume()
     }
     emit(Error)
-  }
-
-  private def endEntry(): Unit = {
-    if(stack.headOption contains BeginPair) {
-      // entry with key and without value. { a: a, a, a:a}
-      stack = stack.tail
-    }
-    consumeAndEmit(Indicator)
-    if (stack.head == BeginMapping) stack = BeginPair :: stack
   }
 
   private def checkKeyword(str: String): Unit = {
@@ -68,30 +59,9 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
       consume(l)
       emit(Text)
       emit(EndScalar)
-    } else
-      advanceToTokens(Set(',',':'))
-  }
-
-  private def nodeStart(block: YamlToken, indicator: Boolean = true): Unit = {
-    if (stack.headOption contains BeginPair) emit(BeginPair)
-    stack = block :: stack
-    emit(BeginNode, block)
-    if (indicator) consumeAndEmit(Indicator)
-    if (block == BeginMapping) stack = BeginPair :: stack
-  }
-
-  private def nodeEnd(block: YamlToken, indicator: Boolean = true): Unit = {
-    if(block == EndMapping && (stack.headOption contains BeginMapping)){
-      stack = stack.tail
     }
-    if (indicator) consumeAndEmit(Indicator)
-    emit(block)
-  }
-
-  private def enterMapValue() = {
-    // Todo validate
-    stack = EndPair :: stack.tail
-    consumeAndEmit(Indicator)
+    else
+      advanceToTokens(Set(',', ':'))
   }
 
   private def number(): Unit = {
@@ -101,12 +71,13 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
     if (!consume('0')) {
       consume()
       consumeWhile(isDigit)
-    }else if(isDigit(currentChar)){
+    }
+    else if (isDigit(currentChar)) {
       valid = false
-      advanceToTokens(Set(',',']','}','"','[','{', ':'))
+      advanceToTokens(Set(',', ']', '}', '"', '[', '{', ':'))
     }
 
-    if(valid){
+    if (valid) {
       if (consume('.')) {
         consumeWhile(isDigit)
       }
@@ -120,7 +91,7 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
   }
 
   private def string(): Unit = { // todo: handle breaking lines (invalid in jsons)
-    var hasText    = false
+    var hasText          = false
     def emitText(): Unit = if (hasText) { emit(Text); hasText = false }
 
     emit(BeginScalar)
@@ -147,14 +118,13 @@ final class JsonLexer private (input: LexerInput, override val offsetPosition: (
 }
 
 object JsonLexer {
-  def apply(): JsonLexer                  = new JsonLexer(CharSequenceLexerInput())
-  def apply(input: LexerInput): JsonLexer = new JsonLexer(input)
-  def apply(cs: CharSequence): JsonLexer  = new JsonLexer(CharSequenceLexerInput(cs))
-  def apply(cs: CharSequence,sourceName:String): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs,sourceName = sourceName))
-  def apply(cs: CharSequence,offsetPosition: (Int,Int)): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs), offsetPosition)
+  def apply(cs: CharSequence): JsonLexer = new JsonLexer(CharSequenceLexerInput(cs))
 
-  def apply(cs: CharSequence,sourceName:String,offsetPosition: (Int,Int)): JsonLexer         = new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), offsetPosition)
-
+  def apply(cs: CharSequence, sourceName: String): JsonLexer =
+    new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName))
+  
+  def apply(cs: CharSequence, sourceName: String, offsetPosition: (Int, Int)): JsonLexer =
+    new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), offsetPosition)
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'
   private def isDigit(c: Int)      = c >= '0' && c <= '9'

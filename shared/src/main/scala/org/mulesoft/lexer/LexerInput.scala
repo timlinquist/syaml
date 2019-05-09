@@ -8,7 +8,7 @@ import org.mulesoft.lexer.LexerInput.Mark
 trait LexerInput {
 
   /** The current code point character in the input (or LexerInput#Eof if the EoF was reached).  */
-  def current: Int = lookAhead(0)
+  def current: Int
 
   /** The absolute offset (0..n) of the current character.  */
   def offset: Int
@@ -29,18 +29,7 @@ trait LexerInput {
   def consume(n: Int): Unit
 
   /** Consume while the condition holds.  */
-  def consumeWhile(p: (Int => Boolean)): Unit = while (p(current)) consume()
-
-  /** Count the number of characters the condition holds.  */
-  def countWhile(p: (Int => Boolean)): Int = {
-    var offset = 0
-    var chr    = current
-    while (chr != LexerInput.EofChar && p(chr)) {
-      offset += 1
-      chr = lookAhead(offset)
-    }
-    offset
-  }
+  def consumeWhile(p: Int => Boolean): Unit = while (p(current)) consume()
 
   /** Create a mark in the Input so you can reset the input to it later */
   def createMark(): Mark
@@ -60,7 +49,7 @@ trait LexerInput {
   val sourceName: String = ""
 
   /** We're not at the Eof */
-  def nonEof: Boolean = current != LexerInput.EofChar
+  def nonEof: Boolean
 
 }
 

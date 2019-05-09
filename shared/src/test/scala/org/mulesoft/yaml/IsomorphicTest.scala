@@ -2,7 +2,7 @@ package org.mulesoft.yaml
 
 import org.mulesoft.common.io.SyncFile
 import org.mulesoft.test.GoldenSuite
-import org.yaml.comparator.YamlComparator
+import org.yaml.comparator.YamlComparator.isIsomorphic
 
 /**
   * Test against golden files
@@ -28,6 +28,12 @@ trait IsomorphicTest extends GoldenSuite {
       IsomorphicTest.test(yaml, yaml1, this, isomorphicDir, modelDir)
     }
   }
+
+  test("Isomorhic Failed") {
+    assert(!isIsomorphic("{ a: 10, b: 20 }", "[ a, b]"))
+    assert(!isIsomorphic("{ a: 10 }", "{ a: 10, b: 10 }"))
+    assert(!isIsomorphic("{ a: 10 }", "{ a: 10 }\n...\n{ a: 10 }"))
+  }
 }
 
 object IsomorphicTest extends IgnoreParseErrorTest {
@@ -36,6 +42,6 @@ object IsomorphicTest extends IgnoreParseErrorTest {
     val yamlFile  = fs.syncFile(yamlDir, src)
     val yaml1File = fs.syncFile(yamlDir, src1)
 
-    assert(YamlComparator.isIsomorphic(yamlFile.read(), yaml1File.read()))
+   assert(isIsomorphic(yamlFile.read(), yaml1File.read()))
   }
 }

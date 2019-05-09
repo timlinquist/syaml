@@ -6,7 +6,7 @@ package org.mulesoft.lexer
   */
 trait Lexer[T <: Token] {
   /** get the current token in the input stream.  */
-  def token: T = tokenData.token
+  def token: T
 
   /** All the token data.  */
   def tokenData: TokenData[T]
