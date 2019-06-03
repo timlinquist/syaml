@@ -18,7 +18,6 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   },
 
   libraryDependencies ++= Seq(
-    "org.mule.common" %%% "scala-common" % "0.5.59",
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
     
@@ -26,6 +25,19 @@ val settings = Common.settings ++ Common.publish ++ Seq(
 
   credentials ++= Common.credentials()
 )
+
+lazy val workspaceDirectory: File =
+  sys.props.get("sbt.mulesoft") match {
+    case Some(x) => file(x)
+    case _ => Path.userHome / "mulesoft"
+  }
+
+val scalaCommonVersion = "0.5.59"
+
+lazy val scalaCommonJVMRef = ProjectRef(workspaceDirectory / "scala-common", "commonJVM")
+lazy val scalaCommonJSRef = ProjectRef(workspaceDirectory / "scala-common", "commonJS")
+lazy val scalaCommonLibJVM = "org.mule.common" %% "scala-common" % scalaCommonVersion
+lazy val scalaCommonLibJS = "org.mule.common" %% "scala-common_sjs0.6" % scalaCommonVersion
 
 lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
@@ -39,5 +51,5 @@ lazy val syaml = crossProject(JSPlatform, JVMPlatform)
       scalaJSModuleKind := ModuleKind.CommonJSModule
   )
 
-lazy val syamlJVM = syaml.jvm
-lazy val syamlJS = syaml.js
+lazy val syamlJVM = syaml.jvm.in(file("./jvm")).sourceDependency(scalaCommonJVMRef, scalaCommonLibJVM)
+lazy val syamlJS = syaml.js.in(file("./js")).sourceDependency(scalaCommonJSRef, scalaCommonLibJS)
