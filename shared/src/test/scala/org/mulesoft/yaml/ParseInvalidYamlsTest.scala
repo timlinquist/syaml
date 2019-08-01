@@ -37,6 +37,16 @@ trait ParseInvalidYamlsTest extends FunSuite {
     assert(handler.errors.last.error.getMessage.equals("Syntax error in the following text: '  get:\n  post:'"))
   }
 
+  test("Parse invalid alias referencing undefined anchor") {
+    val yamlFile = yamlDir / "invalid-alias.yaml"
+    val handler = TestErrorHandler()
+
+    YamlParser(yamlFile.read())(handler).parse()
+
+    assert(handler.errors.lengthCompare(1) == 0)
+    assert(handler.errors.head.error.getMessage.equals("Undefined anchor : 'other'"))
+  }
+
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
 

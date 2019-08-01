@@ -1,0 +1,3 @@
+valid-anchor: &anchor Foo
+valid-alias: *anchor
+invalid-alias: *other

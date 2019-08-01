@@ -4,7 +4,6 @@ import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
-import org.yaml.model
 import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable
@@ -175,15 +174,16 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   private def createNode(td: TD) = {
     val parts = current.buildParts(td)
     if (current.alias.nonEmpty) {
-      val target = aliases.getOrElse(current.alias, YNode.Null)
-      // Manage Error if (target == YNode.Null)
-      pop(new YNode.Alias(current.alias, target, parts))
+      val anchor = aliases.get(current.alias)
+      val n = new YNode.Alias(current.alias, anchor.getOrElse(YNode.Null), parts)
+      if (anchor.isEmpty) eh.handle(n, UndefinedAnchorException(current.alias))
+      pop(n)
     }
     else {
       val tag = current.tag
       val n =
         if (includeTag.nonEmpty && tag.text == includeTag)
-          new model.YNode.MutRef(current.value, tag, parts)
+          new YNode.MutRef(current.value, tag, parts)
         else YNode(current.value, tag, current.anchor, parts, lexer.sourceName)
       for (a <- current.anchor) aliases += a.name -> n
       pop(n)
