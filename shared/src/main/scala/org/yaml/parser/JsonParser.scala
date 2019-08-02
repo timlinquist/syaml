@@ -160,7 +160,10 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
     override def parse(): Unit = {
       push() // i need new token for YMapEntry container
-      if (parseEntry()) stackParts(YMapEntry(current.buildParts()))
+      if (parseEntry()) {
+        val parts = current.buildParts().sortWith((t1,t2) => t1.range.compareTo(t2.range) < 0)
+        stackParts(YMapEntry(parts))
+      }
       else {
         current.buildParts()
         pop()

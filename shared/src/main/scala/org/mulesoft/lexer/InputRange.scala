@@ -7,8 +7,22 @@ import java.lang.Integer.{MAX_VALUE=>IntMax}
   */
 case class InputRange(lineFrom:Int, columnFrom:Int, lineTo:Int, columnTo:Int) {
     /** Extent range */
+
+    def compareTo(other:InputRange): Int = {
+        val lineDiff = this.lineFrom - other.lineFrom
+        if (lineDiff == 0) {
+            val columnDiff = this.columnFrom - other.columnFrom
+            if(columnDiff == 0){
+                val toLineDiff = this.lineTo - other.lineTo
+                if(toLineDiff == 0) this.columnTo - other.columnTo
+                else toLineDiff
+            }else columnDiff
+        }
+        else lineDiff
+    }
+
     def extent(other: InputRange): InputRange = {
-        def lessThan(l1: Int, l2: Int, c1: Int, c2: Int) = l1 < l2 || l1 == l2 && c1 < c2
+        def lessThan(l1: Int, l2: Int, c1: Int, c2: Int): Boolean = l1 < l2 || l1 == l2 && c1 < c2
 
         val first = if (lessThan(lineFrom, other.lineFrom, columnFrom, other.columnFrom)) this else other
         val last = if (lessThan(lineTo, other.lineTo, columnTo, other.columnTo)) other else this
