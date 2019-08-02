@@ -134,7 +134,7 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
 
     // Capture comments before and after the value
     val value          = e.value
-    val (before, tail) = e.children.dropWhile(!_.eq(key)).tail.span(!_.eq(value))
+    val (before, tail) = e.children.dropWhile(!_.eq(key)).tail.dropWhile(c => c.isInstanceOf[YNonContent] && c.asInstanceOf[YNonContent].tokens.headOption.exists(t => t.text == ":")).span(!_.eq(value))
     val after          = tail.tail
 
     // Render Before comments
