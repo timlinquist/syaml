@@ -20,7 +20,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
   test("Build Simple Scalar") {
 
     def doc[T]: BuildDoc[T] = _ doc { _ += "A Document"}
-    val ydoc = doc(YDocumentBuilder())
+    val ydoc = doc(YDocumentBuilder()).asInstanceOf[YDocument]
     ydoc.tagType shouldBe Str
     val s: String = ydoc.node
     s shouldBe "A Document"
@@ -37,7 +37,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
       b += 1.0
       b += true
     }
-    val ydoc = doc(YDocumentBuilder())
+    val ydoc = doc(YDocumentBuilder()).asInstanceOf[YDocument]
 
     ydoc.tagType shouldBe Seq
     val seq = ydoc.node.as[Seq[YNode]]
@@ -59,7 +59,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
       }
     }
 
-    val ydoc = doc(YDocumentBuilder())
+    val ydoc = doc(YDocumentBuilder()).asInstanceOf[YDocument]
 
     ydoc.tagType shouldBe Seq
     val seq = ydoc.node.as[Seq[YNode]]
@@ -78,7 +78,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
     /* They are the same, but toString outputs a different but equivalent result in js and jvm. */
     val jsString = "5e-8"
     val jvmString = "5.0E-8"
-    val ydoc = YDocumentBuilder().doc(_ += float)
+    val ydoc = YDocumentBuilder().doc(_ += float).asInstanceOf[YDocument]
 
     ydoc.as[Double] shouldBe float
 
@@ -111,7 +111,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
         b.entry("Two", 2)
       })
     }
-    val ydoc = doc(YDocumentBuilder())
+    val ydoc = doc(YDocumentBuilder()).asInstanceOf[YDocument]
 
     val obj1 = ydoc.obj
 
@@ -140,7 +140,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
       })
       b.entry("emptyMap", _.obj(_ => {}))
     }
-    val ydoc2 = doc2(YDocumentBuilder())
+    val ydoc2 = doc2(YDocumentBuilder()).asInstanceOf[YDocument]
     ydoc2.obj.emptyMap shouldBe YMap.empty
     ydoc2.obj.aMap.one shouldBe YNode(1)
     ydoc2.obj.aMap.two shouldBe YNode(2.0)
@@ -162,7 +162,7 @@ trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTes
             |.""".stripMargin)
       })
     }
-    val ydoc3 = doc3(YDocumentBuilder())
+    val ydoc3 = doc3(YDocumentBuilder()).asInstanceOf[YDocument]
     ydoc3.obj.aMap.one shouldBe YNode("ax\tjj")
     ydoc3.obj.aMap.two.as[String] shouldBe "this is a long\ntext\n   with several\n   Lines\n."
 

@@ -10,30 +10,33 @@ import org.yaml.render.ScalarRender.renderScalar
 
 class YamlOutputBuilder[W: Output](writer: W) extends BaseOutputBuilder(writer, true) {
 
-  override def doc(f: Part => Unit): W = { new MyPart().execute(f); writer }
+  override def doc(f: Part[W] => Unit): W = { new MyPart().execute(f); writer }
 
-  class MyPart(inSeq: Boolean = false) extends Part with LifeCycle[Part] {
+  class MyPart(inSeq: Boolean = false) extends Part[W] with LifeCycle[Part[W]] {
     override def before(): Unit = {
       super.before()
       if (inSeq) writer.append('-')
     }
+    override def +=(element: W): Unit = None
     override def +=(scalar: Scalar): Unit = {
       before()
       if (inSeq) writer.append(' ')
       emitNode(scalar)
     }
-    override def list(f: Part => Unit): Unit = {
+    override def list(f: Part[W] => Unit): Option[W] = {
       before()
       emitSeq(f)
+      None
     }
-    override def obj(f: Entry => Unit): Unit = {
+    override def obj(f: Entry[W] => Unit): Option[W] = {
       before()
       emitMap(f)
+      None
     }
     override def emitEmpty(): Unit = if (inSeq) writer.append(" []")
   }
 
-  class MyEntry extends Entry with LifeCycle[Entry] {
+  class MyEntry extends Entry[W] with LifeCycle[Entry[W]] {
 
     override def emitEmpty(): Unit = writer.append(" {}")
 
@@ -47,7 +50,7 @@ class YamlOutputBuilder[W: Output](writer: W) extends BaseOutputBuilder(writer, 
       writer.append(renderScalar(key).toString)
       writer.append(':')
     }
-    override def entry(key: String, f: Part => Unit): Unit = {
+    override def entry(key: String, f: Part[W] => Unit): Unit = {
       emitKey(key)
       f(new MyPart)
     }
@@ -58,11 +61,11 @@ class YamlOutputBuilder[W: Output](writer: W) extends BaseOutputBuilder(writer, 
     case (Bool, b: Boolean) => writer.append(b.toString)
     case (Int, l: Long)     => writer.append(l.toString)
     case (Float, v: Double) => writer.append(v.toString)
-    case _ =>
+    case _                  =>
   }
 
-  protected def emitMap(f: Entry => Unit): Unit = new MyEntry().execute(f)
-  protected def emitSeq(f: Part => Unit): Unit  = new MyPart(true).execute(f)
+  protected def emitMap(f: Entry[W] => Unit): Unit = new MyEntry().execute(f)
+  protected def emitSeq(f: Part[W] => Unit): Unit  = new MyPart(true).execute(f)
 
   override protected def emitIndent(): Unit =
     if (indentationLength > 0) writer.append(indentation.substring(2))
@@ -87,8 +90,7 @@ class YamlOutputBuilder[W: Output](writer: W) extends BaseOutputBuilder(writer, 
           if (indentationLength > 0) newLine()
         }
         start = false
-      }
-      else {
+      } else {
         newLine()
       }
     }
@@ -98,6 +100,7 @@ class YamlOutputBuilder[W: Output](writer: W) extends BaseOutputBuilder(writer, 
 
 object YamlOutputBuilder {
   def apply[W: Output](writer: W): YamlOutputBuilder[W] = new YamlOutputBuilder(writer)
-  def apply(): YamlOutputBuilder[StringWriter]          = new YamlOutputBuilder(new StringWriter)(Output.outputWriter)
+  def apply(): YamlOutputBuilder[StringWriter] =
+    new YamlOutputBuilder(new StringWriter)(OutputWriter.asInstanceOf[Output[StringWriter]])
 
 }

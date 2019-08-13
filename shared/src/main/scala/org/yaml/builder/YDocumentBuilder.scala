@@ -5,39 +5,51 @@ import org.yaml.model._
 
 import scala.collection.mutable.ArrayBuffer
 
-class YDocumentBuilder extends DocBuilder[YDocument] {
+class YDocumentBuilder extends DocBuilder[YPart] {
 
-  private var _document: Option[YDocument] = None
-  def document: YDocument                  = _document.get
-  def document_=(doc: YDocument): Unit     = _document = Some(doc)
+  private var _document: Option[YPart] = None
+  def document: YPart                  = _document.get
+  def document_=(doc: YPart): Unit     = _document = Some(doc)
 
   override def isDefined: Boolean = _document.isDefined
-  override def result: YDocument  = document
+  override def result: YPart      = document
 
-  override def list(f: Part => Unit): YDocument = {
+  override def list(f: Part[YPart] => Unit): YPart = {
     val doc = YDocument.fromNode(createSeqNode(f))
     _document = Some(doc)
     doc
   }
 
-  override def obj(f: Entry => Unit): YDocument = {
+  override def obj(f: Entry[YPart] => Unit): YPart = {
     val doc = YDocument.fromNode(createMapNode(f))
     _document = Some(doc)
     doc
   }
 
-  override def doc(f: Part => Unit): YDocument = {
+  override def doc(f: Part[YPart] => Unit): YPart = {
     val doc = YDocument(createPartBuilder(f)(0))
     _document = Some(doc)
     doc
   }
 
-  private def createPartBuilder(f: Part => Unit): ArrayBuffer[YNode] = {
+  private def createPartBuilder(f: Part[YPart] => Unit): ArrayBuffer[YNode] = {
     val builder = new ArrayBuffer[YNode]
-    val partBuilder = new Part {
-      override def +=(scalar: Scalar): Unit    = builder += mkNode(scalar)
-      override def list(f: Part => Unit): Unit = builder += createSeqNode(f)
-      override def obj(f: Entry => Unit): Unit = builder += createMapNode(f)
+    val partBuilder: Part[YPart] = new Part[YPart] {
+      override def +=(scalar: Scalar): Unit = builder += mkNode(scalar)
+      override def +=(element: YPart): Unit = element match {
+        case node: YNode => builder += node
+        case _ => // nothing
+      }
+      override def list(f: Part[YPart] => Unit): Option[YPart] = {
+        val result = createSeqNode(f)
+        builder += result
+        Some(result)
+      }
+      override def obj(f: Entry[YPart] => Unit): Option[YPart] = {
+        val result = createMapNode(f)
+        builder += result
+        Some(result)
+      }
     }
     f(partBuilder)
     builder
@@ -50,25 +62,24 @@ class YDocumentBuilder extends DocBuilder[YDocument] {
     case Int   => scalar.value.asInstanceOf[Long]
   }
 
-  private def createMapNode(f: Entry => Unit) = {
+  private def createMapNode(f: Entry[YPart] => Unit) = {
     val builder                                  = new ArrayBuffer[YPart]
     def addEntry(key: String, node: YNode): Unit = builder += YMapEntry(Array(YNode(key), node))
 
-    val b = new Entry {
-      override def entry(key: String, value: Scalar): Unit   = addEntry(key, mkNode(value))
-      override def entry(key: String, f: Part => Unit): Unit = addEntry(key, createPartBuilder(f).result()(0))
+    val b: Entry[YPart] = new Entry[YPart] {
+      override def entry(key: String, value: Scalar): Unit          = addEntry(key, mkNode(value))
+      override def entry(key: String, f: Part[YPart] => Unit): Unit = addEntry(key, createPartBuilder(f).result()(0))
 
     }
     f(b)
     YNode(YMap(builder.result, ""), YType.Map)
   }
-  private def createSeqNode(f: Part => Unit) = YNode(YSequence(createPartBuilder(f).result, ""), YType.Seq)
-
+  private def createSeqNode(f: Part[YPart] => Unit) = YNode(YSequence(createPartBuilder(f).result, ""), YType.Seq)
 }
 
 object YDocumentBuilder {
   def apply(): YDocumentBuilder = new YDocumentBuilder()
-  def apply(f: Part => Unit): YDocument = {
+  def apply(f: Part[YPart] => Unit): YPart = {
     val b = apply()
     b.doc(f)
     b.result

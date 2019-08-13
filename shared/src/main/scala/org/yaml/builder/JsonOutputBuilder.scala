@@ -3,21 +3,22 @@ import java.io.StringWriter
 
 import org.mulesoft.common.core._
 import org.mulesoft.common.io.Output
-import org.mulesoft.common.io.Output._
+import org.mulesoft.common.io.Output.{OutputWriter, _}
 import org.yaml.builder.DocBuilder.SType._
 import org.yaml.builder.DocBuilder.{Entry, Part, Scalar}
 
 class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends BaseOutputBuilder(writer, prettyPrint) {
 
-  override def doc(f: Part => Unit): W = { new MyPart().execute(f); writer }
+  override def doc(f: Part[W] => Unit): W = { new MyPart().execute(f); writer }
 
-  class MyPart extends DocBuilder.Part with LifeCycle[Part] {
-    override def +=(scalar: Scalar): Unit    = { before(); emitNode(scalar) }
-    override def list(f: Part => Unit): Unit = { before(); emitSeq(f) }
-    override def obj(f: Entry => Unit): Unit = { before(); emitMap(f) }
+  class MyPart extends DocBuilder.Part[W] with LifeCycle[Part[W]] {
+    override def +=(element: W): Unit                = None
+    override def +=(scalar: Scalar): Unit            = { before(); emitNode(scalar) }
+    override def list(f: Part[W] => Unit): Option[W] = { before(); emitSeq(f); None }
+    override def obj(f: Entry[W] => Unit): Option[W] = { before(); emitMap(f); None }
   }
 
-  class MyEntry extends DocBuilder.Entry with LifeCycle[Entry] {
+  class MyEntry extends DocBuilder.Entry[W] with LifeCycle[Entry[W]] {
     override def entry(key: String, value: Scalar): Unit = {
       emitKey(key)
       emitNode(value)
@@ -28,7 +29,7 @@ class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends Base
       writer.append(key)
       writer.append("\": ")
     }
-    override def entry(key: String, f: Part => Unit): Unit = {
+    override def entry(key: String, f: Part[W] => Unit): Unit = {
       emitKey(key)
       f(new MyPart)
     }
@@ -45,13 +46,13 @@ class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends Base
     case _ =>
   }
 
-  protected def emitMap(f: Entry => Unit): Unit = {
+  protected def emitMap(f: Entry[W] => Unit): Unit = {
     writer.append('{')
     new MyEntry().execute(f)
     writer.append('}')
   }
 
-  protected def emitSeq(f: Part => Unit): Unit = {
+  protected def emitSeq(f: Part[W] => Unit): Unit = {
     writer.append('[')
     new MyPart().execute(f)
     writer.append(']')
@@ -76,8 +77,7 @@ class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends Base
           newLine()
         }
         start = false
-      }
-      else {
+      } else {
         writer.append(',')
         newLine()
       }
@@ -91,7 +91,7 @@ object JsonOutputBuilder {
     new JsonOutputBuilder(writer, prettyPrint)
 
   def apply(prettyPrint: Boolean): JsonOutputBuilder[StringWriter] =
-    new JsonOutputBuilder(new StringWriter, prettyPrint)(Output.outputWriter)
+    new JsonOutputBuilder(new StringWriter, prettyPrint)(OutputWriter.asInstanceOf[Output[StringWriter]])
 
   def apply(): JsonOutputBuilder[StringWriter] = apply(false)
 }

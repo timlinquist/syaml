@@ -14,13 +14,13 @@ abstract class DocBuilder[T] {
   def isDefined: Boolean = true
 
   /** Build a List document*/
-  def list(f: Part => Unit): T
+  def list(f: Part[T] => Unit): T
 
   /** Build an Object document*/
-  def obj(f: Entry => Unit): T
+  def obj(f: Entry[T] => Unit): T
 
   /** Build a document*/
-  def doc(f: Part => Unit): T
+  def doc(f: Part[T] => Unit): T
 
 }
 
@@ -55,23 +55,26 @@ object DocBuilder {
         case NonFatal(_) => Scalar(str)
       }
   }
-  abstract class Part {
+
+  abstract class Part[T] {
 
     def +=(int: Long): Unit     = this += Scalar(int)
     def +=(str: String): Unit   = this += Scalar(str)
     def +=(dbl: Double): Unit   = this += Scalar(dbl)
     def +=(bool: Boolean): Unit = this += Scalar(bool)
 
+    def +=(element: T): Unit
     def +=(scalar: Scalar): Unit
 
     /** Add a List to the builder */
-    def list(f: Part => Unit): Unit
+    def list(f: Part[T] => Unit): Option[T]
 
     /** Add an object (aka map) to the builder */
-    def obj(f: Entry => Unit): Unit
+    def obj(f: Entry[T] => Unit): Option[T]
   }
-  abstract class Entry {
-    def entry(key: String, f: Part => Unit): Unit
+
+  abstract class Entry[T] {
+    def entry(key: String, f: Part[T] => Unit): Unit
     def entry(key: String, scalar: Scalar): Unit
 
     def entry(key: String, str: String): Unit   = entry(key, Scalar(str))

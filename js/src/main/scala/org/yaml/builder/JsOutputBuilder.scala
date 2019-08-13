@@ -15,27 +15,36 @@ class JsOutputBuilder extends DocBuilder[js.Any] {
 
   override def result: js.Any = obj
 
-  override def list(f: Part => Unit): js.Any = {
+  override def list(f: Part[js.Any] => Unit): js.Any = {
     obj = createSeq(f)
     obj
   }
 
-  override def obj(f: Entry => Unit): js.Any = {
+  override def obj(f: Entry[js.Any] => Unit): js.Any = {
     obj = createObj(f)
     obj
   }
 
-  override def doc(f: Part => Unit): js.Any = {
+  override def doc(f: Part[js.Any] => Unit): js.Any = {
     obj = createSeq(f)(0)
     obj
   }
 
-  private def createSeq(f: Part => Unit): js.Array[js.Any] = {
+  private def createSeq(f: Part[js.Any] => Unit): js.Array[js.Any] = {
     val result = new js.Array[js.Any]
-    val partBuilder = new Part {
-      override def +=(scalar: Scalar): Unit    = result.push(fromScalar(scalar))
-      override def list(f: Part => Unit): Unit = result.push(createSeq(f))
-      override def obj(f: Entry => Unit): Unit = result.push(createObj(f))
+    val partBuilder: Part[js.Any] = new Part[js.Any] {
+      override def +=(element: js.Any): Unit = result.push(element)
+      override def +=(scalar: Scalar): Unit  = result.push(fromScalar(scalar))
+      override def list(f: Part[js.Any] => Unit): Option[js.Any] = {
+        val value = createSeq(f)
+        result.push(value)
+        Some(value)
+      }
+      override def obj(f: Entry[js.Any] => Unit): Option[js.Any] = {
+        val value: js.Object = createObj(f)
+        result.push(value)
+        Some(value)
+      }
     }
     f(partBuilder)
     result
@@ -48,13 +57,13 @@ class JsOutputBuilder extends DocBuilder[js.Any] {
     case Int   => scalar.value.asInstanceOf[Long]
   }
 
-  private def createObj(f: Entry => Unit): js.Object = {
+  private def createObj(f: Entry[js.Any] => Unit): js.Object = {
     val result = js.Object()
     val o      = result.asInstanceOf[Dynamic]
 
-    val b = new Entry {
-      override def entry(key: String, value: Scalar): Unit   = o.updateDynamic(key)(fromScalar(value))
-      override def entry(key: String, f: Part => Unit): Unit = o.updateDynamic(key)(createSeq(f)(0))
+    val b: Entry[js.Any] = new Entry[js.Any] {
+      override def entry(key: String, value: Scalar): Unit           = o.updateDynamic(key)(fromScalar(value))
+      override def entry(key: String, f: Part[js.Any] => Unit): Unit = o.updateDynamic(key)(createSeq(f)(0))
     }
     f(b)
     result
