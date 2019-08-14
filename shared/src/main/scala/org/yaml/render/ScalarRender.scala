@@ -1,6 +1,6 @@
 package org.yaml.render
 import org.mulesoft.common.core._
-import org.yaml.lexer.YamlCharRules._
+import org.yaml.lexer.YamlCharRules.{isIndicator, _}
 import org.yaml.model.YType
 import org.yaml.parser.ScalarParser
 
@@ -58,14 +58,14 @@ object ScalarRender {
     var allSpaces = true
     var noTabs    = true
     var flowChar  = false
-    val iterator  = ScalarIterator(text)
+    val iterator  = new ScalarIterator(text)
     do {
       iterator.current match {
         case '\n'                                 => oneLine = false
         case '\t'                                 => noTabs = false
         case '\r'                                 => return QuotedScalar
         case _ if !isCPrintable(iterator.current) => return QuotedScalar
-        case _ if CharQuotedScalarRules(iterator) => flowChar = true
+        case _ if iterator.shouldQuote            => flowChar = true
         case _                                    => allSpaces = false
       }
     } while (iterator.advance)
@@ -80,16 +80,15 @@ object ScalarRender {
           if (sp.ytype == YType.Str || (isCoreSchema && sp.ytype == YType.Timestamp)) PlainScalar else QuotedScalar
         }
       }
-
       else QuotedScalar
     }
     else if (allSpaces) QuotedScalar
     else LiteralScalar
   }
-  private case class ScalarIterator(text: String) {
+  private class ScalarIterator(text: String) {
 
     private var c     = 0
-    var current: Char = text(c)
+    var current: Char = text.head
     private val until = text.length - 1
 
     def isFirst: Boolean = c == 0
@@ -104,29 +103,30 @@ object ScalarRender {
         true
       }
 
-    def next: Char = if (isLast) 0.toChar else text(c + 1)
+    def next: Char = if (isLast) '\u0000' else text(c + 1)
 
-    def previous: Char = if (isFirst) 0.toChar else text(c - 1)
-  }
-  object CharQuotedScalarRules {
-    def apply(iterator: ScalarIterator): Boolean = {
-      if (iterator.isFirst) {
+    def previous: Char = if (isFirst) '\u0000' else text(c - 1)
 
-        /** [126]	ns-plain-first(c)  && /* An ns-char preceding */ “#” */
-        (isIndicator(iterator.current) && !isFirstDiscriminators(iterator.current)) ||
-        (isFirstDiscriminators(iterator.current) && !isCharFollowedBy(iterator.current, iterator.next)) ||
-        iterator.current == ':' && !isCharFollowedBy(iterator.current, iterator.next) /** [130]	ns-plain-char(c)	::=	  ( ns-plain-safe(c) - “:” - “#” ) */
+    def shouldQuote: Boolean = {
+      if (isFirst) {
+        current match {
+          case '?' | ':' | '-' => next.isSpaceChar || next == '\\'
+          case _               => isIndicator(current)
+        }
       }
       else {
 
         /** [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
           *|| (  An ns-char preceding “#” )
           *| ( “:” Followed by an ns-plain-safe(c)  )*/
-        /*( isFlowIndicator(iterator.current) || */ //This is only valid when its flow map or seq, but i don't know when it is, and in amf always render implicits part
+        /*( isFlowIndicator(current) || */ //This is only valid when its flow map or seq, but i don't know when it is, and in amf always render implicits part
         // [129]	ns-plain-safe-in	::=	ns-char - c-flow-indicator
         // todo: talk with Emilio how to know when it's inside a flow part
-        ((iterator.current == '#' && !isCharPreceding(iterator.previous, iterator.current)) //  (  An ns-char preceding “#” )
-        || (iterator.current == ':' && (!isCharFollowedBy(iterator.current, iterator.next) || iterator.isLast))) // ( “:” Followed by an ns-plain-safe(c)
+        current match {
+          case '#' => previous.isSpaceChar || previous == '\\'
+          case ':' => isLast || next.isSpaceChar || next == '\\'
+          case _   => false
+        }
       }
     }
   }
