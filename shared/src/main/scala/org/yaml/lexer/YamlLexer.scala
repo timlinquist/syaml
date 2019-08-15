@@ -1590,30 +1590,29 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   def lineContainsMapIndicator(): Boolean = {
     var i                    = 0
     var chr: Int             = 0
-    var ind: Boolean         = false
-    var charStack: List[Int] = Nil
     val first = lookAhead(i)
-    if ( first == '"' || first== '\''){
-      i= i + 1
-      charStack = first :: charStack
-    }
+    var dueClosing = obtainClosingChar(first)
+    if(dueClosing.isDefined) i += 1
     do {
       chr = lookAhead(i)
-      if (charStack.nonEmpty) {
-        if (chr == charStack.head) {
+      dueClosing match {
+        case Some(closingChar) if chr == closingChar =>
           if (chr == '\'' && lookAhead(i + 1) == '\'') i = i + 1
-          else if (chr != '"' || lookAhead(i - 1) != '\\')
-            charStack = charStack.tail
-        }
+          else if (chr != '"' || lookAhead(i - 1) != '\\') dueClosing = None
+        case None if isMappingIndicator(chr, lookAhead(i + 1)) =>
+           return true
+        case _ =>
       }
-      else if (chr == '{')
-        charStack = '}' :: charStack
-      else if (chr == '[')
-        charStack = ']' :: charStack
-      else if (isMappingIndicator(chr, lookAhead(i + 1))) return true
       i += 1
     } while (!isBreakComment(chr))
     false
+  }
+
+  def obtainClosingChar(first: Int): Option[Int] = first match {
+    case '"' | '\'' => Some(first)
+    case '{' => Some('}'.toInt)
+    case '[' =>  Some(']'.toInt)
+    case _ => None
   }
 
   /** Emit an error and Consume until end of line or file */
