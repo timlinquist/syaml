@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import java.io.{CharArrayWriter, PrintWriter}
 
 import org.mulesoft.common.io.{FileSystem, Fs}
-import org.mulesoft.lexer.InputRange
+import org.mulesoft.lexer.{InputRange, Position}
 import org.mulesoft.test.GoldenSuite
 import org.scalatest.Assertion
 import org.yaml.lexer.YamlLexer
@@ -47,7 +47,7 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
 
   private val offsetFiles = Array("directives.yaml","example-2.1.yaml", "example-2.3.yaml","example-5.3.yaml","literalPlain-1.yaml")
 
-  private val offset:(Int,Int) = (5,5)
+  private val offset = Position(5,5)
 
   for (yaml <- offsetFiles) {
     test("Parse and Dump Tokens with offset for " + yaml) {
@@ -79,11 +79,11 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
   succeed
   }
   private def assertRangeDiff(part:YPart, offsetPart:YPart):Assertion = {
-    part.range.lineFrom should be(offsetPart.range.lineFrom - offset._1)
-    part.range.columnFrom should be(offsetPart.range.columnFrom - offset._2)
+    part.range.lineFrom should be(offsetPart.range.lineFrom - offset.line)
+    part.range.columnFrom should be(offsetPart.range.columnFrom - offset.column)
 
-    part.range.lineTo should be(offsetPart.range.lineTo - offset._1)
-    part.range.columnTo should be(offsetPart.range.columnTo - offset._2)
+    part.range.lineTo should be(offsetPart.range.lineTo - offset.line)
+    part.range.columnTo should be(offsetPart.range.columnTo - offset.column)
     assertRanges(part.children, offsetPart.children)
     succeed
   }
@@ -109,8 +109,8 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
         case s: YScalar if s.children.size == 1 => dumpTokens(cc, e.children.head.asInstanceOf[YTokens], e.range)
         case nc: YNonContent                    => dumpTokens("YI", nc, e.range)
         case ts: YTokens                        => dumpTokens(cc, ts, e.range)
-        case yd: YDirective                     => dumpParts("Yd", e.children, e.range)
-        case yn: YNode                          => dumpParts("YN", e.children, e.range)
+        case _: YDirective                     => dumpParts("Yd", e.children, e.range)
+        case _: YNode                          => dumpParts("YN", e.children, e.range)
         case _                                  => dumpParts(cc, e.children, e.range)
       }
     }

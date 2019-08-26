@@ -20,7 +20,7 @@ trait LexerInput {
   def line: Int
 
   /** the triple (line, column, offset) */
-  def position: (Int, Int, Int)
+  def position: Position
 
   /** Consume and advance to the next code point.  */
   def consume(): Unit

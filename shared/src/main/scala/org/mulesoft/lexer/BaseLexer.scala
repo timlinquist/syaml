@@ -1,21 +1,22 @@
 package org.mulesoft.lexer
 
-import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
+import org.mulesoft.lexer.LexerInput.EofChar
 
 import scala.collection.mutable.ArrayBuffer
 
-abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
+abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: Position) extends Lexer[T] {
 
   type TD = TokenData[T]
-  val offsetPosition: (Int, Int)
-  private val tokenQueue               = new Queue[TD]
-  private var mark                     = position
+  protected val tokenQueue             = new Queue[TD]
+  protected var mark: Position         = position
   val sourceName: String               = input.sourceName
   private var _tokenData: TokenData[T] = _
+
   /** initialize the current _tokenData (may be invoking advance) */
   initialize()
 
-  private def position = (input.position._1 + offsetPosition._1, input.position._2 + offsetPosition._2, input.position._3)
+  private def position = input.position + positionOffset
+
   /** Check if there are emitted tokens */
   def nonTokenEmitted: Boolean = tokenQueue.isEmpty
 
@@ -37,7 +38,10 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
   /** Emit a Token */
   @failfast def emit(token: T): Boolean = {
     val newMark = position
-    tokenQueue += TokenData(token, InputRange(mark._1, mark._2, newMark._1, newMark._2), mark._3, newMark._3)
+    tokenQueue += TokenData(token,
+                            InputRange(mark.line, mark.column, newMark.line, newMark.column),
+                            mark.offset,
+                            newMark.offset)
     mark = newMark
     true
   }
@@ -58,17 +62,17 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
   protected def reset(): Unit = mark = position
 
-  protected def findToken(chr: Int):Unit = {}
+  protected def findToken(chr: Int): Unit = {}
 
   /** Advance the lexer to the next token.  */
   override final def advance(): Unit = {
     while (nonTokenEmitted) {
       if (currentChar != EofChar) {
-          val p = input.offset
-          findToken(currentChar)
-          if (p == input.offset) {
-              advance()
-          }
+        val p = input.offset
+        findToken(currentChar)
+        if (p == input.offset) {
+          advance()
+        }
 
       }
       else processPending()
@@ -82,7 +86,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
 
   final def consume(): Unit = input.consume()
 
-  protected final def consume(n: Int): Unit             = input.consume(n)
+  protected final def consume(n: Int): Unit           = input.consume(n)
   protected def consumeWhile(p: Int => Boolean): Unit = input.consumeWhile(p)
 
   /** Compare with the specified char and consume if they are equal */
@@ -124,29 +128,6 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
       consume(n)
       emit(token)
     }
-  final def matches(p: => Boolean): Boolean = {
-    val s      = saveState
-    val result = p
-    if (!result) restoreState(s)
-    result
-  }
-
-  final def zeroOrMore(p: => Boolean): Boolean = {
-    var s = saveState
-    while (nonEof && p) s = saveState
-    restoreState(s)
-    true
-  }
-
-  final def oneOrMore(p: => Boolean): Boolean = {
-    var s      = saveState
-    val result = p
-    if (result) {
-      do s = saveState while (nonEof && p)
-    }
-    restoreState(s)
-    result
-  }
 
   /** We're not at the Eof */
   def nonEof: Boolean = input.nonEof
@@ -161,35 +142,22 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
     */
   protected def processPending(): Unit
 
-  def restoreState(s: (Int, (Int, Int, Int), Mark)): Unit = {
-    tokenQueue.reduceTo(s._1)
-    mark = s._2
-    input.reset(s._3)
-  }
-
-  def saveState: (Int, (Int, Int, Int), Mark) =
-    (tokenQueue.size, mark, input.createMark())
 }
 class Queue[T] {
-    private val buffer = ArrayBuffer.empty[T]
-    private var head = 0
-    private var tail = 0
-    def size:Int = tail - head
-    def +=(t : T): this.type = {
-        if (buffer.size <= tail) buffer.append(t)
-        else buffer(tail) = t
-        tail += 1
-        this
-    }
-    def reduceTo(newSize: Int): Unit = tail = head + newSize
-    def dequeue: T = {
-        head += 1
-        buffer(head-1)
-    }
-    def isEmpty: Boolean = tail <= head
-}
-
-
-object Position{
-  val ZERO: (Int, Int) = (0,0)
+  private val buffer = ArrayBuffer.empty[T]
+  private var head   = 0
+  private var tail   = 0
+  def size: Int      = tail - head
+  def +=(t: T): this.type = {
+    if (buffer.size <= tail) buffer.append(t)
+    else buffer(tail) = t
+    tail += 1
+    this
+  }
+  def reduceTo(newSize: Int): Unit = tail = head + newSize
+  def dequeue: T = {
+    head += 1
+    buffer(head - 1)
+  }
+  def isEmpty: Boolean = tail <= head
 }

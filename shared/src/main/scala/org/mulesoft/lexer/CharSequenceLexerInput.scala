@@ -27,7 +27,7 @@ class CharSequenceLexerInput private (val data: CharSequence,
   override def offset: Int = state.offset
 
   /** the triple (line, column, offset) */
-  override def position: (Int, Int, Int) = state.position
+  override def position: Position = state.position
 
   /** The current code point character in the input (or LexerInput#Eof if the EoF was reached).  */
   override def current: Int = state.current
@@ -82,15 +82,15 @@ object CharSequenceLexerInput {
             sourceName: String = ""): CharSequenceLexerInput =
     new CharSequenceLexerInput(data, startOffset, Math.min(data.length(), endOffset), sourceName)
 
-    case class InputState(var column: Int = 0,
+  case class InputState(var column: Int = 0,
                         var line: Int = 1,
                         var offset: Int = 0,
                         var nextOffset: Int = 0,
                         var current: Int = EofChar)
       extends Mark {
 
-    private[CharSequenceLexerInput] def nonEof                    = current != EofChar
-    private[CharSequenceLexerInput] def position: (Int, Int, Int) = (line, column, offset)
+    private[CharSequenceLexerInput] def nonEof             = current != EofChar
+    private[CharSequenceLexerInput] def position: Position = Position(line, column, offset)
 
     /** Consume and advance to the next code point.  */
     private[CharSequenceLexerInput] def consume(data: CharSequence, endOffset: Int): Unit = {

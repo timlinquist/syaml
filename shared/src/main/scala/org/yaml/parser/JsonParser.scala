@@ -1,7 +1,7 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{AstToken, InputRange, TokenData}
+import org.mulesoft.lexer.{AstToken, InputRange, Position, TokenData}
 import org.yaml.lexer.YamlToken.{BeginDocument, _}
 import org.yaml.lexer.{JsonLexer, YamlToken}
 import org.yaml.model.{YTag, _}
@@ -161,7 +161,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     override def parse(): Unit = {
       push() // i need new token for YMapEntry container
       if (parseEntry()) {
-        val parts = current.buildParts().sortWith((t1,t2) => t1.range.compareTo(t2.range) < 0)
+        val parts = current.buildParts().sortWith((t1, t2) => t1.range.compareTo(t2.range) < 0)
         stackParts(YMapEntry(parts))
       }
       else {
@@ -310,11 +310,12 @@ object JsonParser {
   def obj(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YObj =
     apply(s)(eh).documents()(0).obj
 
-  def withSource(s: CharSequence, sourceName: String)(implicit eh: ParseErrorHandler =
-                                                        ParseErrorHandler.parseErrorHandler): JsonParser =
-    new JsonParser(JsonLexer(s, sourceName))(eh)
+  def withSource(s: CharSequence, sourceName: String, positionOffset: Position = Position.Zero)(
+      implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): JsonParser =
+    new JsonParser(JsonLexer(s, sourceName, positionOffset))(eh)
 
+  @deprecated("Use Position argument", "")
   def withSourceOffset(s: CharSequence, sourceName: String, offset: (Int, Int))(
       implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): JsonParser =
-    new JsonParser(JsonLexer(s, sourceName, offset))(eh)
+    withSource(s, sourceName, Position(offset._1, offset._2))
 }

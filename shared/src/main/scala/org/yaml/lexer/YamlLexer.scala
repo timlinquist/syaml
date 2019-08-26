@@ -3,7 +3,7 @@ package org.yaml.lexer
 import java.lang.Integer.MAX_VALUE
 
 import org.mulesoft.common.core.countWhile
-import org.mulesoft.lexer.LexerInput.EofChar
+import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
 import org.mulesoft.lexer._
 import org.yaml.lexer.YamlCharRules._
 import org.yaml.lexer.YamlToken._
@@ -13,8 +13,8 @@ import scala.annotation.tailrec
 /**
   * Yaml Lexer for 1.2 Specification
   */
-final class YamlLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO)
-    extends BaseLexer[YamlToken](input) {
+final class YamlLexer private (input: LexerInput, positionOffset: Position = Position.Zero)
+    extends BaseLexer[YamlToken](input, positionOffset) {
 
   //~ Methods ..........................................................................................................
 
@@ -1632,6 +1632,38 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     !beginOfLine || !isDocumentEnd && !isDirectivesEnd
   }
 
+  private def restoreState(s: (Int, Position, Mark)): Unit = {
+    tokenQueue.reduceTo(s._1)
+    mark = s._2
+    input.reset(s._3)
+  }
+
+  private def saveState: (Int, Position, Mark) = (tokenQueue.size, mark, input.createMark())
+
+  private def matches(p: => Boolean): Boolean = {
+    val s      = saveState
+    val result = p
+    if (!result) restoreState(s)
+    result
+  }
+
+  private def zeroOrMore(p: => Boolean): Boolean = {
+    var s = saveState
+    while (nonEof && p) s = saveState
+    restoreState(s)
+    true
+  }
+
+  private def oneOrMore(p: => Boolean): Boolean = {
+    var s      = saveState
+    val result = p
+    if (result) {
+      do s = saveState while (nonEof && p)
+    }
+    restoreState(s)
+    result
+  }
+
 }
 
 object YamlLexer {
@@ -1643,8 +1675,18 @@ object YamlLexer {
   def apply(cs: CharSequence): YamlLexer  = new YamlLexer(CharSequenceLexerInput(cs))
   def apply(cs: CharSequence, sourceName: String): YamlLexer =
     new YamlLexer(CharSequenceLexerInput(cs, sourceName = sourceName))
-  def apply(cs: CharSequence, offsetPosition: (Int, Int)): YamlLexer =
-    new YamlLexer(CharSequenceLexerInput(cs), offsetPosition)
-  def apply(cs: CharSequence, sourceName: String, offsetPosition: (Int, Int)): YamlLexer =
-    new YamlLexer(CharSequenceLexerInput(cs, sourceName = sourceName), offsetPosition)
+
+  @deprecated("Use Position argument", "") def apply(cs: CharSequence, positionOffset: (Int, Int)): YamlLexer =
+    YamlLexer(cs, Position(positionOffset._1, positionOffset._2))
+
+  @deprecated("Use Position argument", "") def apply(cs: CharSequence,
+                                                     sourceName: String,
+                                                     positionOffset: (Int, Int)): YamlLexer =
+    YamlLexer(cs, sourceName, Position(positionOffset._1, positionOffset._2))
+
+  def apply(cs: CharSequence, positionOffset: Position): YamlLexer =
+    new YamlLexer(CharSequenceLexerInput(cs), positionOffset)
+
+  def apply(cs: CharSequence, sourceName: String, positionOffset: Position): YamlLexer =
+    new YamlLexer(CharSequenceLexerInput(cs, sourceName = sourceName), positionOffset)
 }

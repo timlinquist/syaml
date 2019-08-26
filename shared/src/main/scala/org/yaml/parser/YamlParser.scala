@@ -1,7 +1,7 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{BaseLexer, InputRange, TokenData}
+import org.mulesoft.lexer.{BaseLexer, InputRange, Position, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model.{YTag, _}
@@ -175,7 +175,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
     val parts = current.buildParts(td)
     if (current.alias.nonEmpty) {
       val anchor = aliases.get(current.alias)
-      val n = new YNode.Alias(current.alias, anchor.getOrElse(YNode.Null), parts)
+      val n      = new YNode.Alias(current.alias, anchor.getOrElse(YNode.Null), parts)
       if (anchor.isEmpty) eh.handle(n, UndefinedAnchorException(current.alias))
       pop(n)
     }
@@ -204,7 +204,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   private def createMap(td: TD) = {
     val parts = current.buildParts(td)
     duplicates(parts)
-    val v     = YMap(parts, lexer.sourceName)
+    val v = YMap(parts, lexer.sourceName)
     pop(v)
     current.value = v
     current.tag = tagFor(current.tag, YType.Map)
@@ -270,6 +270,11 @@ object YamlParser {
     apply(YamlLexer(s))(eh)
   def apply(s: CharSequence, sourceName: String)(implicit eh: ParseErrorHandler): YamlParser =
     apply(YamlLexer(s, sourceName))(eh)
-  def apply(s: CharSequence, sourceName: String, offset: (Int, Int))(implicit eh: ParseErrorHandler): YamlParser =
+
+  def apply(s: CharSequence, sourceName: String, offset: Position)(implicit eh: ParseErrorHandler): YamlParser =
     apply(YamlLexer(s, sourceName, offset))(eh)
+
+  @deprecated("Use Position argument", "")
+  def apply(s: CharSequence, sourceName: String, offset: (Int, Int))(implicit eh: ParseErrorHandler): YamlParser =
+    YamlParser(s, sourceName, Position(offset._1, offset._2))(eh)
 }

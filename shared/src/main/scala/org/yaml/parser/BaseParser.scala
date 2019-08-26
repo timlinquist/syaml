@@ -4,6 +4,7 @@ import org.yaml.lexer.YamlToken
 import org.yaml.lexer.YamlToken._
 import org.yaml.model._
 
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 abstract class BaseParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit val eh: ParseErrorHandler) {

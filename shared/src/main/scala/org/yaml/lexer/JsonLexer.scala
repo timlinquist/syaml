@@ -8,8 +8,8 @@ import org.yaml.lexer.YamlToken._
 /**
   * Json Lexer
   */
-final class JsonLexer private (input: LexerInput, override val offsetPosition: (Int, Int) = Position.ZERO)
-    extends BaseLexer[YamlToken](input) {
+final class JsonLexer private (input: LexerInput, positionOffset: Position = Position.Zero)
+    extends BaseLexer[YamlToken](input, positionOffset) {
 
   /** Init must initialize the stack and the current _tokenData (may be invoking advance) */
   override protected def initialize(): Unit = {
@@ -122,9 +122,12 @@ object JsonLexer {
 
   def apply(cs: CharSequence, sourceName: String): JsonLexer =
     new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName))
-  
-  def apply(cs: CharSequence, sourceName: String, offsetPosition: (Int, Int)): JsonLexer =
-    new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), offsetPosition)
+
+  @deprecated("Use Position argument", "") def apply(cs: CharSequence, sourceName: String, positionOffset: (Int, Int)): JsonLexer =
+    JsonLexer(cs, sourceName, Position(positionOffset._1, positionOffset._2))
+
+  def apply(cs: CharSequence, sourceName: String, positionOffset: Position): JsonLexer =
+    new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), positionOffset)
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'
   private def isDigit(c: Int)      = c >= '0' && c <= '9'
