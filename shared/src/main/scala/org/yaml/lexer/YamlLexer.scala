@@ -72,7 +72,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * Outside scalar content, YAML allows any line break to be used to terminate lines.<p>
     * [30]	b-non-content	::=	b-break
     */
-  def breakNonContent(): Boolean = lineBreak(LineBreak)
+  @failfast def breakNonContent(): Boolean = lineBreak(LineBreak)
 
   /**
     * URI characters for tags, as specified in RFC2396,
@@ -85,10 +85,12 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     if (currentChar >= 0  && ("#;/?:@&=+$,_.!~*'()[]".indexOf(currentChar) != -1 || isWordChar(currentChar))) {
       consume()
       true
-    } else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
+    }
+    else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
       consume(3)
       true
-    } else false
+    }
+    else false
 
   /**
     * A Tag char cannot contain the “!” character because is used to indicate the end of a named tag handle.
@@ -201,11 +203,10 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * [[folded b-l-folded(n,flow-in)]]
     * [[linePrefix s-flow-line-prefix(n)]]
     */
-  private def flowFolded(n: Int): Boolean =
-    matches({
-      separateInLine()
-      folded(n, FlowIn) && linePrefix(n, flow = true)
-    })
+  private def flowFolded(n: Int): Boolean = {
+    separateInLine()
+    folded(n, FlowIn) && linePrefix(n, flow = true)
+  }
 
   /**
     * [75]	c-nb-comment-text	::=	“#” nb-char*
@@ -213,7 +214,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * Actually it is doing:
     * commentText ::= '#' nb-char* b-comment
     */
-  def commentText(): Boolean = {
+  @failfast def commentText(): Boolean = {
     if (currentChar != '#') return false
     emit(BeginComment)
     consumeAndEmit(Indicator)
@@ -226,14 +227,14 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   /**
     * [76]	b-comment	::=	[[breakNonContent b-non-content]] | EofChar
     */
-  def breakComment(): Boolean = currentChar == EofChar || breakNonContent()
+  @failfast def breakComment(): Boolean = currentChar == EofChar || breakNonContent()
 
   /**
     * [77]	s-b-comment	::=	( s-separate-in-line c-nb-comment-text? )? b-comment*
     * Actually refactored to:
     * b-comment | l-comment
     */
-  def spaceBreakComment(): Boolean = breakComment() || lineComment()
+  @failfast def spaceBreakComment(): Boolean = breakComment() || lineComment()
 
   /**
     * <blockquote><pre>
@@ -245,14 +246,12 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * </blockquote></pre>
     *
     */
-  def lineComment(): Boolean = matches { // can be made fail fast...
-    separateInLine() && (breakComment() || commentText())
-  }
+  @failfast def lineComment(): Boolean = separateInLine() && (breakComment() || commentText())
 
   /**
     * [79]	s-l-comments	::=	( s-b-comment | /* Start of line */ ) l-comment*
     */
-  def multilineComment(): Boolean = (beginOfLine || spaceBreakComment()) && zeroOrMore(lineComment())
+  @failfast def multilineComment(): Boolean = (beginOfLine || spaceBreakComment()) && zeroOrMore(lineComment())
 
   /**
     * [80]	s-separate(n,c)	::=	c = block-out ⇒ s-separate-lines(n)
@@ -285,7 +284,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     */
   private def directive() =
     currentChar == '%' && emit(BeginDirective) && emitIndicator() && (
-      matches(yamlDirective()) || matches(tagDirective()) || matches(reservedDirective())
+        matches(yamlDirective()) || matches(tagDirective()) || matches(reservedDirective())
     ) && emit(EndDirective) && multilineComment()
 
   /**
@@ -404,11 +403,11 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     */
   private def nodeProperties(n: Int, c: YamlContext) = matches {
     emit(BeginProperties) && (
-      tagProperty() && optional(matches {
-        val b1 = separate(n, c)
-        b1 && anchorProperty()
-      }) ||
-      anchorProperty() && optional(matches(separate(n, c) && tagProperty()))
+        tagProperty() && optional(matches {
+          val b1 = separate(n, c)
+          b1 && anchorProperty()
+        }) ||
+        anchorProperty() && optional(matches(separate(n, c) && tagProperty()))
     ) &&
     emit(EndProperties)
   }
@@ -436,13 +435,13 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
       } ||
       matches {
         tagHandle() && (
-          matches {
-            tagChar() && {
-              while (tagChar()) {}
-              emit(MetaText)
-            }
-          } ||
-          emit(Error)
+            matches {
+              tagChar() && {
+                while (tagChar()) {}
+                emit(MetaText)
+              }
+            } ||
+            emit(Error)
         )
       }
     } &&
@@ -544,7 +543,8 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
             matches(breakNonContent() && emptyLine(n, c)) || consumeAndEmit(LineFold)
             indent(n)
             consumeAndEmit(countWhiteSpaces(), WhiteSpace)
-          } else {
+          }
+          else {
             inText = false
             emit(Error)
             done = true
@@ -573,7 +573,8 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
           if (isBBreak(lookAhead(spaces))) {
             emitText()
             consumeAndEmit(spaces, WhiteSpace)
-          } else {
+          }
+          else {
             inText = true
             consume(spaces)
           }
@@ -603,8 +604,8 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   @failfast private def plainFirst(ctx: YamlContext): Boolean = {
     val chr = currentChar
     val result = isNsChar(chr) && !isIndicator(chr) || (chr == '-' || chr == ':' || chr == '?') && isPlainSafe(
-      lookAhead(1),
-      ctx)
+        lookAhead(1),
+        ctx)
     if (result) consume()
     result
   }
@@ -647,15 +648,14 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * c = block-key ⇒ ns-plain-one-line(c)
     * c = flow-key  ⇒ ns-plain-one-line(c)
     */
-  def plainScalar(n: Int, ctx: YamlContext): Boolean =
-    matches({
-      emit(BeginScalar)
-      ctx match {
-        case FlowKey | BlockKey => plainOneLine(ctx)
-        case _                  => plainMultiline(n, ctx)
-      }
-      emit(EndScalar)
-    })
+  def plainScalar(n: Int, ctx: YamlContext): Boolean = {
+    emit(BeginScalar)
+    ctx match {
+      case FlowKey | BlockKey => plainOneLine(ctx)
+      case _                  => plainMultiline(n, ctx)
+    }
+    emit(EndScalar)
+  }
 
   /**
     * [132]	nb-ns-plain-in-line(c)	::=	( s-white* ns-plain-char(c) )*
@@ -673,19 +673,22 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
   }
 
   /** [133]	ns-plain-one-line(c)	::=	ns-plain-first(c) nb-ns-plain-in-line(c) */
-  @failfast private def plainOneLine(ctx: YamlContext): Boolean = plainFirst(ctx) && plainInLine(ctx) && emit(Text)
+  @failfast private def plainOneLine(ctx: YamlContext): Unit = {
+    plainFirst(ctx)
+    plainInLine(ctx)
+    emit(Text)
+  }
 
   /**
     * [134]	s-ns-plain-next-line(n,c)	::=	s-flow-folded(n) ns-plain-char(c) nb-ns-plain-in-line(c)
     * [135]	ns-plain-multi-line(n,c)	::=	ns-plain-one-line(c) s-ns-plain-next-line(n,c)*
     */
-  private def plainMultiline(n: Int, ctx: YamlContext): Boolean =
-    plainOneLine(ctx) && zeroOrMore({
-      val b1 = flowFolded(n)
-      if (!b1) false
+  private def plainMultiline(n: Int, ctx: YamlContext): Unit = {
+    plainOneLine(ctx)
+    zeroOrMore({
+      if (!flowFolded(n)) false
       else {
-        val b2 = plainChar(ctx)
-        if (!b2) false
+        if (!plainChar(ctx)) false
         else {
           val b3 = plainInLine(ctx)
           if (b3) emit(Text)
@@ -694,6 +697,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
       }
 
     })
+  }
 
   /**
     * Flow sequence content is denoted by surrounding “[” and “]” characters.<p>
@@ -763,9 +767,9 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     */
   def flowSequenceEntry(n: Int, ctx: YamlContext): Boolean = {
     matches(
-      emit(BeginNode) && emit(BeginMapping, BeginPair) &&
-        flowPair(n, ctx) &&
-        emit(EndPair, EndMapping) && emit(EndNode)) ||
+        emit(BeginNode) && emit(BeginMapping, BeginPair) &&
+          flowPair(n, ctx) &&
+          emit(EndPair, EndMapping) && emit(EndNode)) ||
     matches(emit(BeginNode) && flowNode(n, ctx) && emit(EndNode))
   }
 
@@ -845,9 +849,9 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     matches {
       val b1 = emit(BeginNode) && flowYamlNode(n, c)
       b1 && emit(EndNode) && (
-        matches {
-          optional(separate(n, c)) && flowMapSeparateValue(n, c)
-        } || emptyNode()
+          matches {
+            optional(separate(n, c)) && flowMapSeparateValue(n, c)
+          } || emptyNode()
       )
     } || flowMapEmptyKeyEntry(n, c) || flowMapJsonKeyEntry(n, c)
 
@@ -896,11 +900,11 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * )
     */
   private def flowMapAdjacentValue(n: Int, c: YamlContext) = indicator(':') && (
-    matches {
-      separate(n, c)
-      emit(BeginNode)
-      flowNode(n, c) && emit(EndNode)
-    } || emptyNode()
+      matches {
+        separate(n, c)
+        emit(BeginNode)
+        flowNode(n, c) && emit(EndNode)
+      } || emptyNode()
   )
 
   /**
@@ -1103,7 +1107,8 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     if (t != '+') {
       if (t != '-') emit(EndScalar)
       zeroOrMore(indentLessOrEqual(n) && breakNonContent()) //strip empty
-    } else {
+    }
+    else {
       zeroOrMore(emptyLine(n, BlockIn)) // keep empty
       emit(EndScalar)
     }
@@ -1600,7 +1605,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
           if (chr == '\'' && lookAhead(i + 1) == '\'') i = i + 1
           else if (chr != '"' || lookAhead(i - 1) != '\\') dueClosing = None
         case None if isMappingIndicator(chr, lookAhead(i + 1)) =>
-           return true
+          return true
         case _ =>
       }
       i += 1

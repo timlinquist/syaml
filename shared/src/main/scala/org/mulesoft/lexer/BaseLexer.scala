@@ -83,7 +83,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
   final def consume(): Unit = input.consume()
 
   protected final def consume(n: Int): Unit             = input.consume(n)
-  protected def consumeWhile(p: (Int => Boolean)): Unit = input.consumeWhile(p)
+  protected def consumeWhile(p: Int => Boolean): Unit = input.consumeWhile(p)
 
   /** Compare with the specified char and consume if they are equal */
   protected def consume(c: Char): Boolean =
@@ -137,6 +137,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput) extends Lexer[T] {
     restoreState(s)
     true
   }
+
   final def oneOrMore(p: => Boolean): Boolean = {
     var s      = saveState
     val result = p
