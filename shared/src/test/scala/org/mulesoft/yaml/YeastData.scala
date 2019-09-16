@@ -11,7 +11,7 @@ case class YeastData(token: YamlToken, start: Int, line: Int, col: Int, text: St
 object YeastData {
   def apply(tokenData: TokenData[YamlToken], txt: String): YeastData =
     new YeastData(tokenData.token,
-      tokenData.start,
+      tokenData.range.offsetFrom,
       tokenData.range.lineFrom,
       tokenData.range.columnFrom,
       txt)

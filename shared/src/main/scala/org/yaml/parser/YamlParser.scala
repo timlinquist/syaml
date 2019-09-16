@@ -1,7 +1,7 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{BaseLexer, InputRange, Position, TokenData}
+import org.mulesoft.lexer.{BaseLexer, Position, SourceLocation, TokenData}
 import org.yaml.lexer.YamlToken._
 import org.yaml.lexer.{YamlLexer, YamlToken}
 import org.yaml.model.{YTag, _}
@@ -23,7 +23,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   private var inHandle                          = false
   private var inTag                             = false
   private var scalarMark                        = ""
-  private var prev: TD                          = TokenData(BeginStream, InputRange.Zero)
+  private var prev: TD                          = TokenData(BeginStream, SourceLocation(lexer.sourceName))
   private var lastBegin                         = BeginStream
   private var directiveArgs: ListBuffer[String] = _
   private var includeTag                        = ""
@@ -129,7 +129,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   }
 
   private def createComment(td: TD) = {
-    pop(YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
+    pop(YComment(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td)))
     td
   }
   private def createDirective(td: TD) = {
@@ -145,14 +145,14 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   private def createTag(td: TokenData[YamlToken]) = {
     inTag = false
     val t =
-      YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
+      YTag(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td))
     pop(t)
     current.tag = t
     td
   }
 
   private def createAnchor(td: TD) = {
-    val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td), lexer.sourceName)
+    val anchor = YAnchor(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td), lexer.sourceName)
     pop(anchor)
     current.anchor = Some(anchor)
     td
@@ -213,7 +213,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
 
   private def createAlias(td: TD) = {
     val aliasName = buildMetaText()
-    val alias     = YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td), lexer.sourceName)
+    val alias     = YAnchor(aliasName, (current.first rangeTo td).inputRange, current.buildTokens(td), lexer.sourceName)
     pop(alias)
     current.alias = aliasName
     td

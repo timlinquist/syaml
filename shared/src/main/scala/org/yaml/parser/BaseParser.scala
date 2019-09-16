@@ -4,7 +4,6 @@ import org.yaml.lexer.YamlToken
 import org.yaml.lexer.YamlToken._
 import org.yaml.model._
 
-import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
 abstract class BaseParser private[parser] (val lexer: BaseLexer[YamlToken])(implicit val eh: ParseErrorHandler) {
@@ -58,7 +57,7 @@ abstract class BaseParser private[parser] (val lexer: BaseLexer[YamlToken])(impl
 
     def addNonContent(td: TD): Unit =
       if (tokens.nonEmpty) {
-        val content = YNonContent(first rangeTo td, buildTokens(), lexer.sourceName)
+        val content = YNonContent((first rangeTo td).inputRange, buildTokens(), lexer.sourceName)
         parts += content
         collectErrors(content)
       }
@@ -66,7 +65,7 @@ abstract class BaseParser private[parser] (val lexer: BaseLexer[YamlToken])(impl
     def collectErrors(nonContent: YNonContent): Unit = {
       nonContent.tokens.find(_.tokenType == Error) match {
         case Some(astToken: AstToken) =>
-          eh.handle(YNonContent(astToken.range, IndexedSeq(astToken), lexer.sourceName), if(astToken.parsingError)ParserException(astToken.text) else LexerException(astToken.text))
+          eh.handle(YNonContent(astToken.range.inputRange, IndexedSeq(astToken), lexer.sourceName), if(astToken.parsingError)ParserException(astToken.text) else LexerException(astToken.text))
         case _ =>
       }
     }

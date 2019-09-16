@@ -12,15 +12,14 @@ abstract class Token(val name: String, val abbreviation: String) {
 /**
   * The Token data
   */
-case class TokenData[T <: Token](token: T, range: InputRange, start: Int = 0, end: Int = 0) {
-  def rangeTo(to: TokenData[T]): InputRange =
-    InputRange(range.lineFrom, range.columnFrom, to.range.lineTo, to.range.columnTo)
+case class TokenData[T <: Token](token: T, range: SourceLocation) {
+  def rangeTo(end: TokenData[T]): SourceLocation = range to end.range
 }
 
 /**
   * A Token that contains the associated text.
   * So it can be used to into the AST to serialize the input without keeping the original source
   */
-case class AstToken(tokenType: Token, text: String, range: InputRange, parsingError :Boolean = false) {
+case class AstToken(tokenType: Token, text: String, range: SourceLocation, parsingError :Boolean = false) {
     override def toString: String =  s"$tokenType '${text.encode}'"
 }

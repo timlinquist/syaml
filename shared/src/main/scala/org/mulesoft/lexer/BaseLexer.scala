@@ -30,7 +30,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
   override def tokenData: TD = _tokenData
 
   /** Get the specified Token Char Sequence.  */
-  def tokenText(td: TD): CharSequence = input.subSequence(td.start, td.end)
+  def tokenText(td: TD): CharSequence = input.subSequence(td.range.offsetFrom, td.range.offsetTo)
 
   /** Get the current Token Char Sequence.  */
   override def tokenText: CharSequence = tokenText(_tokenData)
@@ -38,10 +38,9 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
   /** Emit a Token */
   @failfast def emit(token: T): Boolean = {
     val newMark = position
-    tokenQueue += TokenData(token,
-                            InputRange(mark.line, mark.column, newMark.line, newMark.column),
-                            mark.offset,
-                            newMark.offset)
+    tokenQueue += TokenData(
+      token,
+      SourceLocation(sourceName, mark.offset, newMark.offset, mark.line, mark.column, newMark.line, newMark.column))
     mark = newMark
     true
   }
@@ -74,8 +73,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
           advance()
         }
 
-      }
-      else processPending()
+      } else processPending()
     }
     _tokenData = tokenQueue.dequeue
   }

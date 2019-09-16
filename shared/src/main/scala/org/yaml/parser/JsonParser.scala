@@ -211,7 +211,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   private def currentText(): String = lexer.tokenString
 
-  private def currentRange(): InputRange = lexer.tokenData.range
+  private def currentRange() = lexer.tokenData.range
 
   private def consume() = {
     current.append()
@@ -281,7 +281,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
-        val content = YNonContent(rangeFromTo(first.range, tokens.last.range), buildTokens(), lexer.sourceName)
+        val content = YNonContent(rangeFromTo(first.range.inputRange, tokens.last.range.inputRange), buildTokens(), lexer.sourceName)
         parts += content
         collectErrors(content)
       }
