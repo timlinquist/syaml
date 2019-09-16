@@ -82,7 +82,7 @@ final class YamlLexer private (input: LexerInput, override val offsetPosition: (
     * | “,” | “_” | “.” | “!” | “~” | “*” | “'” | “(” | “)” | “[” | “]”
     */
   @failfast private def uriChar() =
-    if ("#;/?:@&=+$,_.!~*'()[]".indexOf(currentChar) != -1 || isWordChar(currentChar)) {
+    if (currentChar >= 0  && ("#;/?:@&=+$,_.!~*'()[]".indexOf(currentChar) != -1 || isWordChar(currentChar))) {
       consume()
       true
     } else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
