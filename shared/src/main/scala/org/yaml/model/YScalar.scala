@@ -48,6 +48,12 @@ object YScalar {
   def fromToken(astToken: AstToken, range: InputRange, sourceName: String = "") =
     new YScalar(astToken.text, astToken.text, NonMark, Array(YNonContent(range, Array(astToken))), sourceName)
 
+  /** Used in amf-core. Remove ASAP! */
+  def withLocation(value: String, tag: YType, _sourceName: String, range: InputRange): YScalar =
+    new YScalar.Builder(value, tag.tag, sourceName = _sourceName, parts = IndexedSeq(new YTokens(range, IndexedSeq()) {
+      override val sourceName: String = _sourceName
+    })).scalar
+
   class Builder(text: String,
                 t: YTag,
                 mark: String = "",
@@ -63,8 +69,7 @@ object YScalar {
         else {
           Str
         }
-      }
-      else if (scalarMark == NonMark) Unknown
+      } else if (scalarMark == NonMark) Unknown
       else Str
 
       var value: Either[ParseException, Any] = Right(text)
