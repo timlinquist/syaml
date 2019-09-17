@@ -73,6 +73,9 @@ object SourceLocation {
   def apply(sourceName: String, lineFrom: Int, columnFrom: Int, lineTo: Int, columnTo: Int): SourceLocation =
     new SourceLocation(sourceName, 0, 0, lineFrom, columnFrom, lineTo, columnTo)
 
+  def apply(sourceName: String, range: InputRange): SourceLocation =
+    new SourceLocation(sourceName, 0, 0, range.lineFrom, range.columnFrom, range.lineTo, range.columnTo)
+
   def apply(sourceName: String): SourceLocation =
     if (sourceName == null || sourceName.isEmpty) Unknown
     else cache.getOrElseUpdate(sourceName, SourceLocation(sourceName, 0, 0))
