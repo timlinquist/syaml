@@ -1,14 +1,16 @@
 package org.yaml.model
 
+import org.mulesoft.lexer.SourceLocation
+
 /** A YamlValue is either a Scalar, a Sequence or a Map */
-abstract class YValue(override val children: IndexedSeq[YPart], override val sourceName:String) extends YValueLike with YPart
+abstract class YValue(location: SourceLocation, parts: IndexedSeq[YPart]) extends YPart(location, parts) with YValueLike
 
 /**
   *  Root class of all YamlElements that contains a Value
   * That is either an YValue or any YNodeLike
   * It defines the == and != methods to avoid warnings from Intellij
   */
-abstract class YValueLike {
-    def ==(b: YValueLike): Boolean = (this eq b) || equals(b)
-    def !=(b: YValueLike): Boolean = !equals(b)
+trait YValueLike {
+  def ==(b: YValueLike): Boolean = (this eq b) || equals(b)
+  def !=(b: YValueLike): Boolean = !equals(b)
 }

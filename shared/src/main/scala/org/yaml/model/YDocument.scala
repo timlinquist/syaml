@@ -1,5 +1,6 @@
 package org.yaml.model
 
+import org.mulesoft.lexer.SourceLocation
 import org.yaml.convert.YRead
 import org.yaml.parser.{JsonParser, YamlParser}
 
@@ -9,9 +10,9 @@ import scala.language.{dynamics, implicitConversions}
 /**
   * A Yaml Document
   */
-case class YDocument(override val children: IndexedSeq[YPart], override val sourceName: String)
-    extends YNodeLike
-    with YPart {
+class YDocument(location: SourceLocation, children: IndexedSeq[YPart])
+    extends YPart(location, children)
+    with YNodeLike {
 
   /** The Main Document Node */
   val node: YNode    = children collectFirst { case a: YNode => a } getOrElse YNode.Null
@@ -23,7 +24,7 @@ case class YDocument(override val children: IndexedSeq[YPart], override val sour
 
   override def toString: String = "Document: " + node.toString
 
-  override def to[T:YRead]: Either[YError, T] = obj.to
+  override def to[T: YRead]: Either[YError, T] = obj.to
 
   override def obj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
 
@@ -36,6 +37,9 @@ case class YDocument(override val children: IndexedSeq[YPart], override val sour
 }
 
 object YDocument {
+
+  def apply(children: IndexedSeq[YPart], sourceName: String): YDocument =
+    new YDocument(SourceLocation(sourceName), children)
 
   /** Build supplying a Head comment */
   def apply(headComment: String, sourceName: String): WithComment =
@@ -62,11 +66,16 @@ object YDocument {
   object obj extends Dynamic {
     def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName: String = ""): YNode =
       method match {
-        case "apply" => YNode.fromMap(YMap(args.map { t =>
-          val key = YNode(t._1, sourceName)
-          val value = if (t._2 eq null) YNode.Null else t._2
-          YMapEntry(key, value)
-      }.toArray[YPart], sourceName))
+        case "apply" =>
+          YNode.fromMap(
+            YMap(args
+                   .map { t =>
+                     val key   = YNode(t._1, sourceName)
+                     val value = if (t._2 eq null) YNode.Null else t._2
+                     YMapEntry(key, value)
+                   }
+                   .toArray[YPart],
+                 sourceName))
       }
   }
 
@@ -77,7 +86,9 @@ object YDocument {
   def list(f: PartBuilder => Unit): YDocument = YDocument("", "").list(f)
 
   /** Build a list of Nodes */
-  def list(elems: YNode*)(implicit sourceName: String = ""): YNode = YNode(YSequence(elems.toArray[YNode], sourceName))
+  def list(elems: YNode*)(implicit sourceName: String = ""): YNode = YNode(
+    YSequence(SourceLocation(sourceName), elems.toArray[YNode])
+  )
 
   /** Convert from an node to a document */
   implicit def fromNode(node: YNode): YDocument = YDocument("", node.sourceName)(node)
@@ -90,7 +101,7 @@ object YDocument {
       val b = new PartBuilder(sourceName)
       if (comment.nonEmpty) b comment comment
       f(b)
-      new YDocument(b.builder.result, sourceName)
+      new YDocument(SourceLocation(sourceName), b.builder.result)
     }
 
     /** Constructor from a Head Comment and a main Node */
@@ -113,13 +124,14 @@ object YDocument {
     def list(f: PartBuilder => Unit): YDocument = apply(createSeqNode(f, sourceName))
 
     private def createDoc(mainNode: YNode) =
-      new YDocument(if (comment.isEmpty) Array(mainNode) else Array(YComment(comment), mainNode), sourceName)
+      new YDocument(SourceLocation(sourceName),
+                    if (comment.isEmpty) Array(mainNode) else Array(new YComment(comment), mainNode))
   }
   abstract class BaseBuilder {
     private[YDocument] val builder = new ArrayBuffer[YPart]
 
     /** Add a Comment */
-    def comment(text: String): Unit = for (line <- text split "\n") builder += YComment(line)
+    def comment(text: String): Unit = for (line <- text split "\n") builder += new YComment(line)
     val sourceName: String
   }
 
@@ -170,7 +182,7 @@ object YDocument {
   private def createSeqNode(f: PartBuilder => Unit, sourceName: String) = {
     val b = new PartBuilder(sourceName)
     f(b)
-    val node = YNode(YSequence(b.builder.result, sourceName), YType.Seq)
+    val node = YNode(YSequence(SourceLocation(sourceName), b.builder.result), YType.Seq)
     node
   }
 

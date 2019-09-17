@@ -38,7 +38,7 @@ class YDocumentBuilder extends DocBuilder[YPart] {
       override def +=(scalar: Scalar): Unit = builder += mkNode(scalar)
       override def +=(element: YPart): Unit = element match {
         case node: YNode => builder += node
-        case _ => // nothing
+        case _           => // nothing
       }
       override def list(f: Part[YPart] => Unit): Option[YPart] = {
         val result = createSeqNode(f)
@@ -74,7 +74,7 @@ class YDocumentBuilder extends DocBuilder[YPart] {
     f(b)
     YNode(YMap(builder.result, ""), YType.Map)
   }
-  private def createSeqNode(f: Part[YPart] => Unit) = YNode(YSequence(createPartBuilder(f).result, ""), YType.Seq)
+  private def createSeqNode(f: Part[YPart] => Unit) = YNode(YSequence(createPartBuilder(f).result), YType.Seq)
 }
 
 object YDocumentBuilder {

@@ -1,15 +1,17 @@
 package org.yaml.model
 
+import org.mulesoft.lexer.SourceLocation
+
 import scala.collection.immutable
 import scala.language.dynamics
 
 /**
   * A Yaml Map
   */
-class YMap private (c: IndexedSeq[YPart], sourceName:String) extends YValue(c,sourceName) {
+class YMap private (location: SourceLocation, parts: IndexedSeq[YPart]) extends YValue(location, parts) {
 
   /** The Map Entries in order */
-  val entries: IndexedSeq[YMapEntry] = c.collect { case a: YMapEntry => a }.toArray[YMapEntry]
+  val entries: IndexedSeq[YMapEntry] = parts.collect { case a: YMapEntry => a }.toArray[YMapEntry]
 
   /** The Map */
   val map: Map[YNode, YNode] = {
@@ -33,18 +35,19 @@ class YMap private (c: IndexedSeq[YPart], sourceName:String) extends YValue(c,so
 }
 
 object YMap {
-  def apply(c: IndexedSeq[YPart], sourceName:String): YMap = new YMap(c,sourceName)
-  val empty                             = YMap(IndexedSeq.empty,"")
+  def apply(c: IndexedSeq[YPart], sourceName: String): YMap = new YMap(SourceLocation(sourceName), c)
+  val empty                                                 = YMap(IndexedSeq.empty, "")
 }
 
-class YMapEntry private (val key: YNode, val value: YNode, override val children: IndexedSeq[YPart], override val sourceName:String) extends YPart {
+class YMapEntry private (val key: YNode, val value: YNode, location: SourceLocation, parts: IndexedSeq[YPart])
+    extends YPart(location, parts) {
   override def toString: String = key + ": " + value
 }
 
 object YMapEntry {
   def apply(parts: IndexedSeq[YPart]): YMapEntry = {
     val kv = parts collect { case a: YNode => a }
-    new YMapEntry(kv(0), kv(1), parts,kv(0).sourceName)
+    new YMapEntry(kv(0), kv(1), SourceLocation(kv(0).sourceName), parts)
   }
-  def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, Array(k, v),k.sourceName)
+  def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, SourceLocation(k.sourceName), Array(k, v))
 }

@@ -46,7 +46,7 @@ class ScalarParser(text: String, var ytype: YType) {
         case SimpleDateTime(dateTime) if typeIs(Timestamp) =>
           ytype = Timestamp
           Right(dateTime)
-        case _ if ytype == Unknown =>
+        case _ if ytype == YType.Unknown =>
           ytype = Str
           Right(text)
         case _  if ytype == tNull || ytype == Bool || ytype == Int || ytype == Float || ytype == Timestamp =>

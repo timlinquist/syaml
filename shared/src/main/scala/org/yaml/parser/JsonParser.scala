@@ -1,7 +1,7 @@
 package org.yaml.parser
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{AstToken, InputRange, Position, TokenData}
+import org.mulesoft.lexer._
 import org.yaml.lexer.YamlToken.{BeginDocument, _}
 import org.yaml.lexer.{JsonLexer, YamlToken}
 import org.yaml.model.{YTag, _}
@@ -25,7 +25,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       process()
       consumeOrError(EndDocument)
     }
-    val d = YDocument(current.buildParts(), lexer.sourceName)
+    val d = new YDocument(SourceLocation(lexer.sourceName), current.buildParts())
     d
   }
 
@@ -76,7 +76,8 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   private def parseMap(): Boolean = {
     push()
     val r = parseList(BeginMapping, EndMapping, MapEntryParser())
-    val v = YMap(current.buildParts(), lexer.sourceName)
+    val parts = current.buildParts()
+    val v = YMap(parts, lexer.sourceName)
     stackParts(buildNode(v, YType.Map.tag))
     r
   }
@@ -84,7 +85,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   private def parseSeq(): Boolean = {
     push()
     val r = parseList(BeginSequence, EndSequence, SequenceValueParser()) // should check if i parse something? empty pop if not?
-    val v = YSequence(current.buildParts(), lexer.sourceName)
+    val v = YSequence(SourceLocation(lexer.sourceName), current.buildParts())
     stackParts(buildNode(v, YType.Seq.tag))
     r
   }
@@ -281,7 +282,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
-        val content = YNonContent(rangeFromTo(first.range.inputRange, tokens.last.range.inputRange), buildTokens(), lexer.sourceName)
+        val content = new YNonContent(location(first.range.inputRange, tokens.last.range.inputRange), buildTokens())
         parts += content
         collectErrors(content)
       }
@@ -297,8 +298,8 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       }
     }
 
-    private def rangeFromTo(begin: InputRange, end: InputRange) =
-      InputRange(begin.lineFrom, begin.columnFrom, end.lineTo, end.columnTo)
+    private def location(begin: InputRange, end: InputRange) =
+      SourceLocation(lexer.sourceName, begin.lineFrom, begin.columnFrom, end.lineTo, end.columnTo)
 
   }
 }

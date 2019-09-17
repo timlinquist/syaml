@@ -1,10 +1,13 @@
 package org.mulesoft.lexer
 
 final class Position private (val line: Int, val column: Int, val offset: Int) extends Ordered[Position] {
+
   def +(that: Position): Position =
-    if (this == Position.Zero) that
-    else if (that == Position.Zero) this
+    if (this.isZero) that
+    else if (that.isZero) this
     else Position(line + that.line, column + that.column, offset + that.offset)
+
+  def isZero:Boolean = line == 0 && column == 0 && offset == 0
 
   override def hashCode(): Int = line + 31 * (column + 31 * offset)
 

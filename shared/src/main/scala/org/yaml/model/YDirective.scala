@@ -1,11 +1,14 @@
 package org.yaml.model
 
+import org.mulesoft.lexer.SourceLocation
+import org.mulesoft.lexer.SourceLocation.Unknown
+
 /** Yaml Directive */
-case class YDirective(name: String,
-                      args: IndexedSeq[String],
-                      override val children: IndexedSeq[YPart] = IndexedSeq.empty,
-                      override val sourceName:String = "")
-    extends YPart {
+class YDirective(val name: String,
+                 val args: IndexedSeq[String],
+                 location: SourceLocation = Unknown,
+                 parts: IndexedSeq[YPart] = IndexedSeq.empty)
+    extends YPart(location, parts) {
 
   override def hashCode(): Int = name.hashCode + 31 * args.hashCode
 
@@ -15,4 +18,12 @@ case class YDirective(name: String,
   }
 
   override def toString: String = s"%$name ${args mkString " "}"
+}
+
+object YDirective {
+  def apply(name: String,
+            args: IndexedSeq[String],
+            location: SourceLocation = Unknown,
+            parts: IndexedSeq[YPart] = IndexedSeq.empty): YDirective =
+    new YDirective(name, args, location, parts)
 }

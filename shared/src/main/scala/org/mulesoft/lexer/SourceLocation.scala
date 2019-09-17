@@ -1,6 +1,6 @@
 package org.mulesoft.lexer
 
-import org.mulesoft.lexer.SourceLocation.UnknownSource
+import org.mulesoft.lexer.SourceLocation.Unknown
 
 import scala.collection.mutable
 import scala.language.implicitConversions
@@ -39,11 +39,13 @@ case class SourceLocation(sourceName: String,
   /**
     * Create a range that covers from both ranges
     */
-  def to(that: SourceLocation): SourceLocation = {
-    if (sourceName != that.sourceName) {
-      if (this == UnknownSource) that else this
-    } else SourceLocation(sourceName, from, that.to)
-  }
+  def to(that: SourceLocation): SourceLocation =
+    if (this == Unknown) that
+    else if (that == Unknown) this
+    else SourceLocation(sourceName, from, that.to)
+
+  def isZero: Boolean =
+    lineFrom == 0 && columnFrom == 0 && lineTo == 0 && columnTo == 0 && offsetFrom == 0 && offsetTo == 0
 
   /**
     * InputRange
@@ -62,7 +64,8 @@ case class SourceLocation(sourceName: String,
 
 object SourceLocation {
   def apply(sourceName: String, from: Position, to: Position): SourceLocation =
-    new SourceLocation(sourceName, from.offset, to.offset, from.line, from.column, to.line, to.column)
+    if (from.isZero && to.isZero) SourceLocation(sourceName)
+    else new SourceLocation(sourceName, from.offset, to.offset, from.line, from.column, to.line, to.column)
 
   def apply(sourceName: String, offsetFrom: Int, offsetTo: Int): SourceLocation =
     new SourceLocation(sourceName, offsetFrom, offsetTo, 0, 0, 0, 0)
@@ -71,10 +74,10 @@ object SourceLocation {
     new SourceLocation(sourceName, 0, 0, lineFrom, columnFrom, lineTo, columnTo)
 
   def apply(sourceName: String): SourceLocation =
-    if (sourceName == null || sourceName.isEmpty) UnknownSource
+    if (sourceName == null || sourceName.isEmpty) Unknown
     else cache.getOrElseUpdate(sourceName, SourceLocation(sourceName, 0, 0))
 
-  final val UnknownSource = SourceLocation("", 0, 0)
+  final val Unknown = SourceLocation("", 0, 0)
 
   private val cache = mutable.Map.empty[String, SourceLocation]
 

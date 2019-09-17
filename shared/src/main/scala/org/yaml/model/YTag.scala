@@ -1,24 +1,21 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.{InputRange, AstToken}
-import org.mulesoft.lexer.InputRange.Zero
+import org.mulesoft.lexer.SourceLocation.Unknown
+import org.mulesoft.lexer.{AstToken, SourceLocation}
 
 /**
   * A Yaml Tag
   */
-case class YTag(text: String,
-                tagType: YType,
-                override val range: InputRange = Zero,
-                override val tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
-    extends YTokens(range, tokens) {
+class YTag(val text: String, val tagType: YType, loc: SourceLocation, tks: IndexedSeq[AstToken])
+    extends YTokens(loc, tks) {
 
-  def synthesized: Boolean      = tagType.synthesized && tagType.tag == this
-  override def toString: String = text
-
-  override val sourceName: String = ""
+  def withTag(tagType: YType): YTag = new YTag(text, tagType, loc, tks)
+  def synthesized: Boolean          = tagType.synthesized && tagType.tag == this
+  override def toString: String     = text
 }
 
 object YTag {
-  def apply(tag: String, range: InputRange, ts: IndexedSeq[AstToken]): YTag = YTag(tag, YType(tag), range, ts)
+  def apply(tag: String, loc: SourceLocation, ts: IndexedSeq[AstToken]): YTag = new YTag(tag, YType(tag), loc, ts)
+  def apply(tag: String, tagType: YType): YTag                                = new YTag(tag, tagType, Unknown, IndexedSeq.empty)
   def apply(tag: String): YTag                                                = YTag(tag, YType(tag))
 }

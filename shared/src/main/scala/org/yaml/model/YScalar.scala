@@ -3,8 +3,9 @@ package org.yaml.model
 import java.util.Objects.{hashCode => hash}
 
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{AstToken, InputRange}
-import org.yaml.model.YType.{Empty, Str, Unknown}
+import org.mulesoft.lexer.SourceLocation.Unknown
+import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
+import org.yaml.model.YType.{Empty, Str}
 import org.yaml.parser.ScalarParser
 
 /**
@@ -13,9 +14,9 @@ import org.yaml.parser.ScalarParser
 class YScalar private[model] (val value: Any,
                               val text: String,
                               val mark: ScalarMark = NonMark,
-                              c: IndexedSeq[YPart] = IndexedSeq.empty,
-                              override val sourceName: String)
-    extends YValue(c, sourceName) {
+                              location: SourceLocation,
+                              parts: IndexedSeq[YPart] = IndexedSeq.empty)
+    extends YValue(location, parts) {
 
   override def equals(obj: Any): Boolean = obj match {
     case s: YScalar => s.value == this.value
@@ -35,18 +36,29 @@ class YScalar private[model] (val value: Any,
 
 object YScalar {
 
-  def apply(value: Int): YScalar                     = YScalar(value.asInstanceOf[Long], "")
-  def apply(value: Any): YScalar                     = new YScalar(value, String.valueOf(value), sourceName = "")
-  def apply(value: Int, sourceName: String): YScalar = YScalar(value.asInstanceOf[Long], sourceName)
+  val Null: YScalar = new YScalar(null, "null", location = Unknown)
+
+  def apply(value: Int): YScalar =
+    new YScalar(value.asInstanceOf[Long], String.valueOf(value), location = Unknown)
+
+  def apply(value: Any): YScalar =
+    new YScalar(value, String.valueOf(value), location = Unknown)
+
+  def apply(value: Int, sourceName: String): YScalar =
+    new YScalar(value.asInstanceOf[Long], String.valueOf(value), location = SourceLocation(sourceName))
+
   def apply(value: Any, sourceName: String): YScalar =
-    new YScalar(value, String.valueOf(value), sourceName = sourceName)
-  val Null: YScalar = new YScalar(null, "null", sourceName = "")
+    new YScalar(value, String.valueOf(value), location = SourceLocation(sourceName))
 
   def nonPlain(value: String, sourceName: String = "") =
-    new YScalar(value, value, DoubleQuoteMark, sourceName = sourceName) // double quoted? or create a NonPlain object?
+    new YScalar(value, value, DoubleQuoteMark, location = SourceLocation(sourceName)) // double quoted? or create a NonPlain object?
 
   def fromToken(astToken: AstToken, range: InputRange, sourceName: String = "") =
-    new YScalar(astToken.text, astToken.text, NonMark, Array(YNonContent(range, Array(astToken))), sourceName)
+    new YScalar(astToken.text,
+                astToken.text,
+                NonMark,
+                SourceLocation(sourceName),
+                Array(YNonContent(range, Array(astToken), sourceName)))
 
   class Builder(text: String,
                 t: YTag,
@@ -63,13 +75,12 @@ object YScalar {
         else {
           Str
         }
-      }
-      else if (scalarMark == NonMark) Unknown
+      } else if (scalarMark == NonMark) YType.Unknown
       else Str
 
       var value: Either[ParseException, Any] = Right(text)
       if (tt != Str) {
-        val sp = ScalarParser(text, tt)
+        val sp = ScalarParser.apply(text, tt)
         value = sp.parse()
         tt = sp.ytype
       }
@@ -77,15 +88,15 @@ object YScalar {
       tag =
         if (value.isLeft) Str.tag
         else if (t == null) tt.tag
-        else if (t.tagType == YType.Empty) t.copy(tagType = tt)
+        else if (t.tagType == YType.Empty) t.withTag(tagType = tt)
         else t
 
       val result =
         new YScalar(value.getOrElse(text),
                     if (mark == "'") text.replace("''", "'") else text,
                     scalarMark,
-                    parts,
-                    sourceName)
+                    SourceLocation(sourceName),
+                    parts)
 
       for (error <- value.left) eh.handle(result, error)
       result

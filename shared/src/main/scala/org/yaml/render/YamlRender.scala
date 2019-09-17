@@ -50,17 +50,17 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
   private def render(part: YPart, yType: Option[YType] = None): this.type = {
     checkEndDocument(part)
     part match {
-      case YComment(text, _, tokens) => renderComment(text, tokens)
-      case YNonContent(_, tokens, _) => tokens foreach renderToken
-      case YDocument(parts, _)       => renderDocument(parts)
-      case d: YDirective             => renderDirective(d)
-      case s: YSequence              => renderSeq(s)
-      case m: YMap                   => renderMap(m)
-      case e: YMapEntry              => doRenderParts(e.children)
-      case s: YScalar                => renderScalar(s, yType.contains(YType.Str))
-      case t: YTag                   => renderTag(t)
-      case a: YAnchor                => renderAnchor(a)
-      case n: YNode                  => renderNode(n)
+      case c: YComment     => renderComment(c.metaText, c.tokens)
+      case nc: YNonContent => nc.tokens foreach renderToken
+      case d: YDocument    => renderDocument(d.children)
+      case d: YDirective   => renderDirective(d)
+      case s: YSequence    => renderSeq(s)
+      case m: YMap         => renderMap(m)
+      case e: YMapEntry    => doRenderParts(e.children)
+      case s: YScalar      => renderScalar(s, yType.contains(YType.Str))
+      case t: YTag         => renderTag(t)
+      case a: YAnchor      => renderAnchor(a)
+      case n: YNode        => renderNode(n)
     }
     this
   }
@@ -133,9 +133,14 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
     }
 
     // Capture comments before and after the value
-    val value          = e.value
-    val (before, tail) = e.children.dropWhile(!_.eq(key)).tail.dropWhile(c => c.isInstanceOf[YNonContent] && c.asInstanceOf[YNonContent].tokens.headOption.exists(t => t.text == ":")).span(!_.eq(value))
-    val after          = tail.tail
+    val value = e.value
+    val (before, tail) = e.children
+      .dropWhile(!_.eq(key))
+      .tail
+      .dropWhile(c =>
+        c.isInstanceOf[YNonContent] && c.asInstanceOf[YNonContent].tokens.headOption.exists(t => t.text == ":"))
+      .span(!_.eq(value))
+    val after = tail.tail
 
     // Render Before comments
     indent()
@@ -162,11 +167,15 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
   private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
     if (!renderParts(scalar)) {
       val str = ScalarRender.renderScalar(
-          text = scalar.text,
-          mustBeString = mustBeString,
-          plain = scalar.plain,
-          indentation = indentation,
-          firstLineComment = scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse("")
+        text = scalar.text,
+        mustBeString = mustBeString,
+        plain = scalar.plain,
+        indentation = indentation,
+        firstLineComment = scalar.children
+          .collectFirst {
+            case c: YComment => " #" + c.metaText
+          }
+          .getOrElse("")
       )
       print(str.toString)
     }

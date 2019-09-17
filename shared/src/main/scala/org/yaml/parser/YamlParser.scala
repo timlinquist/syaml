@@ -86,7 +86,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
       case BeginDirective =>
         directiveArgs = ListBuffer.empty
         push(td)
-      case EndDocument  => pop(YDocument(current.buildParts(td), lexer.sourceName)); return td
+      case EndDocument  => pop(new YDocument(SourceLocation(lexer.sourceName), current.buildParts(td))); return td
       case EndComment   => return createComment(td)
       case EndSequence  => return createSequence(td)
       case EndNode      => return createNode(td)
@@ -129,14 +129,14 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   }
 
   private def createComment(td: TD) = {
-    pop(YComment(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td)))
+    pop(new YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
     td
   }
   private def createDirective(td: TD) = {
     addDirectiveArg()
     val parts = current.buildParts(td)
-    parts collectFirst { case YTag(tag, _, _, _) => directiveArgs += tag }
-    pop(YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], parts, lexer.sourceName))
+    parts collectFirst { case t: YTag => directiveArgs += t.text }
+    pop(new YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], SourceLocation(lexer.sourceName), parts))
     metaTextBuilder.clear()
     directiveArgs = null
     td
@@ -145,14 +145,14 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   private def createTag(td: TokenData[YamlToken]) = {
     inTag = false
     val t =
-      YTag(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td))
+      YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
     pop(t)
     current.tag = t
     td
   }
 
   private def createAnchor(td: TD) = {
-    val anchor = YAnchor(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td), lexer.sourceName)
+    val anchor = YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
     pop(anchor)
     current.anchor = Some(anchor)
     td
@@ -164,7 +164,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   }
 
   private def createSequence(td: TD) = {
-    val v = YSequence(current.buildParts(td), lexer.sourceName)
+    val v = YSequence(SourceLocation(lexer.sourceName), current.buildParts(td))
     pop(v)
     current.value = v
     current.tag = tagFor(current.tag, YType.Seq)
@@ -178,8 +178,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
       val n      = new YNode.Alias(current.alias, anchor.getOrElse(YNode.Null), parts)
       if (anchor.isEmpty) eh.handle(n, UndefinedAnchorException(current.alias))
       pop(n)
-    }
-    else {
+    } else {
       val tag = current.tag
       val n =
         if (includeTag.nonEmpty && tag.text == includeTag)
@@ -213,7 +212,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
 
   private def createAlias(td: TD) = {
     val aliasName = buildMetaText()
-    val alias     = YAnchor(aliasName, (current.first rangeTo td).inputRange, current.buildTokens(td), lexer.sourceName)
+    val alias     = YAnchor(aliasName, current.first rangeTo td, current.buildTokens(td))
     pop(alias)
     current.alias = aliasName
     td
@@ -236,7 +235,7 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   }
   private def tagFor(tag: YTag, defaultType: YType) =
     if (tag == null) defaultType.tag
-    else if (tag.tagType == YType.Empty) tag.copy(tagType = defaultType)
+    else if (tag.tagType == YType.Empty) tag.withTag(tagType = defaultType)
     else tag
 
   override type B = YamlBuilder

@@ -1,12 +1,13 @@
 package org.yaml.model
 
-import scala.language.implicitConversions
 import org.yaml.convert.YRead
+
+import scala.language.implicitConversions
 
 /**
   * A trait that represents Node like values that can be converted using YRead
   */
-abstract class YNodeLike extends YValueLike {
+trait YNodeLike extends YValueLike {
 
   /**
     * Tries to convert the node into a T. An implicit YRead[T] must be defined.

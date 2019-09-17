@@ -1,5 +1,6 @@
 package org.yaml.model
 
+import org.mulesoft.lexer.SourceLocation
 import org.yaml.model.YNode._
 
 import scala.language.implicitConversions
@@ -7,7 +8,7 @@ import scala.language.implicitConversions
 /**
   * A Yaml Node, it has a Value plus Properties
   */
-abstract class YNode(override val children: Parts, override val sourceName: String) extends YNodeLike with YPart {
+abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(location, parts) with YNodeLike {
 
   def value: YValue
   def tag: YTag
@@ -51,7 +52,7 @@ object YNode {
 
   /** Create a direct Node Implementation */
   def apply(v: YValue, t: YTag, a: Option[YAnchor] = None, cs: Parts = null, sourceName: String): YNode =
-    new YNode(if (cs == null) Array(v) else cs, sourceName) {
+    new YNode(SourceLocation(sourceName), if (cs == null) Array(v) else cs) {
       override def value: YValue           = v
       override def tag: YTag               = t
       override def anchor: Option[YAnchor] = a
@@ -75,7 +76,7 @@ object YNode {
   def apply(map: YMap): YNode      = YNode(map, YType.Map)
 
   val Null  = YNode(YScalar.Null, YType.Null)
-  val Empty = YNode(new YScalar(null, "", sourceName = ""), YType.Null)
+  val Empty = YNode(new YScalar(null, "", location = SourceLocation.Unknown), YType.Null)
 
   // Implicit conversions
 
@@ -105,7 +106,7 @@ object YNode {
   /**
     * A Yaml Node Reference, methods are redirected to the target node
     */
-  abstract class Ref(cs: Parts) extends YNode(cs, "")
+  abstract class Ref(cs: Parts) extends YNode(SourceLocation.Unknown, cs)
 
   /** A Mutable Node reference */
   final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(cs) {

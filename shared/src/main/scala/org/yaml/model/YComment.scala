@@ -1,12 +1,13 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.{InputRange, AstToken}
+import org.mulesoft.lexer.SourceLocation.Unknown
+import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
 
 /** Yaml Comment Part */
-case class YComment(metaText: String,
-                    override val range: InputRange = InputRange.Zero,
-                    override val tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
-    extends YIgnorable(range, tokens) {
+class YComment(val metaText: String,
+               location: SourceLocation = Unknown,
+               tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
+    extends YIgnorable(location, tokens) {
 
   override def hashCode(): Int = metaText.hashCode
 
@@ -18,10 +19,20 @@ case class YComment(metaText: String,
   override def toString: String = metaText
 }
 
+object YComment {
+  def apply(metaText: String,
+            location: SourceLocation = Unknown,
+            tokens: IndexedSeq[AstToken] = IndexedSeq.empty): YComment =
+    new YComment(metaText, location, tokens)
+}
+
 /** Non Content (Whitespace, Indentation and Indicators) */
-case class YNonContent(override val range: InputRange,
-                       override val tokens: IndexedSeq[AstToken],
-                       override val sourceName: String = "")
-    extends YIgnorable(range, tokens) {
+class YNonContent(location: SourceLocation, tokens: IndexedSeq[AstToken]) extends YIgnorable(location, tokens) {
   override def toString: String = tokens.mkString(", ")
+}
+
+object YNonContent {
+//  @deprecated("", "Use Constructor")
+  def apply(range: InputRange, tokens: IndexedSeq[AstToken], sourceName: String): YNonContent =
+    new YNonContent(SourceLocation(sourceName, range.lineFrom, range.columnFrom, range.lineTo, range.columnTo), tokens)
 }
