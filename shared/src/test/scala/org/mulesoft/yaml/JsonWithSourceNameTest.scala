@@ -1,12 +1,13 @@
 package org.mulesoft.yaml
 
-import org.yaml.parser.JsonParser
+import org.scalatest.{Assertion, FunSuite, Matchers}
+import org.yaml.model.YPart
+import org.yaml.parser.{JsonParser, YamlParser}
 
 /**
   * Test against golden files
   */
-trait JsonWithSourceNameTest extends WithSourceNameTest {
-
+trait JsonWithSourceNameTest extends FunSuite with Matchers {
   private val rootMap =
     """{
       | "map": {
@@ -37,27 +38,38 @@ trait JsonWithSourceNameTest extends WithSourceNameTest {
       | "b" ]
     """.stripMargin
 
+  private def assertNameInChild(part: YPart): Assertion = {
+    part.sourceName should be(sourceName)
+    part.children.foreach { assertNameInChild }
+    succeed
+  }
+
+  private def assertEmptySourceName(part: YPart): Assertion = {
+    part.sourceName should be("")
+    part.children.foreach { assertEmptySourceName }
+    succeed
+  }
 
   private val rootScalar = "\"scalar\""
-  override protected val sourceName = "sourcename.json"
+  private val sourceName = "sourcename.json"
 
-  test("assert source name root map"){
-    val document = JsonParser.withSource(rootMap,sourceName).documents().head
+  test("assert source name root map") {
+    val document = JsonParser.withSource(rootMap, sourceName).documents().head
     assertNameInChild(document)
   }
 
-  test("assert source name root seq"){
-    val document = JsonParser.withSource(rootSeq,sourceName).documents().head
+  test("assert source name root seq") {
+    val document = JsonParser.withSource(rootSeq, sourceName).documents().head
     assertNameInChild(document)
   }
 
-  test("assert source name root scalar"){
-    val document = JsonParser.withSource(rootScalar,sourceName).documents().head
+  test("assert source name root scalar") {
+    val document = JsonParser.withSource(rootScalar, sourceName).documents().head
     assertNameInChild(document)
   }
 
-  test("assert empty source name root map"){
-    val document = JsonParser.withSource(rootMap,"").documents().head
+  test("assert empty source name root map") {
+    val document = JsonParser.withSource(rootMap, "").documents().head
     assertEmptySourceName(document)
   }
 }

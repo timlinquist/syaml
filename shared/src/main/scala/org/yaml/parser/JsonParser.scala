@@ -107,6 +107,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   private def parseScalar(): Boolean = {
     if (currentOrError(BeginScalar)) {
       push()
+      current.addNonContent()
       val textBuilder = new StringBuilder
       var scalarMark  = ""
       while (notCurrent(EndScalar)) {
@@ -119,6 +120,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
         consume()
       }
       consumeOrError(EndScalar)
+      current.addNonContent()
       val tagType = if (scalarMark == DoubleQuoteMark.encodeChar.toString) YType.Str.tag else null
       val b       = new YScalar.Builder(textBuilder.toString(), tagType, scalarMark, current.buildParts(), lexer.sourceName) // always enter with begin scalar
       stackParts(buildNode(b.scalar, b.tag))
@@ -130,11 +132,14 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   private def parseList(leftToken: YamlToken, rightToken: YamlToken, parser: ElementParser) = {
     assert(isCurrent(leftToken))
     consume()
+    current.addNonContent()
     while (notCurrent(rightToken)) {
       parser.parse()
       if (notCurrent(rightToken)) {
         if (currentByTextOrError(Indicator, ",")) {
           consume()
+          skipWhiteSpace()
+          current.addNonContent()
           // These if are to get trailing commas
           if (currentToken() == rightToken) expected("value")
         }
@@ -160,9 +165,10 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   case class MapEntryParser() extends ElementParser {
 
     override def parse(): Unit = {
+      current.addNonContent()
       push() // i need new token for YMapEntry container
       if (parseEntry()) {
-        val parts = current.buildParts().sortWith((t1, t2) => t1.range.compareTo(t2.range) < 0)
+        val parts = current.buildParts()
         stackParts(YMapEntry(parts))
       }
       else {
@@ -183,7 +189,11 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     private def parseEntry(): Boolean = {
       val k = parseKey()
       if (k || currentByText(Indicator, ":")) {
-        if (currentByTextOrError(Indicator, ":")) consume()
+        if (currentByTextOrError(Indicator, ":")) {
+          consume()
+          skipWhiteSpace()
+          current.addNonContent()
+        }
         k & parseValue()
       }
       else {
@@ -194,7 +204,10 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
     private def parseValue(): Boolean = {
       val r = process()
-      if (!r) {
+      if (r) {
+        current.addNonContent()
+      }
+      else {
         discardIf(Error)
         advanceTo(Indicator, EndMapping)
       }
@@ -203,11 +216,15 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   }
 
   private def currentToken(): YamlToken = {
+    skipWhiteSpace()
+    lexer.token
+  }
+
+  private def skipWhiteSpace(): Unit = {
     while (lexer.token == WhiteSpace || lexer.token == LineBreak) {
       current.append()
       lexer.advance()
     }
-    lexer.token
   }
 
   private def currentText(): String = lexer.tokenString

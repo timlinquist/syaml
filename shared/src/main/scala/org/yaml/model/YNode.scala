@@ -12,7 +12,7 @@ abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(locat
 
   def value: YValue
   def tag: YTag
-  def anchor: Option[YAnchor] = None
+  def anchor: Option[YAnchor]
   def tagType: YType          = tag.tagType
 
   /** Returns true if the node is consider a null one */
@@ -47,16 +47,18 @@ abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(locat
 
   override protected[model] def thisNode: YNode = this
 }
+class YNodePlain(val value: YValue,
+                 val tag: YTag,
+                 val anchor: Option[YAnchor],
+                 parts: IndexedSeq[YPart],
+                 location: SourceLocation)
+    extends YNode(location, parts)
 
 object YNode {
 
   /** Create a direct Node Implementation */
   def apply(v: YValue, t: YTag, a: Option[YAnchor] = None, cs: Parts = null, sourceName: String): YNode =
-    new YNode(SourceLocation(sourceName), if (cs == null) Array(v) else cs) {
-      override def value: YValue           = v
-      override def tag: YTag               = t
-      override def anchor: Option[YAnchor] = a
-    }
+    new YNodePlain(v, t, a, if (cs == null) Array(v) else cs, SourceLocation(sourceName))
 
   def apply(value: YValue, tt: YType, ref: YAnchor): YNode =
     YNode(value, tt.tag, Some(ref), sourceName = value.sourceName)
@@ -80,18 +82,18 @@ object YNode {
 
   // Implicit conversions
 
-  implicit def toString(node: YNode)(implicit iv: IllegalTypeHandler): String     = node.as[String]
-  implicit def toInt(node: YNode)(implicit iv: IllegalTypeHandler): Int           = node.as[Int]
-  implicit def toLong(node: YNode)(implicit iv: IllegalTypeHandler): Long         = node.as[Long]
-  implicit def toBoolean(node: YNode)(implicit iv: IllegalTypeHandler): Boolean   = node.as[Boolean]
-  implicit def toDouble(node: YNode)(implicit iv: IllegalTypeHandler): Double     = node.as[Double]
-  implicit def fromString(str: String): YNode    = YNode(str)
-  implicit def fromInt(int: Int): YNode          = YNode(int)
-  implicit def fromLong(long: Long): YNode       = YNode(long)
-  implicit def fromBool(bool: Boolean): YNode    = YNode(bool)
-  implicit def fromDouble(double: Double): YNode = YNode(double)
-  implicit def fromSeq(seq: YSequence): YNode    = YNode(seq)
-  implicit def fromMap(map: YMap): YNode         = YNode(map)
+  implicit def toString(node: YNode)(implicit iv: IllegalTypeHandler): String   = node.as[String]
+  implicit def toInt(node: YNode)(implicit iv: IllegalTypeHandler): Int         = node.as[Int]
+  implicit def toLong(node: YNode)(implicit iv: IllegalTypeHandler): Long       = node.as[Long]
+  implicit def toBoolean(node: YNode)(implicit iv: IllegalTypeHandler): Boolean = node.as[Boolean]
+  implicit def toDouble(node: YNode)(implicit iv: IllegalTypeHandler): Double   = node.as[Double]
+  implicit def fromString(str: String): YNode                                   = YNode(str)
+  implicit def fromInt(int: Int): YNode                                         = YNode(int)
+  implicit def fromLong(long: Long): YNode                                      = YNode(long)
+  implicit def fromBool(bool: Boolean): YNode                                   = YNode(bool)
+  implicit def fromDouble(double: Double): YNode                                = YNode(double)
+  implicit def fromSeq(seq: YSequence): YNode                                   = YNode(seq)
+  implicit def fromMap(map: YMap): YNode                                        = YNode(map)
 
   /** An Include Node */
   def include(uri: String, sourceName: String = ""): MutRef = {
@@ -106,7 +108,9 @@ object YNode {
   /**
     * A Yaml Node Reference, methods are redirected to the target node
     */
-  abstract class Ref(cs: Parts) extends YNode(SourceLocation.Unknown, cs)
+  abstract class Ref(cs: Parts) extends YNode(SourceLocation.Unknown, cs) {
+    val anchor: Option[YAnchor] = None
+  }
 
   /** A Mutable Node reference */
   final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(cs) {
