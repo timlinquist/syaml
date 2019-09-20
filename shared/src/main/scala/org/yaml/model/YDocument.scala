@@ -23,7 +23,7 @@ case class YDocument(override val children: IndexedSeq[YPart], override val sour
 
   override def toString: String = "Document: " + node.toString
 
-  override def to[T:YRead]: Either[YError, T] = obj.to
+  override def to[T: YRead]: Either[YError, T] = obj.to
 
   override def obj: YObj = if (node == YNode.Null) YFail(this, "Empty Document") else YSuccess(node)
 
@@ -62,11 +62,16 @@ object YDocument {
   object obj extends Dynamic {
     def applyDynamicNamed(method: String)(args: (String, YNode)*)(implicit sourceName: String = ""): YNode =
       method match {
-        case "apply" => YNode.fromMap(YMap(args.map { t =>
-          val key = YNode(t._1, sourceName)
-          val value = if (t._2 eq null) YNode.Null else t._2
-          YMapEntry(key, value)
-      }.toArray[YPart], sourceName))
+        case "apply" =>
+          YNode.fromMap(
+              YMap(args
+                     .map { t =>
+                       val key   = YNode(t._1, sourceName)
+                       val value = if (t._2 eq null) YNode.Null else t._2
+                       YMapEntry(key, value)
+                     }
+                     .toArray[YPart],
+                   sourceName))
       }
   }
 
@@ -113,13 +118,14 @@ object YDocument {
     def list(f: PartBuilder => Unit): YDocument = apply(createSeqNode(f, sourceName))
 
     private def createDoc(mainNode: YNode) =
-      new YDocument(if (comment.isEmpty) Array(mainNode) else Array(YComment(comment), mainNode), sourceName)
+      new YDocument(if (comment.isEmpty) Array(mainNode) else Array(YComment(comment, sourceName), mainNode),
+                    sourceName)
   }
   abstract class BaseBuilder {
     private[YDocument] val builder = new ArrayBuffer[YPart]
 
     /** Add a Comment */
-    def comment(text: String): Unit = for (line <- text split "\n") builder += YComment(line)
+    def comment(text: String): Unit = for (line <- text split "\n") builder += YComment(line,sourceName)
     val sourceName: String
   }
 

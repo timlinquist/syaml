@@ -1,0 +1,10 @@
+YDocument    [1,0..5,0]      example-6.11.yaml
+YNodePlain   [1,0..5,0]      example-6.11.yaml
+YMap         [1,0..5,0]      example-6.11.yaml
+YMapEntry    [1,0..5,0]      example-6.11.yaml
+YNodePlain   [1,0..1,3]      example-6.11.yaml
+YScalar      [1,0..1,3]      example-6.11.yaml
+YComment     [1,8..1,17]     example-6.11.yaml
+YComment     [2,8..2,15]     example-6.11.yaml
+YNodePlain   [3,2..3,7]      example-6.11.yaml
+YScalar      [3,2..3,7]      example-6.11.yaml

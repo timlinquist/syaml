@@ -129,13 +129,13 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   }
 
   private def createComment(td: TD) = {
-    pop(YComment(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td)))
+    pop(YComment(buildMetaText(), lexer.sourceName, (current.first rangeTo td).inputRange, current.buildTokens(td)))
     td
   }
   private def createDirective(td: TD) = {
     addDirectiveArg()
     val parts = current.buildParts(td)
-    parts collectFirst { case YTag(tag, _, _, _) => directiveArgs += tag }
+    parts collectFirst { case t: YTag => directiveArgs += t.text }
     pop(YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], parts, lexer.sourceName))
     metaTextBuilder.clear()
     directiveArgs = null
@@ -145,14 +145,15 @@ class YamlParser private[parser] (override val lexer: BaseLexer[YamlToken])(over
   private def createTag(td: TokenData[YamlToken]) = {
     inTag = false
     val t =
-      YTag(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td))
+      YTag(buildMetaText(), lexer.sourceName, (current.first rangeTo td).inputRange, current.buildTokens(td))
     pop(t)
     current.tag = t
     td
   }
 
   private def createAnchor(td: TD) = {
-    val anchor = YAnchor(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td), lexer.sourceName)
+    val anchor =
+      YAnchor(buildMetaText(), (current.first rangeTo td).inputRange, current.buildTokens(td), lexer.sourceName)
     pop(anchor)
     current.anchor = Some(anchor)
     td

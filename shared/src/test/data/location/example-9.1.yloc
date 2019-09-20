@@ -1,0 +1,5 @@
+YComment     [1,1..1,10]     example-9.1.yaml
+YComment     [2,0..2,7]      example-9.1.yaml
+YDocument    [3,0..4,0]      example-9.1.yaml
+YNodePlain   [3,0..3,8]      example-9.1.yaml
+YScalar      [3,0..3,8]      example-9.1.yaml

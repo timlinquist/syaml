@@ -1,0 +1,4 @@
+YComment     [1,0..1,11]     example-2.13.yaml
+YDocument    [2,0..4,13]     example-2.13.yaml
+YNodePlain   [2,3..4,13]     example-2.13.yaml
+YScalar      [2,4..4,13]     example-2.13.yaml

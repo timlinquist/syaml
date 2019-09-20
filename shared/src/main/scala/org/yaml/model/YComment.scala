@@ -1,9 +1,10 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.{InputRange, AstToken}
+import org.mulesoft.lexer.{AstToken, InputRange}
 
 /** Yaml Comment Part */
 case class YComment(metaText: String,
+                    override val sourceName: String = "",
                     override val range: InputRange = InputRange.Zero,
                     override val tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
     extends YIgnorable(range, tokens) {

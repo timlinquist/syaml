@@ -1,0 +1,8 @@
+YDocument    [1,0..3,29]     multiline-chomping-entry-at-end.yaml
+YNodePlain   [1,0..3,29]     multiline-chomping-entry-at-end.yaml
+YMap         [1,0..3,29]     multiline-chomping-entry-at-end.yaml
+YMapEntry    [1,0..3,29]     multiline-chomping-entry-at-end.yaml
+YNodePlain   [1,0..1,9]      multiline-chomping-entry-at-end.yaml
+YScalar      [1,0..1,9]      multiline-chomping-entry-at-end.yaml
+YNodePlain   [1,10..3,29]    multiline-chomping-entry-at-end.yaml
+YScalar      [1,11..3,29]    multiline-chomping-entry-at-end.yaml

@@ -1,0 +1,14 @@
+YDocument    [1,0..6,0]      example-6.26.yaml
+YDirective   [1,0..1,34]     example-6.26.yaml
+YTag         [1,9..1,34]     example-6.26.yaml
+YNodePlain   [2,3..6,0]      example-6.26.yaml
+YSequence    [3,0..6,0]      example-6.26.yaml
+YNodePlain   [3,2..3,12]     example-6.26.yaml
+YTag         [3,2..3,8]      example-6.26.yaml
+YScalar      [3,9..3,12]     example-6.26.yaml
+YNodePlain   [4,2..4,11]     example-6.26.yaml
+YTag         [4,2..4,7]      example-6.26.yaml
+YScalar      [4,8..4,11]     example-6.26.yaml
+YNodePlain   [5,2..5,15]     example-6.26.yaml
+YTag         [5,2..5,11]     example-6.26.yaml
+YScalar      [5,12..5,15]    example-6.26.yaml

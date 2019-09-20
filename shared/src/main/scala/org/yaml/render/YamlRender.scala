@@ -50,7 +50,7 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
   private def render(part: YPart, yType: Option[YType] = None): this.type = {
     checkEndDocument(part)
     part match {
-      case YComment(text, _, tokens) => renderComment(text, tokens)
+      case c: YComment               => renderComment(c.metaText, c.tokens)
       case YNonContent(_, tokens, _) => tokens foreach renderToken
       case YDocument(parts, _)       => renderDocument(parts)
       case d: YDirective             => renderDirective(d)
@@ -133,9 +133,14 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
     }
 
     // Capture comments before and after the value
-    val value          = e.value
-    val (before, tail) = e.children.dropWhile(!_.eq(key)).tail.dropWhile(c => c.isInstanceOf[YNonContent] && c.asInstanceOf[YNonContent].tokens.headOption.exists(t => t.text == ":")).span(!_.eq(value))
-    val after          = tail.tail
+    val value = e.value
+    val (before, tail) = e.children
+      .dropWhile(!_.eq(key))
+      .tail
+      .dropWhile(c =>
+        c.isInstanceOf[YNonContent] && c.asInstanceOf[YNonContent].tokens.headOption.exists(t => t.text == ":"))
+      .span(!_.eq(value))
+    val after = tail.tail
 
     // Render Before comments
     indent()
@@ -166,7 +171,7 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
           mustBeString = mustBeString,
           plain = scalar.plain,
           indentation = indentation,
-          firstLineComment = scalar.children.collectFirst { case YComment(txt, _, _) => s" #$txt" }.getOrElse("")
+          firstLineComment = scalar.children.collectFirst { case c: YComment => " #" + c.metaText }.getOrElse("")
       )
       print(str.toString)
     }

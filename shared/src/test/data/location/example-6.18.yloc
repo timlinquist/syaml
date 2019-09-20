@@ -1,0 +1,12 @@
+YComment     [1,0..1,9]      example-6.18.yaml
+YDocument    [2,0..3,0]      example-6.18.yaml
+YNodePlain   [2,0..2,10]     example-6.18.yaml
+YTag         [2,0..2,4]      example-6.18.yaml
+YScalar      [2,5..2,10]     example-6.18.yaml
+YComment     [4,0..4,8]      example-6.18.yaml
+YDocument    [5,0..8,0]      example-6.18.yaml
+YDirective   [5,0..5,32]     example-6.18.yaml
+YTag         [5,7..5,32]     example-6.18.yaml
+YNodePlain   [7,0..7,10]     example-6.18.yaml
+YTag         [7,0..7,4]      example-6.18.yaml
+YScalar      [7,5..7,10]     example-6.18.yaml
