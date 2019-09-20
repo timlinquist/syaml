@@ -1,0 +1,13 @@
+YDocument    [1,0..2,1]      invalid-flow-map-ident.yaml
+YNodePlain   [1,0..2,1]      invalid-flow-map-ident.yaml
+YMap         [1,0..2,1]      invalid-flow-map-ident.yaml
+YMapEntry    [1,0..2,1]      invalid-flow-map-ident.yaml
+YNodePlain   [1,0..1,4]      invalid-flow-map-ident.yaml
+YScalar      [1,0..1,4]      invalid-flow-map-ident.yaml
+YNodePlain   [1,6..2,1]      invalid-flow-map-ident.yaml
+YMap         [1,6..2,1]      invalid-flow-map-ident.yaml
+YMapEntry    [1,7..1,52]     invalid-flow-map-ident.yaml
+YNodePlain   [1,7..1,23]     invalid-flow-map-ident.yaml
+YScalar      [1,7..1,23]     invalid-flow-map-ident.yaml
+YNodePlain   [1,25..1,52]    invalid-flow-map-ident.yaml
+YScalar      [1,25..1,52]    invalid-flow-map-ident.yaml

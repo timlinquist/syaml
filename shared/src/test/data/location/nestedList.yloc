@@ -1,0 +1,16 @@
+YComment     [1,0..1,23]     nestedList.yaml
+YDocument    [2,0..9,6]      nestedList.yaml
+YNodePlain   [2,0..9,6]      nestedList.yaml
+YSequence    [2,0..9,6]      nestedList.yaml
+YNodePlain   [2,1..5,0]      nestedList.yaml
+YSequence    [3,0..5,0]      nestedList.yaml
+YNodePlain   [3,4..3,6]      nestedList.yaml
+YScalar      [3,4..3,6]      nestedList.yaml
+YNodePlain   [4,4..4,6]      nestedList.yaml
+YScalar      [4,4..4,6]      nestedList.yaml
+YNodePlain   [5,1..9,6]      nestedList.yaml
+YSequence    [6,0..9,6]      nestedList.yaml
+YNodePlain   [6,3..9,0]      nestedList.yaml
+YScalar      [6,4..9,0]      nestedList.yaml
+YNodePlain   [9,4..9,6]      nestedList.yaml
+YScalar      [9,4..9,6]      nestedList.yaml

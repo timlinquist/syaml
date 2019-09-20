@@ -1,0 +1,6 @@
+YDocument    [1,0..4,0]      example-6.16.yaml
+YDirective   [1,0..1,30]     example-6.16.yaml
+YTag         [1,12..1,30]    example-6.16.yaml
+YNodePlain   [3,0..3,15]     example-6.16.yaml
+YTag         [3,0..3,9]      example-6.16.yaml
+YScalar      [3,10..3,15]    example-6.16.yaml

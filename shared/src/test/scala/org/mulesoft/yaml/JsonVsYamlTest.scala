@@ -1,7 +1,6 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
-import org.yaml.model.{YNonContent, YPart}
 import org.yaml.parser.{JsonParser, YamlParser}
 
 /**
@@ -60,6 +59,7 @@ trait JsonVsYamlTest extends FunSuite with Matchers {
 
   test("assert mapSeq") {
     checkParts(mapSeq)
+//    checkYamlParts(mapSeq)
   }
 
   private def checkParts(source: String): Unit = {
@@ -76,21 +76,19 @@ trait JsonVsYamlTest extends FunSuite with Matchers {
       js shouldBe (ys)
     }
   }
+//  private def checkYamlParts(source: String): Unit = {
+//    val tokenParts = allParts(YamlParser(source, sourceName).parse())
+//    val plainParts = allParts(YamlParser(source, sourceName).parse(false))
+//
+//    for ((j, y) <- tokenParts zip plainParts) {
+//      val js = dump(j)
+//      val ys = dump(y)
+//      if (js == ys)
+//        println(js + "   " + ys)
+//      else
+//        println(js + " | " + ys)
+//      js shouldBe (ys)
+//    }
+//  }
 
-  def dump(p: YPart): String = String.format("%-12s %-12s", p.getClass.getSimpleName, p.range)
-
-  def allParts(parts: Seq[YPart]): Seq[YPart] = {
-    val seq = Seq.newBuilder[YPart]
-    foreach(parts, {
-      case _: YNonContent =>
-      case p              => seq += p
-    })
-    seq.result()
-  }
-  def foreach(parts: Seq[YPart], f: YPart => Unit): Unit = {
-    for (c <- parts) {
-      f(c)
-      foreach(c.children, f)
-    }
-  }
 }

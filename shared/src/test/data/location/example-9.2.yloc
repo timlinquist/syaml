@@ -1,0 +1,5 @@
+YDocument    [1,0..4,0]      example-9.2.yaml
+YDirective   [1,0..1,9]      example-9.2.yaml
+YNodePlain   [3,0..3,8]      example-9.2.yaml
+YScalar      [3,0..3,8]      example-9.2.yaml
+YComment     [4,4..4,12]     example-9.2.yaml

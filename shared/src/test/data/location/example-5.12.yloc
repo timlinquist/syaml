@@ -1,0 +1,14 @@
+YComment     [1,0..1,17]     example-5.12.yaml
+YDocument    [2,0..7,0]      example-5.12.yaml
+YNodePlain   [2,0..7,0]      example-5.12.yaml
+YMap         [2,0..7,0]      example-5.12.yaml
+YMapEntry    [2,0..3,0]      example-5.12.yaml
+YNodePlain   [2,0..2,6]      example-5.12.yaml
+YScalar      [2,0..2,6]      example-5.12.yaml
+YNodePlain   [2,8..2,18]     example-5.12.yaml
+YScalar      [2,8..2,18]     example-5.12.yaml
+YMapEntry    [3,0..7,0]      example-5.12.yaml
+YNodePlain   [3,0..3,5]      example-5.12.yaml
+YScalar      [3,0..3,5]      example-5.12.yaml
+YNodePlain   [3,6..7,0]      example-5.12.yaml
+YScalar      [3,7..7,0]      example-5.12.yaml

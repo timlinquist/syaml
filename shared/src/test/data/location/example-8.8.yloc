@@ -1,0 +1,4 @@
+YDocument    [1,0..11,0]     example-8.8.yaml
+YNodePlain   [1,0..11,0]     example-8.8.yaml
+YScalar      [1,0..8,0]      example-8.8.yaml
+YComment     [9,0..9,9]      example-8.8.yaml

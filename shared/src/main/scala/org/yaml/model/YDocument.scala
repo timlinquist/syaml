@@ -68,14 +68,14 @@ object YDocument {
       method match {
         case "apply" =>
           YNode.fromMap(
-            YMap(args
-                   .map { t =>
-                     val key   = YNode(t._1, sourceName)
-                     val value = if (t._2 eq null) YNode.Null else t._2
-                     YMapEntry(key, value)
-                   }
-                   .toArray[YPart],
-                 sourceName))
+              YMap(args
+                     .map { t =>
+                       val key   = YNode(t._1, sourceName)
+                       val value = if (t._2 eq null) YNode.Null else t._2
+                       YMapEntry(key, value)
+                     }
+                     .toArray[YPart],
+                   sourceName))
       }
   }
 
@@ -125,13 +125,13 @@ object YDocument {
 
     private def createDoc(mainNode: YNode) =
       new YDocument(SourceLocation(sourceName),
-                    if (comment.isEmpty) Array(mainNode) else Array(new YComment(comment), mainNode))
+                    if (comment.isEmpty) Array(mainNode) else Array(new YComment(comment, sourceName), mainNode))
   }
   abstract class BaseBuilder {
     private[YDocument] val builder = new ArrayBuffer[YPart]
 
     /** Add a Comment */
-    def comment(text: String): Unit = for (line <- text split "\n") builder += new YComment(line)
+    def comment(text: String): Unit = for (line <- text split "\n") builder += new YComment(line,sourceName)
     val sourceName: String
   }
 

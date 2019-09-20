@@ -1,0 +1,13 @@
+YDocument    [1,0..8,0]      example-6.5.yaml
+YNodePlain   [1,0..8,0]      example-6.5.yaml
+YMap         [1,0..8,0]      example-6.5.yaml
+YMapEntry    [1,0..5,0]      example-6.5.yaml
+YNodePlain   [1,0..1,7]      example-6.5.yaml
+YScalar      [1,0..1,7]      example-6.5.yaml
+YNodePlain   [2,2..4,17]     example-6.5.yaml
+YScalar      [2,2..4,17]     example-6.5.yaml
+YMapEntry    [5,0..8,0]      example-6.5.yaml
+YNodePlain   [5,0..5,8]      example-6.5.yaml
+YScalar      [5,0..5,8]      example-6.5.yaml
+YNodePlain   [5,9..8,0]      example-6.5.yaml
+YScalar      [5,10..7,0]     example-6.5.yaml

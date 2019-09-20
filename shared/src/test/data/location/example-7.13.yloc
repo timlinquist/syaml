@@ -1,0 +1,15 @@
+YDocument    [1,0..3,0]      example-7.13.yaml
+YNodePlain   [1,0..3,0]      example-7.13.yaml
+YSequence    [1,0..3,0]      example-7.13.yaml
+YNodePlain   [1,2..1,15]     example-7.13.yaml
+YSequence    [1,2..1,15]     example-7.13.yaml
+YNodePlain   [1,4..1,7]      example-7.13.yaml
+YScalar      [1,4..1,7]      example-7.13.yaml
+YNodePlain   [1,9..1,12]     example-7.13.yaml
+YScalar      [1,9..1,12]     example-7.13.yaml
+YNodePlain   [2,2..2,15]     example-7.13.yaml
+YSequence    [2,2..2,15]     example-7.13.yaml
+YNodePlain   [2,3..2,8]      example-7.13.yaml
+YScalar      [2,3..2,8]      example-7.13.yaml
+YNodePlain   [2,10..2,14]    example-7.13.yaml
+YScalar      [2,10..2,14]    example-7.13.yaml

@@ -6,7 +6,7 @@ import org.mulesoft.common.core.Strings
 import org.mulesoft.common.io.Output
 import org.mulesoft.common.io.Output._
 import org.mulesoft.lexer.AstToken
-import org.yaml.model._
+import org.yaml.model.{YDocument, _}
 
 /**
   * Yaml Render
@@ -167,15 +167,11 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
   private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
     if (!renderParts(scalar)) {
       val str = ScalarRender.renderScalar(
-        text = scalar.text,
-        mustBeString = mustBeString,
-        plain = scalar.plain,
-        indentation = indentation,
-        firstLineComment = scalar.children
-          .collectFirst {
-            case c: YComment => " #" + c.metaText
-          }
-          .getOrElse("")
+          text = scalar.text,
+          mustBeString = mustBeString,
+          plain = scalar.plain,
+          indentation = indentation,
+          firstLineComment = scalar.children.collectFirst { case c: YComment => " #" + c.metaText }.getOrElse("")
       )
       print(str.toString)
     }

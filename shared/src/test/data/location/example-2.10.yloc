@@ -1,0 +1,24 @@
+YDocument    [1,0..8,15]     example-2.10.yaml
+YNodePlain   [1,3..8,15]     example-2.10.yaml
+YMap         [2,0..8,15]     example-2.10.yaml
+YMapEntry    [2,0..6,0]      example-2.10.yaml
+YNodePlain   [2,0..2,2]      example-2.10.yaml
+YScalar      [2,0..2,2]      example-2.10.yaml
+YNodePlain   [2,3..6,0]      example-2.10.yaml
+YSequence    [3,0..6,0]      example-2.10.yaml
+YNodePlain   [3,4..3,16]     example-2.10.yaml
+YScalar      [3,4..3,16]     example-2.10.yaml
+YComment     [4,2..4,29]     example-2.10.yaml
+YNodePlain   [5,4..5,18]     example-2.10.yaml
+YAnchor      [5,4..5,7]      example-2.10.yaml
+YScalar      [5,8..5,18]     example-2.10.yaml
+YMapEntry    [6,0..8,15]     example-2.10.yaml
+YNodePlain   [6,0..6,3]      example-2.10.yaml
+YScalar      [6,0..6,3]      example-2.10.yaml
+YNodePlain   [6,4..8,15]     example-2.10.yaml
+YSequence    [7,0..8,15]     example-2.10.yaml
+Alias        [7,4..7,7]                
+YAnchor      [7,4..7,7]      example-2.10.yaml
+YComment     [7,8..7,31]     example-2.10.yaml
+YNodePlain   [8,4..8,15]     example-2.10.yaml
+YScalar      [8,4..8,15]     example-2.10.yaml

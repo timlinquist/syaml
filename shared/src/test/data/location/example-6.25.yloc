@@ -1,0 +1,9 @@
+YDocument    [1,0..3,0]      example-6.25.yaml
+YNodePlain   [1,0..3,0]      example-6.25.yaml
+YSequence    [1,0..3,0]      example-6.25.yaml
+YNodePlain   [1,2..1,10]     example-6.25.yaml
+YTag         [1,2..1,6]      example-6.25.yaml
+YScalar      [1,7..1,10]     example-6.25.yaml
+YNodePlain   [2,2..2,12]     example-6.25.yaml
+YTag         [2,2..2,8]      example-6.25.yaml
+YScalar      [2,9..2,12]     example-6.25.yaml
