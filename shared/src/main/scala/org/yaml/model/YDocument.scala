@@ -87,7 +87,7 @@ object YDocument {
 
   /** Build a list of Nodes */
   def list(elems: YNode*)(implicit sourceName: String = ""): YNode = YNode(
-    YSequence(SourceLocation(sourceName), elems.toArray[YNode])
+      YSequence(SourceLocation(sourceName), elems.toArray[YNode])
   )
 
   /** Convert from an node to a document */
@@ -124,14 +124,16 @@ object YDocument {
     def list(f: PartBuilder => Unit): YDocument = apply(createSeqNode(f, sourceName))
 
     private def createDoc(mainNode: YNode) =
-      new YDocument(SourceLocation(sourceName),
-                    if (comment.isEmpty) Array(mainNode) else Array(new YComment(comment, sourceName), mainNode))
+      new YDocument(
+          SourceLocation(sourceName),
+          if (comment.isEmpty) Array(mainNode) else Array(new YComment(comment, SourceLocation(sourceName)), mainNode))
   }
   abstract class BaseBuilder {
     private[YDocument] val builder = new ArrayBuffer[YPart]
 
     /** Add a Comment */
-    def comment(text: String): Unit = for (line <- text split "\n") builder += new YComment(line,sourceName)
+    def comment(text: String): Unit =
+      for (line <- text split "\n") builder += new YComment(line, SourceLocation(sourceName))
     val sourceName: String
   }
 

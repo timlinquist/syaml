@@ -9,7 +9,6 @@ import scala.language.implicitConversions
   * A Yaml Node, it has a Value plus Properties
   */
 abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(location, parts) with YNodeLike {
-
   def value: YValue
   def tag: YTag
   def anchor: Option[YAnchor]
