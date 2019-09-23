@@ -67,7 +67,7 @@ object YScalar {
         tag.tag,
         sourceName = _sourceName,
         parts = IndexedSeq(new YTokens(SourceLocation(_sourceName, range), IndexedSeq()) {
-          override val sourceName: String = _sourceName
+          override def sourceName: String = _sourceName
         })
     ).scalar
 

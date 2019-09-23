@@ -9,7 +9,7 @@ YScalar      [2,2..2,5]      example-7.24.yaml
 YNodePlain   [3,2..3,13]     example-7.24.yaml
 YAnchor      [3,2..3,9]      example-7.24.yaml
 YScalar      [3,10..3,13]    example-7.24.yaml
-Alias        [4,2..4,9]                
+Alias        [4,2..4,9]      example-7.24.yaml
 YAnchor      [4,2..4,9]      example-7.24.yaml
 YNodePlain   [5,2..5,7]      example-7.24.yaml
 YTag         [5,2..5,7]      example-7.24.yaml

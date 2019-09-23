@@ -1,6 +1,7 @@
 package org.yaml.model
 
 import org.mulesoft.lexer.SourceLocation
+import org.mulesoft.lexer.SourceLocation.Unknown
 import org.yaml.model.YNode._
 
 import scala.language.implicitConversions
@@ -34,8 +35,8 @@ abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(locat
   override def toString: String = value.toString
 
   /** Create a reference (alias) to this node */
-  def alias(): YNode = anchor match {
-    case Some(a) => new YNode.Alias(a.name, this, noParts)
+  def alias(location : SourceLocation = Unknown): YNode = anchor match {
+    case Some(a) => new YNode.Alias(a.name, this, location, noParts)
     case _       => throw new IllegalStateException("Node does not have an Anchor")
   }
 
@@ -77,7 +78,7 @@ object YNode {
   def apply(map: YMap): YNode      = YNode(map, YType.Map)
 
   val Null  = YNode(YScalar.Null, YType.Null)
-  val Empty = YNode(new YScalar(null, "", location = SourceLocation.Unknown), YType.Null)
+  val Empty = YNode(new YScalar(null, "", location = Unknown), YType.Null)
 
   // Implicit conversions
 
@@ -107,23 +108,21 @@ object YNode {
   /**
     * A Yaml Node Reference, methods are redirected to the target node
     */
-  abstract class Ref(cs: Parts) extends YNode(SourceLocation.Unknown, cs) {
+  abstract class Ref(location: SourceLocation, cs: Parts) extends YNode(location, cs) {
     val anchor: Option[YAnchor] = None
   }
 
   /** A Mutable Node reference */
-  final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(cs) {
+  final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(Unknown, cs) {
     var target: Option[YNode] = None
 
     override def value: YValue = target.map(_.value).getOrElse(origValue)
-
     override def tag: YTag = target.map(_.tag).getOrElse(origTag)
-
-    override val sourceName: String = value.sourceName
+    //override val location: SourceLocation = value.location
   }
 
   /** An Alias Node */
-  final class Alias(val name: String, val target: YNode, cs: Parts) extends Ref(cs) {
+  final class Alias(val name: String, val target: YNode, location: SourceLocation, cs: Parts) extends Ref(location, cs) {
     override def value: YValue    = target.value
     override def tag: YTag        = target.tag
     override def toString: String = "*" + name

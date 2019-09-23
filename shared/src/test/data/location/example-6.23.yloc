@@ -13,5 +13,5 @@ YMapEntry    [3,0..4,0]      example-6.23.yaml
 YNodePlain   [3,0..3,7]      example-6.23.yaml
 YAnchor      [3,0..3,3]      example-6.23.yaml
 YScalar      [3,4..3,7]      example-6.23.yaml
-Alias        [3,10..3,13]              
+Alias        [3,10..3,13]    example-6.23.yaml
 YAnchor      [3,10..3,13]    example-6.23.yaml

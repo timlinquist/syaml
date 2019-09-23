@@ -9,8 +9,8 @@ import org.yaml.model.YPart.locationOf
   */
 abstract class YPart(_location: SourceLocation, val children: IndexedSeq[YPart] = IndexedSeq.empty) {
   val location: SourceLocation = locationOf(_location, children)
-  val range: InputRange        = location.inputRange
-  val sourceName: String       = location.sourceName
+  def range: InputRange        = location.inputRange
+  def sourceName: String       = location.sourceName
 }
 
 object YPart {

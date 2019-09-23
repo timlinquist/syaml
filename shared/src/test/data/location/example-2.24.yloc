@@ -36,7 +36,7 @@ YMap         [9,0..11,0]     example-2.24.yaml
 YMapEntry    [9,2..10,0]     example-2.24.yaml
 YNodePlain   [9,2..9,7]      example-2.24.yaml
 YScalar      [9,2..9,7]      example-2.24.yaml
-Alias        [9,9..9,16]               
+Alias        [9,9..9,16]     example-2.24.yaml
 YAnchor      [9,9..9,16]     example-2.24.yaml
 YMapEntry    [10,2..11,0]    example-2.24.yaml
 YNodePlain   [10,2..10,8]    example-2.24.yaml
@@ -59,7 +59,7 @@ YMap         [12,0..15,0]    example-2.24.yaml
 YMapEntry    [12,2..13,0]    example-2.24.yaml
 YNodePlain   [12,2..12,7]    example-2.24.yaml
 YScalar      [12,2..12,7]    example-2.24.yaml
-Alias        [12,9..12,16]             
+Alias        [12,9..12,16]   example-2.24.yaml
 YAnchor      [12,9..12,16]   example-2.24.yaml
 YMapEntry    [13,2..14,0]    example-2.24.yaml
 YNodePlain   [13,2..13,7]    example-2.24.yaml

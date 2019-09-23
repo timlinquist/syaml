@@ -17,7 +17,7 @@ YNodePlain   [6,0..6,3]      example-2.10.yaml
 YScalar      [6,0..6,3]      example-2.10.yaml
 YNodePlain   [6,4..8,15]     example-2.10.yaml
 YSequence    [7,0..8,15]     example-2.10.yaml
-Alias        [7,4..7,7]                
+Alias        [7,4..7,7]      example-2.10.yaml
 YAnchor      [7,4..7,7]      example-2.10.yaml
 YComment     [7,8..7,31]     example-2.10.yaml
 YNodePlain   [8,4..8,15]     example-2.10.yaml

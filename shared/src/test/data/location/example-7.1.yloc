@@ -10,7 +10,7 @@ YScalar      [1,26..1,29]    example-7.1.yaml
 YMapEntry    [2,0..3,0]      example-7.1.yaml
 YNodePlain   [2,0..2,17]     example-7.1.yaml
 YScalar      [2,0..2,17]     example-7.1.yaml
-Alias        [2,19..2,26]              
+Alias        [2,19..2,26]    example-7.1.yaml
 YAnchor      [2,19..2,26]    example-7.1.yaml
 YMapEntry    [3,0..4,0]      example-7.1.yaml
 YNodePlain   [3,0..3,15]     example-7.1.yaml
@@ -21,5 +21,5 @@ YScalar      [3,25..3,28]    example-7.1.yaml
 YMapEntry    [4,0..5,0]      example-7.1.yaml
 YNodePlain   [4,0..4,12]     example-7.1.yaml
 YScalar      [4,0..4,12]     example-7.1.yaml
-Alias        [4,14..4,21]              
+Alias        [4,14..4,21]    example-7.1.yaml
 YAnchor      [4,14..4,21]    example-7.1.yaml

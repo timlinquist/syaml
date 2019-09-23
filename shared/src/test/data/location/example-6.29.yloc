@@ -10,5 +10,5 @@ YScalar      [1,26..1,31]    example-6.29.yaml
 YMapEntry    [2,0..3,0]      example-6.29.yaml
 YNodePlain   [2,0..2,17]     example-6.29.yaml
 YScalar      [2,0..2,17]     example-6.29.yaml
-Alias        [2,19..2,26]              
+Alias        [2,19..2,26]    example-6.29.yaml
 YAnchor      [2,19..2,26]    example-6.29.yaml
