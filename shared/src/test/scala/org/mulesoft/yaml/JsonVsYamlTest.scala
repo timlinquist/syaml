@@ -73,7 +73,7 @@ trait JsonVsYamlTest extends FunSuite with Matchers {
 //        println(js + "   " + ys)
 //      else
 //        println(js + " | " + ys)
-      js shouldBe (ys)
+      js shouldBe ys
     }
   }
 //  private def checkYamlParts(source: String): Unit = {

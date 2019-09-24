@@ -6,14 +6,23 @@ import org.yaml.lexer.YamlToken.{BeginDocument, _}
 import org.yaml.lexer.{JsonLexer, YamlToken}
 import org.yaml.model.{YTag, _}
 
+import scala.collection.mutable.ArrayBuffer
+
 /**
   * A Json Parser
   */
-class JsonParser private[parser] (override val lexer: JsonLexer)(override implicit val eh: ParseErrorHandler)
-    extends BaseParser(lexer) {
+class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseErrorHandler) extends YParser {
 
-  override type B = JsonBuilder
+  type TD = TokenData[YamlToken]
+  private var keepTokens = false
+  private var current    = new JsonBuilder
+  private var stack      = List(current)
 
+  /** Parse the Json and return the list of documents */
+  def documents(): IndexedSeq[YDocument] = {
+    keepTokens = false
+    Array(parseDocument())
+  }
   /** Parse the Json and return an Indexed Seq of the Parts */
   def parse(keepTokens: Boolean = true): IndexedSeq[YPart] = { // i can only have one doc in json
     this.keepTokens = keepTokens
@@ -34,8 +43,8 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   def expected(expected: String): Unit =
     current.appendAndCheck(
-        TokenData(Error, currentRange()),
-        if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
+      TokenData(Error, currentRange()),
+      if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
 
   private def expected(token: YamlToken): Boolean = {
     token match {
@@ -59,7 +68,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
   }
 
   private def push(): Unit = {
-    current = newBuilder
+    current = new JsonBuilder
     stack = current :: stack
   }
 
@@ -75,9 +84,9 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   private def parseMap(): Boolean = {
     push()
-    val r = parseList(BeginMapping, EndMapping, MapEntryParser())
+    val r     = parseList(BeginMapping, EndMapping, MapEntryParser())
     val parts = current.buildParts()
-    val v = YMap(parts, lexer.sourceName)
+    val v     = YMap(parts, lexer.sourceName)
     stackParts(buildNode(v, YType.Map.tag))
     r
   }
@@ -125,8 +134,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       val b       = new YScalar.Builder(textBuilder.toString(), tagType, scalarMark, current.buildParts(), lexer.sourceName) // always enter with begin scalar
       stackParts(buildNode(b.scalar, b.tag))
       true
-    }
-    else false
+    } else false
   }
 
   private def parseList(leftToken: YamlToken, rightToken: YamlToken, parser: ElementParser) = {
@@ -170,8 +178,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       if (parseEntry()) {
         val parts = current.buildParts()
         stackParts(YMapEntry(parts))
-      }
-      else {
+      } else {
         current.buildParts()
         pop()
       }
@@ -195,8 +202,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
           current.addNonContent()
         }
         k & parseValue()
-      }
-      else {
+      } else {
         advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
       }
@@ -206,8 +212,7 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
       val r = process()
       if (r) {
         current.addNonContent()
-      }
-      else {
+      } else {
         discardIf(Error)
         advanceTo(Indicator, EndMapping)
       }
@@ -282,10 +287,21 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
 
   private def buildNode(value: YValue, tag: YTag) = YNode(value, tag, sourceName = lexer.sourceName)
 
-  override protected def newBuilder: JsonBuilder = new JsonBuilder
-
-  class JsonBuilder extends Builder {
+  class JsonBuilder {
+    var first: TD      = _
+    val tokens         = new ArrayBuffer[AstToken]
+    val parts          = new ArrayBuffer[YPart]
+    var value: YValue  = _
     def append(): Unit = append(lexer.tokenData, lexer.tokenString)
+
+    def appendCustom(td: TD, text: String): Unit = {
+      if (keepTokens) tokens += AstToken(td.token, text, td.range, parsingError = true)
+      if (first == null) first = td
+    }
+    def append(td: TD, text: String = ""): Unit = {
+      if (keepTokens) tokens += AstToken(td.token, text, td.range)
+      if (first == null) first = td
+    }
 
     def appendCustom(text: String): Unit = {
       if (keepTokens) tokens += AstToken(lexer.token, text, lexer.tokenData.range, parsingError = true)
@@ -293,9 +309,15 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
     }
 
     def appendAndCheck(td: TD, text: String): Unit = {
-      this appendCustom (td, text)
+      appendCustom(td, text)
       addNonContent(td)
     }
+    def addNonContent(td: TD): Unit =
+      if (tokens.nonEmpty) {
+        val content = new YNonContent(first rangeTo td, buildTokens())
+        parts += content
+        collectErrors(content)
+      }
 
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
@@ -303,6 +325,17 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
         parts += content
         collectErrors(content)
       }
+
+    def buildTokens(td: TD = null): IndexedSeq[AstToken] = {
+      if (td != null) this append td
+      if (tokens.isEmpty) IndexedSeq.empty
+      else {
+        val r = tokens.toArray[AstToken]
+        tokens.clear()
+        first = null
+        r
+      }
+    }
 
     def buildParts(): Array[YPart] = {
 
@@ -312,6 +345,16 @@ class JsonParser private[parser] (override val lexer: JsonLexer)(override implic
         val r = parts.toArray[YPart]
         parts.clear()
         r
+      }
+    }
+    def collectErrors(nonContent: YNonContent): Unit = {
+      nonContent.tokens.find(_.tokenType == Error) match {
+        case Some(astToken: AstToken) =>
+          eh.handle(
+            new YNonContent(astToken.range, IndexedSeq(astToken)),
+            if (astToken.parsingError) ParserException(astToken.text) else LexerException(astToken.text)
+          )
+        case _ =>
       }
     }
 

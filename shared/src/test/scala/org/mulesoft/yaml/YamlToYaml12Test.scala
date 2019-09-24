@@ -35,9 +35,10 @@ object YamlToYaml12 extends IgnoreParseErrorTest {
     val yaml12File = fs.syncFile(modelDir, target)
     val goldenFile = fs.syncFile(goldenDir, target)
 
-    val elements: IndexedSeq[YPart] = (if (json) JsonParser(yamlFile.read()) else YamlParser(yamlFile.read())).parse()
+    val elements: IndexedSeq[YPart] =
+      if (json) JsonParser(yamlFile.read()).parse() else YamlParser(yamlFile.read()).parse()
 
-   val output = new StringBuilder
+    val output = new StringBuilder
     new Yaml12Render(elements, output).dump()
     yaml12File.write(output)
 

@@ -1,7 +1,6 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
-import org.yaml.convert.YRead.DoubleYRead
 import org.yaml.model.YDocument._
 import org.yaml.model._
 import org.yaml.parser.YamlParser
