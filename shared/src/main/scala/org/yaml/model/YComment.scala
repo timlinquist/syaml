@@ -27,7 +27,8 @@ object YComment {
 }
 
 /** Non Content (Whitespace, Indentation and Indicators) */
-class YNonContent(location: SourceLocation, tokens: IndexedSeq[AstToken]) extends YIgnorable(location, tokens) {
+class YNonContent(location: SourceLocation, tokens: IndexedSeq[AstToken] = IndexedSeq.empty)
+    extends YIgnorable(location, tokens) {
   override def toString: String = tokens.mkString(", ")
 }
 

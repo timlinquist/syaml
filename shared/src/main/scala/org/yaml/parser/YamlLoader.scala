@@ -27,25 +27,10 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
   private def current                           = stack.peek()
   private val stack                             = new Stack
 
-  private class Stack {
-    private var list = List(new YamlBuilder)
-
-    def push(): Unit = {
-      list = new YamlBuilder :: list
-    }
-
-    def pop(): YamlBuilder = {
-      val r = list.head
-      list = list.tail
-      r
-    }
-    def peek(): YamlBuilder = list.head
-
-  }
-
   def parse(): IndexedSeq[YPart] = {
     while (lexer.token != EndStream) {
-      prev = process(lexer.tokenData)
+      process()
+      prev = lexer.tokenData
       lexer.advance()
     }
     current.addNonContent(prev)
@@ -70,7 +55,8 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     r
   }
 
-  private def process(td: TD): TD = {
+  private def process(): Unit = {
+    val td = lexer.tokenData
     td.token match {
       case BeginDocument =>
         aliases.clear()
@@ -84,17 +70,17 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       case BeginDirective =>
         directiveArgs = ListBuffer.empty
         push(td)
-      case EndDocument  => pop(new YDocument(SourceLocation(lexer.sourceName), current.buildParts(td))); return td
-      case EndComment   => return createComment(td)
-      case EndSequence  => return createSequence(td)
-      case EndNode      => return createNode(td)
-      case EndScalar    => return createScalar(td)
-      case EndMapping   => return createMap(td)
-      case EndPair      => return createPair(td)
-      case EndAlias     => return createAlias(td)
-      case EndAnchor    => return createAnchor(td)
-      case EndTag       => return createTag(td)
-      case EndDirective => return createDirective(td)
+      case EndDocument  => pop(new YDocument(SourceLocation(lexer.sourceName), current.buildParts(td))); return
+      case EndComment   => createComment(td); return
+      case EndSequence  => createSequence(td); return
+      case EndNode      => createNode(td); return
+      case EndScalar    => createScalar(td); return
+      case EndMapping   => createMap(td); return
+      case EndPair      => createPair(td); return
+      case EndAlias     => createAlias(td); return
+      case EndAnchor    => createAnchor(td); return
+      case EndTag       => createTag(td); return
+      case EndDirective => createDirective(td); return
       case Text         => current.text.append(lexer.tokenText)
       case LineFold     => current.text.append(' ')
       case LineFeed     => current.text.append('\n')
@@ -113,10 +99,12 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       case LineBreak =>
         if (escaping) metaTextBuilder.clear()
       case WhiteSpace => addDirectiveArg()
-      case _          =>
+      case Error =>
+        eh.handle(new YNonContent(lexer.tokenData.range), LexerException(lexer.tokenString))
+
+      case _ =>
     }
     current.append(td, lexer.tokenString)
-    td
   }
 
   private def addDirectiveArg(): Unit = {
@@ -126,52 +114,44 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     }
   }
 
-  private def createComment(td: TD) = {
+  private def createComment(td: TD): Unit =
     pop(YComment(buildMetaText(), current.first rangeTo td, current.buildTokens(td)))
-    td
-  }
 
-  private def createDirective(td: TD) = {
+  private def createDirective(td: TD): Unit = {
     addDirectiveArg()
     val parts = current.buildParts(td)
     parts collectFirst { case t: YTag => directiveArgs += t.text }
     pop(YDirective(directiveArgs.head, directiveArgs.tail.toArray[String], SourceLocation.Unknown, parts))
     metaTextBuilder.clear()
     directiveArgs = null
-    td
   }
 
-  private def createTag(td: TokenData[YamlToken]) = {
+  private def createTag(td: TokenData[YamlToken]): Unit = {
     inTag = false
     val t =
       YTag(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
     pop(t)
     current.tag = t
-    td
   }
 
-  private def createAnchor(td: TD) = {
+  private def createAnchor(td: TD): Unit = {
     val anchor =
       YAnchor(buildMetaText(), current.first rangeTo td, current.buildTokens(td))
     pop(anchor)
     current.anchor = Some(anchor)
-    td
   }
 
-  private def createPair(td: TD) = {
+  private def createPair(td: TD): Unit =
     pop(YMapEntry(current.buildParts(td)))
-    td
-  }
 
-  private def createSequence(td: TD) = {
+  private def createSequence(td: TD): Unit = {
     val v = YSequence(current.buildParts(td))
     pop(v)
     current.value = v
     current.tag = tagFor(current.tag, YType.Seq)
-    td
   }
 
-  private def createNode(td: TD) = {
+  private def createNode(td: TD): Unit = {
     val parts = current.buildParts(td)
     if (current.alias.nonEmpty) {
       val anchor = aliases.get(current.alias)
@@ -188,7 +168,6 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       for (a <- current.anchor) aliases += a.name -> n
       pop(n)
     }
-    td
   }
 
   private def duplicates(parts: Array[YPart]): Unit = {
@@ -281,19 +260,22 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       if (tokens.nonEmpty) {
         val content = new YNonContent(first rangeTo td, buildTokens())
         parts += content
-        collectErrors(content)
       }
 
-    private def collectErrors(nonContent: YNonContent): Unit = {
-      nonContent.tokens.find(_.tokenType == YamlToken.Error) match {
-        case Some(astToken: AstToken) =>
-          eh.handle(
-              new YNonContent(astToken.range, IndexedSeq(astToken)),
-              if (astToken.parsingError) ParserException(astToken.text) else LexerException(astToken.text)
-          )
-        case _ =>
-      }
+  }
+  private class Stack {
+    private var list = List(new YamlBuilder)
+
+    def push(): Unit = {
+      list = new YamlBuilder :: list
     }
+
+    def pop(): YamlBuilder = {
+      val r = list.head
+      list = list.tail
+      r
+    }
+    def peek(): YamlBuilder = list.head
 
   }
 

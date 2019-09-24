@@ -23,6 +23,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
     keepTokens = false
     Array(parseDocument())
   }
+
   /** Parse the Json and return an Indexed Seq of the Parts */
   def parse(keepTokens: Boolean = true): IndexedSeq[YPart] = { // i can only have one doc in json
     this.keepTokens = keepTokens
@@ -34,17 +35,16 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       process()
       consumeOrError(EndDocument)
     }
-    val d = new YDocument(SourceLocation(lexer.sourceName), current.buildParts())
-    d
+    new YDocument(SourceLocation(lexer.sourceName), current.buildParts())
   }
 
-  def unexpected(): Unit =
-    current.appendAndCheck(TokenData(Error, currentRange()), s"Unexpected '${currentText()}'")
+  private def reportError(msg: String): Unit = eh.handle(new YNonContent(currentRange()), ParserException(msg))
+
+  def unexpected(): Unit = reportError(s"Unexpected '${currentText()}'")
 
   def expected(expected: String): Unit =
-    current.appendAndCheck(
-      TokenData(Error, currentRange()),
-      if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
+    reportError(
+        if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
 
   private def expected(token: YamlToken): Boolean = {
     token match {
@@ -134,7 +134,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       val b       = new YScalar.Builder(textBuilder.toString(), tagType, scalarMark, current.buildParts(), lexer.sourceName) // always enter with begin scalar
       stackParts(buildNode(b.scalar, b.tag))
       true
-    } else false
+    }
+    else false
   }
 
   private def parseList(leftToken: YamlToken, rightToken: YamlToken, parser: ElementParser) = {
@@ -178,7 +179,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       if (parseEntry()) {
         val parts = current.buildParts()
         stackParts(YMapEntry(parts))
-      } else {
+      }
+      else {
         current.buildParts()
         pop()
       }
@@ -202,7 +204,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
           current.addNonContent()
         }
         k & parseValue()
-      } else {
+      }
+      else {
         advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
       }
@@ -212,7 +215,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       val r = process()
       if (r) {
         current.addNonContent()
-      } else {
+      }
+      else {
         discardIf(Error)
         advanceTo(Indicator, EndMapping)
       }
@@ -222,7 +226,13 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
 
   private def currentToken(): YamlToken = {
     skipWhiteSpace()
-    lexer.token
+    val t = lexer.token
+//    if (t == Error)
+//      eh.handle(
+//          new YNonContent(lexer.tokenData.range, IndexedSeq.empty),
+//          LexerException(lexer.tokenText.toString)
+//      )
+    t
   }
 
   private def skipWhiteSpace(): Unit = {
@@ -238,6 +248,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
 
   private def consume() = {
     current.append()
+    if (lexer.token == Error)
+      eh.handle(new YNonContent(currentRange()), LexerException(currentText()))
     lexer.advance()
     true
   }
@@ -294,36 +306,21 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
     var value: YValue  = _
     def append(): Unit = append(lexer.tokenData, lexer.tokenString)
 
-    def appendCustom(td: TD, text: String): Unit = {
-      if (keepTokens) tokens += AstToken(td.token, text, td.range, parsingError = true)
-      if (first == null) first = td
-    }
     def append(td: TD, text: String = ""): Unit = {
       if (keepTokens) tokens += AstToken(td.token, text, td.range)
       if (first == null) first = td
     }
 
-    def appendCustom(text: String): Unit = {
-      if (keepTokens) tokens += AstToken(lexer.token, text, lexer.tokenData.range, parsingError = true)
-      if (first == null) first = lexer.tokenData
-    }
-
-    def appendAndCheck(td: TD, text: String): Unit = {
-      appendCustom(td, text)
-      addNonContent(td)
-    }
     def addNonContent(td: TD): Unit =
       if (tokens.nonEmpty) {
         val content = new YNonContent(first rangeTo td, buildTokens())
         parts += content
-        collectErrors(content)
       }
 
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
         val content = new YNonContent(location(first.range.inputRange, tokens.last.range.inputRange), buildTokens())
         parts += content
-        collectErrors(content)
       }
 
     def buildTokens(td: TD = null): IndexedSeq[AstToken] = {
@@ -347,17 +344,6 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
         r
       }
     }
-    def collectErrors(nonContent: YNonContent): Unit = {
-      nonContent.tokens.find(_.tokenType == Error) match {
-        case Some(astToken: AstToken) =>
-          eh.handle(
-            new YNonContent(astToken.range, IndexedSeq(astToken)),
-            if (astToken.parsingError) ParserException(astToken.text) else LexerException(astToken.text)
-          )
-        case _ =>
-      }
-    }
-
     private def location(begin: InputRange, end: InputRange) =
       SourceLocation(lexer.sourceName, begin.lineFrom, begin.columnFrom, end.lineTo, end.columnTo)
 

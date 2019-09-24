@@ -2,7 +2,7 @@ package org.mulesoft.yaml
 
 import org.mulesoft.common.io.{Fs, SyncFile}
 import org.mulesoft.lexer.InputRange
-import org.scalatest.FunSuite
+import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model._
 import org.yaml.parser.JsonParser
 
@@ -11,14 +11,14 @@ import scala.collection.mutable
 /**
   * Test handling errors
   */
-trait JsonParserTest extends FunSuite {
+trait JsonParserTest extends FunSuite with Matchers {
 
   private val jsonDir = Fs syncFile "shared/src/test/data/invalid-json"
 
   test("Parse unquoted key") {
     val errors = getErrorsFor(jsonDir / "unquoted-key.json")
 
-    assert(errors.lengthCompare(1) == 0)
+    errors.length shouldBe 1
     assert(errors.head.error.getMessage.equals("Syntax error : Expecting '\"' but 'abb' found"))
     assert(errors.head.inputRange.equals(InputRange(3, 2, 3, 5)))
 
