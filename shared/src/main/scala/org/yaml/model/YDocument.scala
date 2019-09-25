@@ -161,7 +161,7 @@ object YDocument {
       kf(k)
       val v = new PartBuilder(sourceName)
       vf(v)
-      addEntry(k.builder(0), v.builder(0))
+      addEntry(k.builder(0).asInstanceOf[YNode], v.builder(0).asInstanceOf[YNode])
     }
 
     final def entry(key: YNode, vf: PartBuilder => Unit): Unit = {
@@ -175,9 +175,7 @@ object YDocument {
 
     final def updateDynamic(name: String)(value: YNode): Unit = addEntry(YNode(name, sourceName), value)
 
-    private def addEntry(k: YPart, v: YPart): Unit = {
-      builder += YMapEntry(Array(k, v))
-    }
+    private def addEntry(k: YNode, v: YNode): Unit = builder += YMapEntry(k, v)
 
   }
 

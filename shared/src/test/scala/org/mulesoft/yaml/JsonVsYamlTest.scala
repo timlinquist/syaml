@@ -1,6 +1,7 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
+import org.yaml.model.YPart
 import org.yaml.parser.{JsonParser, YamlParser}
 
 /**
@@ -23,8 +24,7 @@ trait JsonVsYamlTest extends FunSuite with Matchers {
     """.stripMargin
 
   private val rootSeq =
-    """
-      |[ {
+    """[ {
       |     "entry1": "a",
       |     "entry2": {
       |       "map": {
@@ -50,45 +50,50 @@ trait JsonVsYamlTest extends FunSuite with Matchers {
   val sourceName = "my-source"
 
   test("assert map") {
-    checkParts(rootMap)
+    checkJsonVsYamlTokens(rootMap)
+    checkYamlTokenVsPlain(rootMap)
+    checkJsonVsYamlPlain(rootMap)
   }
 
   test("assert seq") {
-    checkParts(rootSeq)
+    checkJsonVsYamlTokens(rootSeq)
+    checkYamlTokenVsPlain(rootSeq)
+    checkJsonVsYamlPlain(rootSeq)
   }
 
   test("assert mapSeq") {
-    checkParts(mapSeq)
-//    checkYamlParts(mapSeq)
+    checkJsonVsYamlTokens(mapSeq)
+    checkYamlTokenVsPlain(mapSeq)
+    checkJsonVsYamlPlain(mapSeq)
   }
 
-  private def checkParts(source: String): Unit = {
+  private def checkJsonVsYamlTokens(source: String): Unit = {
     val jsonParts = allParts(JsonParser.withSource(source, sourceName).parse())
     val yamlParts = allParts(YamlParser(source, sourceName).parse())
 
-    for ((j, y) <- jsonParts zip yamlParts) {
+    check(jsonParts, yamlParts)
+  }
+  private def checkJsonVsYamlPlain(source: String): Unit = {
+    val jsonParts = allParts(JsonParser.withSource(source, sourceName).parse(false))
+    val yamlParts = allParts(YamlParser(source, sourceName).parse(false))
+
+    check(jsonParts, yamlParts)
+  }
+  private def checkYamlTokenVsPlain(source: String): Unit = {
+    val tokenParts = allParts(YamlParser(source, sourceName).parse())
+    val plainParts = allParts(YamlParser(source, sourceName).parse(false))
+    check(tokenParts, plainParts)
+  }
+  private def check(parts1: Seq[YPart], parts2: Seq[YPart]): Unit = {
+    for ((j, y) <- parts1 zip parts2) {
       val js = dump(j)
       val ys = dump(y)
 //      if (js == ys)
 //        println(js + "   " + ys)
 //      else
 //        println(js + " | " + ys)
-      js shouldBe ys
+     js shouldBe ys
     }
   }
-//  private def checkYamlParts(source: String): Unit = {
-//    val tokenParts = allParts(YamlParser(source, sourceName).parse())
-//    val plainParts = allParts(YamlParser(source, sourceName).parse(false))
-//
-//    for ((j, y) <- tokenParts zip plainParts) {
-//      val js = dump(j)
-//      val ys = dump(y)
-//      if (js == ys)
-//        println(js + "   " + ys)
-//      else
-//        println(js + " | " + ys)
-//      js shouldBe (ys)
-//    }
-//  }
 
 }

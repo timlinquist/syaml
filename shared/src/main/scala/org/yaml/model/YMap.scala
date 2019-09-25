@@ -35,8 +35,9 @@ class YMap private (location: SourceLocation, parts: IndexedSeq[YPart]) extends 
 }
 
 object YMap {
-  def apply(c: IndexedSeq[YPart], sourceName: String): YMap = new YMap(SourceLocation(sourceName), c)
-  val empty                                                 = YMap(IndexedSeq.empty, "")
+  def apply(location: SourceLocation, c: IndexedSeq[YPart]): YMap = new YMap(location, c)
+  def apply(c: IndexedSeq[YPart], sourceName: String): YMap       = new YMap(SourceLocation(sourceName), c)
+  val empty                                                       = YMap(IndexedSeq.empty, "")
 }
 
 class YMapEntry private (val key: YNode, val value: YNode, location: SourceLocation, parts: IndexedSeq[YPart])
@@ -48,6 +49,11 @@ object YMapEntry {
   def apply(parts: IndexedSeq[YPart]): YMapEntry = {
     val kv = parts collect { case a: YNode => a }
     new YMapEntry(kv(0), kv(1), SourceLocation(kv(0).sourceName), parts)
+  }
+
+  def apply(location: SourceLocation, parts: IndexedSeq[YPart]): YMapEntry = {
+    val kv = parts collect { case a: YNode => a }
+    new YMapEntry(kv(0), kv(1), location, parts)
   }
   def apply(k: YNode, v: YNode): YMapEntry = new YMapEntry(k, v, SourceLocation(k.sourceName), Array(k, v))
 }

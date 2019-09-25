@@ -19,7 +19,10 @@ trait YamlLocationTest extends GoldenSuite {
 
   for (yaml <- files) {
     test("Generate Locations for " + yaml) {
-      YamlLocation.test(yaml, this, yamlDir, modelDir, goldenDir)
+      YamlLocation.test(yaml, this, keepTokens = true, yamlDir, modelDir, goldenDir)
+    }
+    test("Generate Locations for '" + yaml + "' not keeping tokens") {
+      YamlLocation.test(yaml, this, keepTokens = false, yamlDir, modelDir, goldenDir)
     }
   }
 }
@@ -27,6 +30,7 @@ trait YamlLocationTest extends GoldenSuite {
 object YamlLocation extends IgnoreParseErrorTest {
   def test(sourceName: String,
            test: GoldenSuite,
+           keepTokens: Boolean,
            sourceDir: SyncFile,
            modelDir: SyncFile,
            goldenDir: SyncFile): Unit = {
@@ -38,8 +42,8 @@ object YamlLocation extends IgnoreParseErrorTest {
     val goldenFile = fs.syncFile(goldenDir, target)
 
     val parts = allParts(
-        if (json) JsonParser.withSource(sourceFile.read(), sourceName).parse()
-        else YamlParser(sourceFile.read(), sourceName).parse())
+        if (json) JsonParser.withSource(sourceFile.read(), sourceName).parse(keepTokens)
+        else YamlParser(sourceFile.read(), sourceName).parse(keepTokens))
 
     val output = new StringBuilder
     for (p <- parts)

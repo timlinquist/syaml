@@ -36,4 +36,6 @@ object YNonContent {
 //  @deprecated("", "Use Constructor")
   def apply(range: InputRange, tokens: IndexedSeq[AstToken], sourceName: String): YNonContent =
     new YNonContent(SourceLocation(sourceName, range.lineFrom, range.columnFrom, range.lineTo, range.columnTo), tokens)
+
+  def apply(tokens: IndexedSeq[AstToken]): YNonContent = new YNonContent(tokens.head.range to tokens.last.range, tokens)
 }

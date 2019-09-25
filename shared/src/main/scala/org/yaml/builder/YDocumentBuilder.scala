@@ -64,7 +64,7 @@ class YDocumentBuilder extends DocBuilder[YPart] {
 
   private def createMapNode(f: Entry[YPart] => Unit) = {
     val builder                                  = new ArrayBuffer[YPart]
-    def addEntry(key: String, node: YNode): Unit = builder += YMapEntry(Array(YNode(key), node))
+    def addEntry(key: String, node: YNode): Unit = builder += YMapEntry(YNode(key), node)
 
     val b: Entry[YPart] = new Entry[YPart] {
       override def entry(key: String, value: Scalar): Unit          = addEntry(key, mkNode(value))

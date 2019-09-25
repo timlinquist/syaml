@@ -31,11 +31,15 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
   }
 
   private def parseDocument(): YDocument = {
+    push()
     if (consumeOrError(BeginDocument)) {
       process()
       consumeOrError(EndDocument)
     }
-    new YDocument(SourceLocation(lexer.sourceName), current.buildParts())
+    val parts = current.buildParts()
+    val sl = current.location()
+    pop()
+    new YDocument(sl, parts)
   }
 
   private def reportError(msg: String): Unit = eh.handle(new YNonContent(currentRange()), ParserException(msg))
@@ -85,8 +89,11 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
   private def parseMap(): Boolean = {
     push()
     val r     = parseList(BeginMapping, EndMapping, MapEntryParser())
+    val sl = current.location()
+    if (r) consume()
+
     val parts = current.buildParts()
-    val v     = YMap(parts, lexer.sourceName)
+    val v     = YMap(sl, parts)
     stackParts(buildNode(v, YType.Map.tag))
     r
   }
@@ -94,7 +101,9 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
   private def parseSeq(): Boolean = {
     push()
     val r = parseList(BeginSequence, EndSequence, SequenceValueParser()) // should check if i parse something? empty pop if not?
-    val v = YSequence(SourceLocation(lexer.sourceName), current.buildParts())
+    val sl = current.location()
+    if (r) consume()
+    val v = YSequence(sl, current.buildParts())
     stackParts(buildNode(v, YType.Seq.tag))
     r
   }
@@ -128,10 +137,12 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
         }
         consume()
       }
+      val sl = current.location()
       consumeOrError(EndScalar)
       current.addNonContent()
       val tagType = if (scalarMark == DoubleQuoteMark.encodeChar.toString) YType.Str.tag else null
-      val b       = new YScalar.Builder(textBuilder.toString(), tagType, scalarMark, current.buildParts(), lexer.sourceName) // always enter with begin scalar
+      val b =
+        new YScalar.Builder(textBuilder.toString(), tagType, ScalarMark(scalarMark), sl, current.buildParts())
       stackParts(buildNode(b.scalar, b.tag))
       true
     }
@@ -154,7 +165,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
         }
       }
     }
-    consumeOrError(rightToken)
+    currentOrError(rightToken)
   }
 
   trait ElementParser {
@@ -300,26 +311,28 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
   private def buildNode(value: YValue, tag: YTag) = YNode(value, tag, sourceName = lexer.sourceName)
 
   class JsonBuilder {
-    var first: TD      = _
-    val tokens         = new ArrayBuffer[AstToken]
-    val parts          = new ArrayBuffer[YPart]
-    var value: YValue  = _
+    var first: SourceLocation = lexer.tokenData.range
+    val tokens                = new ArrayBuffer[AstToken]
+    val parts                 = new ArrayBuffer[YPart]
+    var value: YValue         = _
+
+    def location(): SourceLocation = first to lexer.tokenData.range
+
     def append(): Unit = append(lexer.tokenData, lexer.tokenString)
 
     def append(td: TD, text: String = ""): Unit = {
       if (keepTokens) tokens += AstToken(td.token, text, td.range)
-      if (first == null) first = td
     }
 
     def addNonContent(td: TD): Unit =
       if (tokens.nonEmpty) {
-        val content = new YNonContent(first rangeTo td, buildTokens())
+        val content = new YNonContent(first to td.range, buildTokens())
         parts += content
       }
 
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
-        val content = new YNonContent(location(first.range.inputRange, tokens.last.range.inputRange), buildTokens())
+        val content = new YNonContent(location(), buildTokens())
         parts += content
       }
 
@@ -329,7 +342,6 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       else {
         val r = tokens.toArray[AstToken]
         tokens.clear()
-        first = null
         r
       }
     }
@@ -344,9 +356,6 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
         r
       }
     }
-    private def location(begin: InputRange, end: InputRange) =
-      SourceLocation(lexer.sourceName, begin.lineFrom, begin.columnFrom, end.lineTo, end.columnTo)
-
   }
 }
 

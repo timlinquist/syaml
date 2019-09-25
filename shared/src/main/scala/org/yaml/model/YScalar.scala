@@ -13,7 +13,7 @@ import org.yaml.parser.ScalarParser
   */
 class YScalar private[model] (val value: Any,
                               val text: String,
-                              val mark: ScalarMark = NonMark,
+                              val mark: ScalarMark = NoMark,
                               location: SourceLocation,
                               parts: IndexedSeq[YPart] = IndexedSeq.empty)
     extends YValue(location, parts) {
@@ -56,38 +56,40 @@ object YScalar {
   def fromToken(astToken: AstToken, range: InputRange, sourceName: String = "") =
     new YScalar(astToken.text,
                 astToken.text,
-                NonMark,
+                NoMark,
                 SourceLocation(sourceName),
                 Array(YNonContent(range, Array(astToken), sourceName)))
 
   /** Used in amf-core. Remove ASAP! */
-  def withLocation(value: String, tag: YType, _sourceName: String, range: InputRange): YScalar =
+  def withLocation(value: String, tag: YType, _sourceName: String, range: InputRange): YScalar = {
+    val location = SourceLocation(_sourceName, range)
     new YScalar.Builder(
-        value,
-        tag.tag,
-        sourceName = _sourceName,
-        parts = IndexedSeq(new YTokens(SourceLocation(_sourceName, range), IndexedSeq()) {
-          override def sourceName: String = _sourceName
-        })
+      value,
+      tag.tag,
+      NoMark,
+      location,
+      IndexedSeq(new YTokens(location, IndexedSeq()) {
+        override def sourceName: String = _sourceName
+      })
     ).scalar
+  }
 
   class Builder(text: String,
                 t: YTag,
-                mark: String = "",
-                parts: IndexedSeq[YPart] = IndexedSeq.empty,
-                sourceName: String = "")(implicit eh: ParseErrorHandler) {
+                scalarMark: ScalarMark = NoMark,
+                location: SourceLocation,
+                parts: IndexedSeq[YPart] = IndexedSeq.empty)(implicit eh: ParseErrorHandler) {
 
     var tag: YTag = _
 
     val scalar: YScalar = {
-      val scalarMark = ScalarMark(mark)
       var tt = if (t != null) {
         if (t.tagType != Empty) t.tagType
         else {
           Str
         }
       }
-      else if (scalarMark == NonMark) YType.Unknown
+      else if (scalarMark == NoMark) YType.Unknown
       else Str
 
       var value: Either[ParseException, Any] = Right(text)
@@ -105,9 +107,9 @@ object YScalar {
 
       val result =
         new YScalar(value.getOrElse(text),
-                    if (mark == "'") text.replace("''", "'") else text,
+                    if (scalarMark == SingleQuoteMark) text.replace("''", "'") else text,
                     scalarMark,
-                    SourceLocation(sourceName),
+                    location,
                     parts)
 
       for (error <- value.left) eh.handle(result, error)
@@ -138,10 +140,13 @@ object SingleQuoteMark extends QuotedMark {
 object MultilineMark extends ScalarMark {
   override def plain: Boolean = false
 }
-object UnkownMark extends ScalarMark {
+object FoldedMark extends ScalarMark {
   override def plain: Boolean = false
 }
-object NonMark extends ScalarMark {
+object UnknownMark extends ScalarMark {
+  override def plain: Boolean = false
+}
+object NoMark extends ScalarMark {
   override def plain: Boolean = true
 }
 
@@ -150,7 +155,8 @@ object ScalarMark {
     case "\"" => DoubleQuoteMark
     case "'"  => SingleQuoteMark
     case "|"  => MultilineMark
-    case ""   => NonMark
-    case _    => UnkownMark
+    case ">"  => FoldedMark
+    case ""   => NoMark
+    case _    => UnknownMark
   }
 }

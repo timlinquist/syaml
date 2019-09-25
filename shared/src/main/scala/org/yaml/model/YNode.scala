@@ -13,7 +13,7 @@ abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(locat
   def value: YValue
   def tag: YTag
   def anchor: Option[YAnchor]
-  def tagType: YType          = tag.tagType
+  def tagType: YType = tag.tagType
 
   /** Returns true if the node is consider a null one */
   override def isNull: Boolean = tagType == YType.Null || asScalar.contains(null)
@@ -35,7 +35,7 @@ abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(locat
   override def toString: String = value.toString
 
   /** Create a reference (alias) to this node */
-  def alias(location : SourceLocation = Unknown): YNode = anchor match {
+  def alias(location: SourceLocation = Unknown): YNode = anchor match {
     case Some(a) => new YNode.Alias(a.name, this, location, noParts)
     case _       => throw new IllegalStateException("Node does not have an Anchor")
   }
@@ -50,15 +50,15 @@ abstract class YNode(location: SourceLocation, parts: Parts) extends YPart(locat
 class YNodePlain(val value: YValue,
                  val tag: YTag,
                  val anchor: Option[YAnchor],
-                 parts: IndexedSeq[YPart],
-                 location: SourceLocation)
+                 location: SourceLocation,
+                 parts: IndexedSeq[YPart])
     extends YNode(location, parts)
 
 object YNode {
 
   /** Create a direct Node Implementation */
   def apply(v: YValue, t: YTag, a: Option[YAnchor] = None, cs: Parts = null, sourceName: String): YNode =
-    new YNodePlain(v, t, a, if (cs == null) Array(v) else cs, SourceLocation(sourceName))
+    new YNodePlain(v, t, a, SourceLocation(sourceName), if (cs == null) Array(v) else cs)
 
   def apply(value: YValue, tt: YType, ref: YAnchor): YNode =
     YNode(value, tt.tag, Some(ref), sourceName = value.sourceName)
@@ -99,7 +99,7 @@ object YNode {
   def include(uri: String, sourceName: String = ""): MutRef = {
     val v = YScalar(uri, sourceName)
     val t = YType.Include.tag
-    new MutRef(v, t, Array(t, v))
+    new MutRef(v, t, SourceLocation(sourceName), Array(t, v))
   }
 
   private type Parts = IndexedSeq[YPart]
@@ -113,16 +113,19 @@ object YNode {
   }
 
   /** A Mutable Node reference */
-  final class MutRef(val origValue: YValue, val origTag: YTag, val cs: Parts) extends Ref(Unknown, cs) {
+  final class MutRef(val origValue: YValue, val origTag: YTag, location: SourceLocation, cs: Parts)
+      extends Ref(location, cs) {
+
     var target: Option[YNode] = None
 
     override def value: YValue = target.map(_.value).getOrElse(origValue)
-    override def tag: YTag = target.map(_.tag).getOrElse(origTag)
-    //override val location: SourceLocation = value.location
+    override def tag: YTag     = target.map(_.tag).getOrElse(origTag)
+
   }
 
   /** An Alias Node */
-  final class Alias(val name: String, val target: YNode, location: SourceLocation, cs: Parts) extends Ref(location, cs) {
+  final class Alias(val name: String, val target: YNode, location: SourceLocation, cs: Parts)
+      extends Ref(location, cs) {
     override def value: YValue    = target.value
     override def tag: YTag        = target.tag
     override def toString: String = "*" + name
