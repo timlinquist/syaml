@@ -15,9 +15,9 @@ import org.yaml.parser.YamlParser
   */
 class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
 
-  private val modelDir  = mkdir("target", "test", "model")
-  private val yamlDir   = Fs syncFile "shared/src/test/data/yaml"
-  private val goldenDir = Fs syncFile "shared/src/test/data/yts"
+  private val modelDir        = mkdir("target", "test", "model")
+  private val yamlDir         = Fs syncFile "shared/src/test/data/yaml"
+  private val goldenDir       = Fs syncFile "shared/src/test/data/yts"
   private val offsetGoldenDir = Fs syncFile "shared/src/test/data/yts/with-offset"
 
   private val file  = System.getProperty("yaml")
@@ -45,23 +45,24 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
     }
   }
 
-  private val offsetFiles = Array("directives.yaml","example-2.1.yaml", "example-2.3.yaml","example-5.3.yaml","literalPlain-1.yaml")
+  private val offsetFiles =
+    Array("directives.yaml", "example-2.1.yaml", "example-2.3.yaml", "example-5.3.yaml", "literalPlain-1.yaml")
 
-  private val offset = Position(5,5)
+  private val offset = Position(5, 5)
 
   for (yaml <- offsetFiles) {
     test("Parse and Dump Tokens with offset for " + yaml) {
-      val yamlFile = yamlDir / yaml
-      val yts = yaml.replace(".yaml", ".yts")
-      val ytsFile = modelDir / yts
+      val yamlFile   = yamlDir / yaml
+      val yts        = yaml.replace(".yaml", ".yts")
+      val ytsFile    = modelDir / yts
       val goldenFile = offsetGoldenDir / yts
 
-      val cw = new CharArrayWriter()
+      val cw     = new CharArrayWriter()
       val writer = new PrintWriter(cw)
       writer println s"File: $yaml"
       val offsetParts = YamlParser(YamlLexer(yamlFile.read(), offset)).parse()
-      val parts = YamlParser(YamlLexer(yamlFile.read())).parse()
-      assertRanges(parts,offsetParts)
+      val parts       = YamlParser(YamlLexer(yamlFile.read())).parse()
+      assertRanges(parts, offsetParts)
       val n = dump(offsetParts, writer, "")
       writer println s"$n tokens dumped."
       writer.close()
@@ -74,11 +75,11 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
     }
   }
 
-  private def assertRanges(part:IndexedSeq[YPart], offsetPart:IndexedSeq[YPart]): Assertion = {
-    part.zip(offsetPart).foreach({case (a:YPart,b:YPart) => assertRangeDiff(a,b)})
-  succeed
+  private def assertRanges(part: IndexedSeq[YPart], offsetPart: IndexedSeq[YPart]): Assertion = {
+    part.zip(offsetPart).foreach({ case (a: YPart, b: YPart) => assertRangeDiff(a, b) })
+    succeed
   }
-  private def assertRangeDiff(part:YPart, offsetPart:YPart):Assertion = {
+  private def assertRangeDiff(part: YPart, offsetPart: YPart): Assertion = {
     part.range.lineFrom should be(offsetPart.range.lineFrom - offset.line)
     part.range.columnFrom should be(offsetPart.range.columnFrom - offset.column)
 
@@ -87,7 +88,6 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
     assertRanges(part.children, offsetPart.children)
     succeed
   }
-
 
   private def dump(elements: IndexedSeq[YPart], writer: PrintWriter, indent: String): Int = {
     var n = 0
@@ -109,8 +109,8 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
         case s: YScalar if s.children.size == 1 => dumpTokens(cc, e.children.head.asInstanceOf[YTokens], e.range)
         case nc: YNonContent                    => dumpTokens("YI", nc, e.range)
         case ts: YTokens                        => dumpTokens(cc, ts, e.range)
-        case _: YDirective                     => dumpParts("Yd", e.children, e.range)
-        case _: YNode                          => dumpParts("YN", e.children, e.range)
+        case _: YDirective                      => dumpParts("Yd", e.children, e.range)
+        case _: YNode                           => dumpParts("YN", e.children, e.range)
         case _                                  => dumpParts(cc, e.children, e.range)
       }
     }
