@@ -72,6 +72,29 @@ class CharSequenceLexerInput private (val data: CharSequence,
   /** Reset the input to the specified offset */
   override def reset(mark: Mark): Unit = state = mark.asInstanceOf[InputState]
 
+  override def countSpaces(offset: Int = 0, max: Int = IntMax): Int = {
+    var i = 0
+    while (i < max) {
+      val off = state.nextOffset + offset + i - 1
+      if (off < 0 || off >= endOffset || data.charAt(off)!= ' ') return i
+      i = i + 1
+    }
+    i
+  }
+  /** Count the number of whiteSpaces from the specified offset */
+  override def countWhiteSpaces(offset: Int = 0): Int = {
+    var i = 0
+    while (true) {
+      val off = state.nextOffset + offset + i - 1
+      if (off < 0 || off >= endOffset) return i
+      val c = data.charAt(off)
+      if (c != ' ' && c != '\t') return i
+      i = i + 1
+    }
+    IntMax
+  }
+
+
 }
 
 object CharSequenceLexerInput {

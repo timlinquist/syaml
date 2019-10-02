@@ -4,6 +4,7 @@ import java.lang.Long.parseLong
 import org.mulesoft.common.time.SimpleDateTime
 import org.yaml.model.YType.{Bool, Float, Int, Str, Timestamp, Unknown, Null => tNull}
 import org.yaml.model.{ParseException, YType}
+import ScalarParser._
 
 import scala.Double.{NaN, NegativeInfinity => NegInf, PositiveInfinity => Inf}
 
@@ -62,15 +63,16 @@ class ScalarParser(text: String, var ytype: YType) {
 
   private def typeIs(t: YType) = ytype == Unknown || ytype == t
 
-  private val intRegex   = "[-+]?\\d+".r
-  private val octRegex   = "0o([0-7]+)".r
-  private val hexRegex   = "0x([0-9a-fA-F]+)".r
-  private val floatRegex = "-?(?:0|[1-9]\\d*)(?:\\.\\d*)?(?:[eE][-+]?\\d+)?".r
-  private val infinity   = "([-+])?(?:\\.inf|\\.Inf|\\.INF)".r
 
 }
 
 object ScalarParser {
   def apply(text: String, ytype: YType): ScalarParser = new ScalarParser(text, ytype)
   def apply(text: String): ScalarParser = new ScalarParser(text, Unknown)
+
+  private val intRegex   = "[-+]?\\d+".r
+  private val octRegex   = "0o([0-7]+)".r
+  private val hexRegex   = "0x([0-9a-fA-F]+)".r
+  private val floatRegex = "-?(?:0|[1-9]\\d*)(?:\\.\\d*)?(?:[eE][-+]?\\d+)?".r
+  private val infinity   = "([-+])?(?:\\.inf|\\.Inf|\\.INF)".r
 }

@@ -25,16 +25,11 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
 
   override protected def processPending(): Unit = emit(EndStream)
 
-  protected def countSpaces(offset: Int = 0, max: Int = MAX_VALUE): Int =
-    countWhile(i => lookAhead(offset + i) == ' ' && i < max)
-
   def emitIndicator(): Boolean = consumeAndEmit(Indicator)
 
   /** Check that the current char is the specified one and if so emit it as an Indicator */
   @failfast def indicator(chr: Int): Boolean = currentChar == chr && consumeAndEmit(Indicator)
 
-  /** Count the number of whiteSpaces from the specified offset */
-  protected def countWhiteSpaces(offset: Int = 0): Int = countWhile(i => isWhite(lookAhead(i + offset)))
 
   //  def ensureDocumentStarted(): Boolean =
   //    if (stack.exists(s => s.isInstanceOf[InDocument])) false
@@ -105,7 +100,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * Process an indentation exactly as the current one<p>
     * [63]	s-indent(n)	::=	s-space × n
     */
-  def indent(n: Int): Boolean = n <= 0 || n == countSpaces(0, n) && consumeAndEmit(n, Indent)
+  def indent(n: Int): Boolean = n <= 0 || n == input.countSpaces(0, n) && consumeAndEmit(n, Indent)
 
   /**
     * Detect an indentation lower than the current one<p>
@@ -113,7 +108,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [64]	s-indent(&lt;n)	::=	s-space × m (Where m < n)
     */
   def indentLess(n: Int): Boolean = {
-    val m = countSpaces()
+    val m = input.countSpaces(0, MAX_VALUE)
     m < n && consumeAndEmit(m, Indent)
   }
 
@@ -123,7 +118,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [64]	s-indent(&le;n)	::=	s-space × m (Where m ≤ n)
     */
   def indentLessOrEqual(n: Int): Boolean = {
-    val m = countSpaces()
+    val m = input.countSpaces(0, MAX_VALUE)
     m <= n && consumeAndEmit(m, Indent)
   }
 
@@ -131,7 +126,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [66]	s-separate-in-line	::=	s-white+ | /* Start of line */
     */
   @failfast private def separateInLine(): Boolean = {
-    val n = countWhiteSpaces()
+    val n = input.countWhiteSpaces()
     n > 0 && consumeAndEmit(n, WhiteSpace) || beginOfLine
   }
 
@@ -155,9 +150,9 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     if (!beginOfLine) false
     else {
       if (isDirectivesEnd || isDocumentEnd) return false
-      val spaces = countSpaces(0, n)
+      val spaces = input.countSpaces(0, n)
       if (!emptyLine && spaces < n) return false
-      val whiteSpaces = if (flow) countWhiteSpaces(spaces) else 0
+      val whiteSpaces = if (flow) input.countWhiteSpaces(spaces) else 0
       if (emptyLine && !isBBreak(lookAhead(spaces + whiteSpaces))) false
       else {
         consumeAndEmit(spaces, Indent)
@@ -168,8 +163,8 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   private def flowLinePrefix(): Boolean = {
 
     if (isDirectivesEnd || isDocumentEnd) return false
-    val spaces      = countSpaces()
-    val whiteSpaces = countWhiteSpaces(spaces)
+    val spaces      = input.countSpaces(0, MAX_VALUE)
+    val whiteSpaces = input.countWhiteSpaces(spaces)
     consumeAndEmit(spaces, Indent)
     consumeAndEmit(whiteSpaces, WhiteSpace)
   }
@@ -542,7 +537,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
             emitText()
             matches(breakNonContent() && emptyLine(n, c)) || consumeAndEmit(LineFold)
             indent(n)
-            consumeAndEmit(countWhiteSpaces(), WhiteSpace)
+            consumeAndEmit(input.countWhiteSpaces(), WhiteSpace)
           }
           else {
             inText = false
@@ -566,10 +561,10 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
                 consumeAndEmit(MetaText)
             }
           emit(EndEscape)
-          if (nl) consumeAndEmit(countWhiteSpaces(), WhiteSpace)
+          if (nl) consumeAndEmit(input.countWhiteSpaces(), WhiteSpace)
 
         case ' ' | '\t' =>
-          val spaces = countWhiteSpaces()
+          val spaces = input.countWhiteSpaces()
           if (isBBreak(lookAhead(spaces))) {
             emitText()
             consumeAndEmit(spaces, WhiteSpace)
@@ -662,7 +657,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     */
   @failfast private def plainInLine(ctx: YamlContext): Boolean = {
     while ({
-      val spaces = countWhiteSpaces()
+      val spaces = input.countWhiteSpaces()
       if (!isPlainChar(spaces, ctx)) false
       else {
         consume(spaces + 1)
@@ -1066,7 +1061,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
       // Skip Empty Lines
       val s = saveState
       zeroOrMore(emptyLine(n, BlockIn))
-      val n1 = countSpaces()
+      val n1 = input.countSpaces()
       m = 1 max (n1 - n)
       restoreState(s)
     }
@@ -1189,7 +1184,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [175]	s-nb-folded-text(n)	  ::=	[[indent s-indent(n)]] [[isNsChar ns-char]] [[isNBChar nb-char]]*
     */
   private def foldedText(n: Int) =
-    if (countSpaces() != n || !isNsChar(lookAhead(n))) false
+    if (input.countSpaces(0, MAX_VALUE) != n || !isNsChar(lookAhead(n))) false
     else {
       consumeAndEmit(n, Indent)
       consumeWhile(isNBChar)
@@ -1210,7 +1205,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [177]	s-nb-spaced-text(n)	::=	[[indent s-indent(n)]] [[isWhite s-white]] [[isNBChar nb-char]]*
     */
   private def spacedText(n: Int): Boolean = {
-    val m = countSpaces()
+    val m = input.countSpaces(0, MAX_VALUE)
     if (m < n || m == n && !isWhite(lookAhead(n))) false
     else {
       consumeAndEmit(n, Indent)
@@ -1284,7 +1279,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   }
 
   private def detectSequenceStart(n: Int) = {
-    val spaces = countSpaces()
+    val spaces = input.countSpaces(0, MAX_VALUE)
     if (lookAhead(spaces) == '-' && !isNsChar(lookAhead(spaces + 1))) spaces - n else 0
   }
 
@@ -1336,7 +1331,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     emit(BeginSequence) && blockSeqEntry(n) && zeroOrMore(indent(n) && blockSeqEntry(n)) && emit(EndSequence)
 
   private def detectMapStart(n: Int) = {
-    val spaces = countSpaces()
+    val spaces = input.countSpaces(0, MAX_VALUE)
     if (spaces > n && lookAhead(spaces) == '?' || lineContainsMapIndicator()) spaces - n else 0
   }
 

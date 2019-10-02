@@ -1,6 +1,9 @@
 package org.mulesoft.lexer
 
+import java.lang.Integer.MAX_VALUE
+
 import org.mulesoft.lexer.LexerInput.Mark
+import org.yaml.lexer.YamlCharRules.isWhite
 
 /**
   * A source of characters for a Lexer.
@@ -51,6 +54,10 @@ trait LexerInput {
   /** We're not at the Eof */
   def nonEof: Boolean
 
+  def countSpaces(offset: Int = 0, max: Int = MAX_VALUE): Int
+
+  /** Count the number of whiteSpaces from the specified offset */
+  def countWhiteSpaces(offset: Int = 0): Int
 }
 
 object LexerInput {
