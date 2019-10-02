@@ -78,7 +78,14 @@ object SourceLocation {
 
   def apply(sourceName: String): SourceLocation =
     if (sourceName == null || sourceName.isEmpty) Unknown
-    else cache.getOrElseUpdate(sourceName, SourceLocation(sourceName, 0, 0))
+    else
+      cache.get(sourceName) match {
+        case Some(v) => v
+        case _ =>
+          val location = SourceLocation(sourceName, 0, 0)
+          synchronized { cache.update(sourceName, location) }
+          location
+      }
 
   final val Unknown = SourceLocation("", 0, 0)
 
