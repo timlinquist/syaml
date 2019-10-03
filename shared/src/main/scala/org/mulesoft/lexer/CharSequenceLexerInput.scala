@@ -74,24 +74,27 @@ class CharSequenceLexerInput private (val data: CharSequence,
 
   override def countSpaces(offset: Int = 0, max: Int = IntMax): Int = {
     var i = 0
-    while (i < max) {
-      val off = state.nextOffset + offset + i - 1
-      if (off < 0 || off >= endOffset || data.charAt(off)!= ' ') return i
+    var off = state.nextOffset + offset - 1
+    if (off < 0) return 0
+    while (i < max && off < endOffset) {
+      if (data.charAt(off)!= ' ') return i
       i = i + 1
+      off += 1
     }
     i
   }
   /** Count the number of whiteSpaces from the specified offset */
   override def countWhiteSpaces(offset: Int = 0): Int = {
     var i = 0
-    while (true) {
-      val off = state.nextOffset + offset + i - 1
-      if (off < 0 || off >= endOffset) return i
+    var off = state.nextOffset + offset - 1
+    if (off < 0) return 0
+    while (off < endOffset) {
       val c = data.charAt(off)
       if (c != ' ' && c != '\t') return i
       i = i + 1
+      off += 1
     }
-    IntMax
+    i
   }
 
 

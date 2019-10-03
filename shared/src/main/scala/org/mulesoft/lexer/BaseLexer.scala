@@ -142,12 +142,12 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
 
 }
 class Queue[T] {
-  private val buffer = ArrayBuffer.empty[T]
+  private val buffer = new ArrayBuffer[T](10000)
   private var head   = 0
   private var tail   = 0
   def size: Int      = tail - head
   def +=(t: T): this.type = {
-    if (buffer.size <= tail) buffer.append(t)
+    if (buffer.size <= tail) buffer += t
     else buffer(tail) = t
     tail += 1
     this

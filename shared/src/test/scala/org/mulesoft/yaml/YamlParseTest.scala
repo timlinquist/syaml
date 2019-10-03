@@ -16,6 +16,7 @@ trait YamlParseTest extends GoldenSuite {
 
   for (src <- files) {
     ignore("Parse and measure: " + src) {
+//    test("Parse and measure: " + src) {
       println(s"--- $src ----")
       println()
       start = System.currentTimeMillis()
@@ -23,15 +24,17 @@ trait YamlParseTest extends GoldenSuite {
       printStat("Read %,9d bytes".format(source.length()))
       val json = src endsWith "json"
 
-      parse(source, json, keepTokens = true)
-      printStat("Parse with Tokens")
+      for (i <- 1 to 2) {
+        parse(source, json, keepTokens = true)
+        printStat("Parse with Tokens")
 
-      parse(source, json, keepTokens = false)
-      printStat("Parse without Tokens")
+        parse(source, json, keepTokens = false)
+        printStat("Parse without Tokens")
+      }
     }
   }
 
-  private def parse(source: CharSequence, json: Boolean, keepTokens:Boolean) = {
+  private def parse(source: CharSequence, json: Boolean, keepTokens: Boolean) = {
     if (json) JsonParser(source).parse(keepTokens) else YamlParser(source).parse(keepTokens)
   }
 
