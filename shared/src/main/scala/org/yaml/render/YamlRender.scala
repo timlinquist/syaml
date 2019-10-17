@@ -11,10 +11,10 @@ import org.yaml.model.{YDocument, _}
 /**
   * Yaml Render
   */
-class YamlRender[W: Output](val writer: W, val expandReferences: Boolean) {
+class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initialIndentation:Int = 0) {
   private val buffer = new StringBuilder
 
-  private var indentation    = -2
+  private var indentation    = initialIndentation - 2
   private def indent(): Unit = indentation += 2
   private def dedent(): Unit = indentation -= 2
   private def renderIndent(): this.type = {
@@ -217,8 +217,8 @@ object YamlRender {
   def render[W: Output](writer: W, parts: Seq[YPart]): Unit = render(writer, parts, expandReferences = false)
 
   /** Render a Seq of Parts to a Writer */
-  def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean): Unit =
-    new YamlRender(writer, expandReferences).renderParts(parts)
+  def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean, indentation:Int = 0): Unit =
+    new YamlRender(writer, expandReferences, indentation).renderParts(parts)
 
   /** Render a YamlPart to a Writer */
   def render[W: Output](writer: W, part: YPart): Unit = render(part, expandReferences = false)
@@ -244,6 +244,13 @@ object YamlRender {
   def render(part: YPart, expandReferences: Boolean): String = {
     val s = new StringWriter
     render(s, part, expandReferences)
+    s.toString
+  }
+
+  /** Render a YamlParts as an String starting at a given indentation*/
+  def render(parts: YPart, indentation:Int): String = {
+    val s = new StringWriter
+    render(s, Seq(parts),expandReferences = false, indentation = indentation)
     s.toString
   }
 }

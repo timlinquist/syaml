@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.builder.JsonOutputBuilder
 import org.yaml.model._
-import org.yaml.parser.YamlParser
+import org.yaml.parser.{JsonParser, YamlParser}
 import org.yaml.render.{JsonRender, YamlRender}
 
 /**
@@ -113,6 +113,47 @@ trait RenderingTest extends FunSuite with Matchers {
         entry = "something"
     )
     testDoc(doc, yaml1, json1)
+  }
+
+  test("Yaml Initial indentation") {
+    val text =
+      """aKey:
+        |  anotherKey:
+        |    - scalar""".stripMargin
+
+    val parts = YamlParser(text).parse(false)
+    val map:YMap = parts.collectFirst({case d:YDocument => d}).get.node.as[YMap]
+
+    val str = YamlRender.render(map, 4)
+    val expected = text.split("\n").map("    " + _).mkString("\n")
+    str shouldBe expected
+  }
+
+  test("Json Initial indentation") {
+    val text =
+      """{
+        |  "aKey": {
+        |    "anotherKey": [
+        |      "scalar"
+        |    ]
+        |  }
+        |}""".stripMargin
+
+    val expected =
+      """{
+        |      "aKey": {
+        |        "anotherKey": [
+        |          "scalar"
+        |        ]
+        |      }
+        |    }
+        |""".stripMargin
+
+    val parts = JsonParser(text).parse(false)
+    val doc:YDocument = parts.collectFirst({case d:YDocument => d}).get
+
+    val str = JsonRender.render(doc, 4)
+    str shouldBe expected
   }
 
   private def testDoc(text: String, jsonText: String): Unit = {

@@ -11,10 +11,10 @@ import org.yaml.model._
 /**
   * Json Render
   */
-class JsonRender[W: Output] private (private val writer: W) {
+class JsonRender[W: Output] private (private val writer: W, initialIndentation:Int = 0) {
   override def toString: String = writer.toString
 
-  private var indentation    = 0
+  private var indentation    = initialIndentation
   private def indent(): Unit = indentation += 2
   private def dedent(): Unit = indentation -= 2
   private def renderIndent(): this.type = {
@@ -82,9 +82,9 @@ class JsonRender[W: Output] private (private val writer: W) {
 object JsonRender {
 
   /** Render a Seq of Parts to an Output */
-  def render[W: Output](doc: YDocument, writer: W): Unit = {
+  def render[W: Output](doc: YDocument, writer: W, indentation :Int = 0): Unit = {
     try {
-      val builder = new JsonRender(writer)
+      val builder = new JsonRender(writer, indentation)
       builder.render(doc.node).render("\n")
     } finally {
       writer.flush
@@ -92,9 +92,11 @@ object JsonRender {
   }
 
   /** Render a Seq of Parts as a String */
-  def render(doc: YDocument): String = {
+  def render(doc: YDocument, indentation:Int): String = {
     val s = new StringWriter()
-    render(doc, s)
+    render(doc, s, indentation)
     s.toString
   }
+
+  def render(doc: YDocument): String = render(doc, 0)
 }
