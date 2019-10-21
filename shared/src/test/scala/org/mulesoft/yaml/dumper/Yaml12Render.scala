@@ -37,8 +37,13 @@ class Yaml12Render(val parts: Seq[YPart], output: StringBuilder) {
     for (a <- node.anchor) output append a + " "
 
     node.value match {
+      case scalar: YScalar if node.tagType == YType.Str =>
+        output append '"' + scalar.value.toString.encode + '"'
       case scalar: YScalar =>
-        output append '"' + scalar.text.encode + '"'
+        scalar.value match {
+          case s: String => output append '"' + s.encode + '"'
+          case _         => output append '"' + scalar.text + '"'
+        }
       case seq: YSequence => printEntries[YNode]("[", seq.nodes, "]", dump(_))
       case map: YMap =>
         printEntries[YMapEntry]("{", map.entries, "}", e => {

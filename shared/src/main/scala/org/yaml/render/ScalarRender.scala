@@ -1,25 +1,24 @@
 package org.yaml.render
 import org.mulesoft.common.core._
 import org.yaml.lexer.YamlCharRules.{isIndicator, _}
-import org.yaml.model.YType
+import org.yaml.model._
 import org.yaml.parser.ScalarParser
 
 object ScalarRender {
-  final val QuotedScalar  = 1
-  final val PlainScalar   = 2
-  final val LiteralScalar = 3
 
   /** Core schema is the YAML schema that supports all of our types but not timestamp type. */
   def renderScalar(text: String,
                    mustBeString: Boolean = true,
-                   plain: Boolean = true,
+                   mark: ScalarMark = NoMark,
                    indentation: Int = 0,
                    firstLineComment: String = "",
                    isCoreSchema: Boolean = true): CharSequence = {
-    analyzeScalar(text, plain, mustBeString, isCoreSchema) match {
-      case PlainScalar   => text
-      case QuotedScalar  => '"' + text.encode + '"'
-      case LiteralScalar => renderAsLiteral(text, firstLineComment, indentation)
+    analyzeScalar(text, mark, mustBeString, isCoreSchema) match {
+      case NoMark          => text
+      case DoubleQuoteMark => '"' + text.encode + '"'
+      case SingleQuoteMark =>
+        "'" + text.replace("\n", "\n\n") + "'"
+      case MultilineMark   => renderAsLiteral(text, firstLineComment, indentation)
     }
   }
 
@@ -49,10 +48,13 @@ object ScalarRender {
     builder
   }
 
-  def analyzeScalar(text: String, plain: Boolean, mustBeString: Boolean, isCoreSchema: Boolean = true): Int = {
+  def analyzeScalar(text: String, mark: ScalarMark, mustBeString: Boolean, isCoreSchema: Boolean = true): ScalarMark = {
+    if (mark == DoubleQuoteMark || mark == SingleQuoteMark) return mark
     val l = text.length
-    if (l == 0) return if (mustBeString || !plain) QuotedScalar else PlainScalar
-    if (text.head == ' ' || text.endsWith("\n\n")) return QuotedScalar
+    if (l == 0)
+      return if (mustBeString || !mark.plain) DoubleQuoteMark else NoMark
+
+    if (text.head == ' ' || text.endsWith("\n\n")) return DoubleQuoteMark
 
     var oneLine   = true
     var allSpaces = true
@@ -63,27 +65,27 @@ object ScalarRender {
       iterator.current match {
         case '\n'                                 => oneLine = false
         case '\t'                                 => noTabs = false
-        case '\r'                                 => return QuotedScalar
-        case _ if !isCPrintable(iterator.current) => return QuotedScalar
+        case '\r'                                 => return DoubleQuoteMark
+        case _ if !isCPrintable(iterator.current) => return DoubleQuoteMark
         case _ if iterator.shouldQuote            => flowChar = true
         case _                                    => allSpaces = false
       }
     } while (iterator.advance)
 
     if (oneLine) {
-      if (flowChar) QuotedScalar
-      else if (plain && noTabs && text.last != ' ') {
-        if (!mustBeString) PlainScalar
+      if (flowChar) DoubleQuoteMark
+      else if (mark.plain && noTabs && text.last != ' ') {
+        if (!mustBeString) NoMark
         else {
           val sp = ScalarParser(text)
           sp.parse()
-          if (sp.ytype == YType.Str || (isCoreSchema && sp.ytype == YType.Timestamp)) PlainScalar else QuotedScalar
+          if (sp.yType == YType.Str || (isCoreSchema && sp.yType == YType.Timestamp)) NoMark else DoubleQuoteMark
         }
       }
-      else QuotedScalar
+      else DoubleQuoteMark
     }
-    else if (allSpaces) QuotedScalar
-    else LiteralScalar
+    else if (allSpaces) DoubleQuoteMark
+    else MultilineMark
   }
   private class ScalarIterator(text: String) {
 

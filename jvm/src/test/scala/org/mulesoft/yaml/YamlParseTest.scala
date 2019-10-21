@@ -1,32 +1,29 @@
 package org.mulesoft.yaml
-
-import org.mulesoft.test.GoldenSuite
-import org.yaml.model.YPart
+import org.mulesoft.common.io.Fs
 import org.yaml.parser.{JsonParser, YamlParser}
 
 /**
-  * Test against golden files
+  * App to Test Performance
   */
-trait YamlParseTest extends GoldenSuite {
-
-  private val examplesDir = fs.syncFile("shared/src/test/data/examples")
+object YamlParseTest {
+  private val examplesDir = Fs.syncFile("shared/src/test/data/examples")
   private val file        = System.getProperty("yaml")
   private val files       = if (file == null) examplesDir.list else Array(file)
   private var start       = 0L
 
-  for (src <- files) {
-    ignore("Parse and measure: " + src) {
-//    test("Parse and measure: " + src) {
+  def main(args: Array[String]): Unit = {
+
+    for (src <- files; if src endsWith "raml") {
       println(s"--- $src ----")
       println()
       start = System.currentTimeMillis()
-      val source = fs.syncFile(examplesDir, src).read()
+      val source = Fs.syncFile(examplesDir, src).read()
       printStat("Read %,9d bytes".format(source.length()))
       val json = src endsWith "json"
 
-      for (i <- 1 to 2) {
-        parse(source, json, keepTokens = true)
-        printStat("Parse with Tokens")
+      for (_ <- 1 to 4) {
+        //        parse(source, json, keepTokens = true)
+        //        printStat("Parse with Tokens")
 
         parse(source, json, keepTokens = false)
         printStat("Parse without Tokens")

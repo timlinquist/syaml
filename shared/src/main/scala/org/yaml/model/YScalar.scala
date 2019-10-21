@@ -7,6 +7,7 @@ import org.mulesoft.lexer.SourceLocation.Unknown
 import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
 import org.yaml.model.YType.{Empty, Str}
 import org.yaml.parser.ScalarParser
+//import org.yaml.parser.{ParserResult, ScalarParser}
 
 /**
   * A Yaml Scalar
@@ -80,34 +81,66 @@ object YScalar {
         else {
           Str
         }
-      } else if (scalarMark == NoMark) YType.Unknown
+      }
+      else if (scalarMark == NoMark) YType.Unknown
       else Str
 
       var value: Either[ParseException, Any] = Right(text)
       if (tt != Str) {
         val sp = ScalarParser.apply(text, tt)
         value = sp.parse()
-        tt = sp.ytype
+        tt = sp.yType
       }
 
       tag =
         if (value.isLeft) Str.tag
         else if (t == null) tt.tag
-        else if (t.tagType == YType.Empty) t.withTag(tagType = tt)
+        else if (t.isEmpty || t.isUnknown) t.withTag(tagType = tt)
         else t
 
       val result =
-        new YScalar(value.getOrElse(text),
-                    if (scalarMark == SingleQuoteMark) text.replace("''", "'") else text,
+        new YScalar(if (scalarMark == SingleQuoteMark) text.replace("''", "'")
+                    else value.getOrElse(text),
+                    text,
                     scalarMark,
                     location,
                     parts)
+      // -------
+//      try {
+//        val pr = ScalarParser.parse(text, scalarMark, t)
+//        if (!isEqual(result.value, pr.value) || pr.tag.tagType != tag.tagType || pr.tag.text != tag.text) {
+//          println(pr, result.value, tag)
+//          throw new Exception
+//        }
+//      } catch {
+//        case e: ParseException =>
+//          if (value.left.get.text != e.text) {
+//            println(e)
+//            throw e
+//          }
+//          val pr = ParserResult(YType.Str, text)
+//          if (!isEqual(result.value, pr.value) || pr.tag.tagType != tag.tagType || pr.tag.text != tag.text) {
+//            println(pr, result.value, tag)
+//            throw new Exception
+//          }
+//      }
+      //
 
       for (error <- value.left) eh.handle(result, error)
       result
     }
 
   }
+
+//  private def isEqual(v1: Any, v2: Any) =
+//    v1 match {
+//      case d1: Double =>
+//        v2 match {
+//          case d2: Double => d1 == d2 || d1.isNaN && d2.isNaN
+//          case _          => false
+//        }
+//      case _ => v1 == v2
+//    }
 }
 
 trait ScalarMark {

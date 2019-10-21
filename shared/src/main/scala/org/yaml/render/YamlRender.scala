@@ -169,7 +169,7 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
       val str = ScalarRender.renderScalar(
           text = scalar.text,
           mustBeString = mustBeString,
-          plain = scalar.plain,
+          mark = scalar.mark,
           indentation = indentation,
           firstLineComment = scalar.children.collectFirst { case c: YComment => " #" + c.metaText }.getOrElse("")
       )

@@ -1,6 +1,7 @@
 package org.mulesoft.yaml
 
 import org.mulesoft.test.GoldenSuite
+import org.yaml.model.{DoubleQuoteMark, NoMark, SingleQuoteMark}
 import org.yaml.render.ScalarRender.renderScalar
 
 /**
@@ -18,11 +19,13 @@ trait YamScalarRenderTest extends GoldenSuite {
     renderScalar("2002-12-14") shouldBe "2002-12-14"
     renderScalar("2002-12-14", isCoreSchema = false) shouldBe "\"2002-12-14\""
     renderScalar(".NaN") shouldBe "\".NaN\""
-    renderScalar("aaaa", plain = false) shouldBe "\"aaaa\""
+    renderScalar("aaaa", mark = DoubleQuoteMark) shouldBe "\"aaaa\""
     renderScalar("") shouldBe "\"\""
-    renderScalar("", plain = false) shouldBe "\"\""
+    renderScalar("", mark = DoubleQuoteMark) shouldBe "\"\""
     renderScalar("", mustBeString = false) shouldBe ""
-    renderScalar("", mustBeString = false, plain = false) shouldBe "\"\""
+    renderScalar("", mustBeString = false, mark = NoMark) shouldBe ""
+    renderScalar("Smith", mark = SingleQuoteMark) shouldBe "'Smith'"
+    renderScalar("O''Reilly", mark = SingleQuoteMark) shouldBe "'O''Reilly'"
 
     render("aaaa") shouldBe "aaaa"
     render("10") shouldBe "10"

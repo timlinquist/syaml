@@ -11,6 +11,8 @@ class YTag(val text: String, val tagType: YType, loc: SourceLocation, tks: Index
 
   def withTag(tagType: YType): YTag = new YTag(text, tagType, loc, tks)
   def synthesized: Boolean          = tagType.synthesized && tagType.tag == this
+  def isEmpty: Boolean              = tagType == YType.Empty
+  def isUnknown: Boolean            = tagType == YType.Unknown
   override def toString: String     = text
 }
 

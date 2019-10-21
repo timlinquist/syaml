@@ -70,7 +70,11 @@ class JsonRender[W: Output] private (private val writer: W, initialIndentation:I
         val s = scalar.value.toString
         if (s.indexOf('.') == -1 && !s.contains('e') && !s.contains('E')) s + ".0" else s // Bug in scala-js toString
       case Null => "null"
-      case _    => '"' + scalar.text.encode + '"'
+      case _ =>
+        scalar.value match {
+          case s: String => '"' + s.encode + '"'
+          case _         => '"' + scalar.text + '"'
+        }
     })
 
   private def render(value: String) = {

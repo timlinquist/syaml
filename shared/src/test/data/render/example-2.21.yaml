@@ -1,5 +1,5 @@
 null:
-booleans: 
+booleans:
   - true
   - false
-string: "012345"
+string: '012345'
