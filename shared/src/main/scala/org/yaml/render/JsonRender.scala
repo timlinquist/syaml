@@ -26,10 +26,18 @@ class JsonRender[W: Output] private (private val writer: W, initialIndentation:I
       case m: YMap      => renderMap(m)
       case s: YSequence => renderSeq(s)
       case s: YScalar   => renderScalar(node.tagType, s)
-
     }
     this
   }
+
+  private def render(yPart: YPart): JsonRender[W] = {
+    yPart match {
+      case node: YNode => render(node)
+      case entry:YMapEntry => renderEntry(entry)
+      case other => render(other.toString)
+    }
+  }
+
   private def renderSeq(seq: YSequence) =
     if (seq.isEmpty) render("[]")
     else {
@@ -56,12 +64,16 @@ class JsonRender[W: Output] private (private val writer: W, initialIndentation:I
 
       while (c < total) {
         val entry = map.entries(c)
-        renderIndent().render(entry.key).render(": ").render(entry.value).render(if (c < total - 1) ",\n" else "\n")
+        renderIndent().renderEntry(entry).render(if (c < total - 1) ",\n" else "\n")
         c += 1
       }
       dedent()
       renderIndent().render("}")
     }
+
+  private def renderEntry(entry:YMapEntry) = {
+    render(entry.key).render(": ").render(entry.value)
+  }
 
   private def renderScalar(t: YType, scalar: YScalar): Unit =
     render(t match {
@@ -103,4 +115,12 @@ object JsonRender {
   }
 
   def render(doc: YDocument): String = render(doc, 0)
+
+  def render(part: YPart, indentation:Int): String = {
+    val s = new StringWriter()
+    val builder = new JsonRender(s, indentation)
+    builder.render(part)
+    s.toString
+  }
+
 }
