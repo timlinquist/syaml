@@ -42,7 +42,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
     new YDocument(sl, parts)
   }
 
-  private def reportError(msg: String): Unit = eh.handle(new YNonContent(currentRange()), ParserException(msg))
+  private def reportError(msg: String): Unit = eh.handle(currentRange(), ParserException(msg))
 
   def unexpected(): Unit = reportError(s"Unexpected '${currentText()}'")
 
@@ -260,7 +260,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
   private def consume() = {
     current.append()
     if (lexer.token == Error)
-      eh.handle(new YNonContent(currentRange()), LexerException(currentText()))
+      eh.handle(currentRange(), LexerException(currentText()))
     lexer.advance()
     true
   }

@@ -126,7 +126,7 @@ object YScalar {
 //      }
       //
 
-      for (error <- value.left) eh.handle(result, error)
+      for (error <- value.left) eh.handle(location, error)
       result
     }
 

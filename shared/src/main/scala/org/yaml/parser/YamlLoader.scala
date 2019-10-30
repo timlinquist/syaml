@@ -8,6 +8,7 @@ import org.yaml.model._
 
 import scala.collection.mutable
 import scala.collection.mutable.{ArrayBuffer, ListBuffer}
+import scala.reflect.ClassTag
 
 private[parser] class YamlLoader(val lexer: YamlLexer,
                                  val keepTokens: Boolean,
@@ -68,7 +69,7 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       case EndEscape   => current.endEscape()
       case LineBreak   => current.processLineBreak()
       case WhiteSpace  => current.processWhitSpace()
-      case Error       => eh.handle(new YNonContent(lexer.tokenData.range), LexerException(lexer.tokenString))
+      case Error       => eh.handle(lexer.tokenData.range, LexerException(lexer.tokenString))
       case _           =>
     }
     current.addCurrentToken()
@@ -79,7 +80,7 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     for (part <- parts) part match {
       case entry: YMapEntry =>
         val key = entry.key.toString
-        if (!keys.add(key)) eh.handle(entry.key, DuplicateKeyException(key))
+        if (!keys.add(key)) eh.handle(entry.key.location, DuplicateKeyException(key))
       case _ =>
     }
   }
@@ -90,7 +91,6 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     else tag
 
   private class YamlBuilder(val first: SourceLocation = lexer.tokenData.range) {
-
     val tokens          = new ArrayBuffer[AstToken]
     val parts           = new ArrayBuffer[YPart]
     val metaTextBuilder = new StringBuilder
@@ -104,10 +104,11 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     var tag: YTag               = _
 
     def processWhitSpace() {}
-    def appendText(txt: CharSequence): Unit = {}
-    def appendMetaText(): Unit              = metaTextBuilder.append(lexer.tokenText)
-    def processLineBreak(): Unit            = if (escaping) current.metaTextBuilder.clear()
-    def create(): Unit                      = {}
+    def appendText(txt: CharSequence): Unit                                    = {}
+    def appendMetaText(): Unit                                                 = metaTextBuilder.append(lexer.tokenText)
+    def processLineBreak(): Unit                                               = if (escaping) current.metaTextBuilder.clear()
+    def create(): Unit                                                         = {}
+    def createScalar(txt: String, mark: ScalarMark, parts: Array[YPart]): Unit = {}
 
     def endEscape(): Unit = {
       appendText(metaTextBuilder.result().decode(ignoreErrors = true))
@@ -120,30 +121,25 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     def buildParts(): Array[YPart] = {
       addCurrentToken()
       addNonContent()
+      createArray(parts)
+    }
+    private def createArray[P: ClassTag](parts: ArrayBuffer[P]): Array[P] =
       if (parts.isEmpty) Array.empty
       else {
-        val r = parts.toArray[YPart]
+        val r = parts.toArray
         parts.clear()
         r
       }
-    }
 
     def addCurrentToken(): Unit = {
       val td = lexer.tokenData
       if (keepTokens && td.token != EndStream) tokens += AstToken(td.token, lexer.tokenString, td.range)
     }
 
-    def buildTokens(): IndexedSeq[AstToken] = {
-      if (tokens.isEmpty) IndexedSeq.empty
-      else {
-        val r = tokens.toArray[AstToken]
-        tokens.clear()
-        r
-      }
-    }
+    def buildTokens(): IndexedSeq[AstToken] = createArray(tokens)
 
     def addNonContent(): Unit =
-      if (tokens.nonEmpty) parts += YNonContent(buildTokens())
+      if (tokens.nonEmpty) parts += YNonContent(createArray(tokens))
 
     def location(): SourceLocation = first to lexer.tokenData.range
   }
@@ -157,9 +153,10 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     override def create(): Unit = {
       val parts = buildParts()
       if (alias.nonEmpty) {
+        val loc = location()
         val anchor = aliases.get(alias)
         val n      = new YNode.Alias(alias, anchor.getOrElse(YNode.Null), location(), parts)
-        if (anchor.isEmpty) eh.handle(n, UndefinedAnchorException(alias))
+        if (anchor.isEmpty) eh.handle(loc, UndefinedAnchorException(alias))
         pop(n)
       }
       else {
@@ -171,35 +168,43 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
         pop(n)
       }
     }
+
+    override def createScalar(txt: String, mark: ScalarMark, yParts: Array[YPart]): Unit = {
+      val b = new YScalar.Builder(txt, tag, mark, location(), yParts)
+      value = b.scalar
+      tag = b.tag
+      parts += value
+    }
   }
 
   private class ScalarBuilder extends YamlBuilder {
-    private val text                   = new StringBuilder()
-    private var scalarMark: ScalarMark = UnknownMark
+    private val text             = new StringBuilder()
+    private var mark: ScalarMark = UnknownMark
 
     override def processIndicator(): Unit = {
-      if (scalarMark == UnknownMark)
-        scalarMark = ScalarMark(lexer.tokenString)
+      if (mark == UnknownMark)
+        mark = ScalarMark(lexer.tokenString)
       super.processIndicator()
     }
 
     override def appendText(txt: CharSequence): Unit = {
-      if (scalarMark == UnknownMark) scalarMark = NoMark
+      if (mark == UnknownMark) mark = NoMark
       text.append(txt)
     }
 
     override def create(): Unit = {
-      val txt   = text.result()
-      val parts = buildParts()
-      stack.pop()
-      val c = current
       val b =
-        new YScalar.Builder(txt, c.tag, if (scalarMark == UnknownMark) NoMark else scalarMark, location(), parts)
-      c.value = b.scalar
-      c.tag = b.tag
-      c.parts += b.scalar
+        new YScalar.Builder(text.result(),
+                            stack.topNode().tag,
+                            if (mark == UnknownMark) NoMark else mark,
+                            location(),
+                            buildParts())
+      pop(b.scalar)
+      current.value = b.scalar
+      current.tag = b.tag
     }
   }
+
   private class DirectiveBuilder extends YamlBuilder {
     private val args = ListBuffer.empty[String]
 
@@ -273,7 +278,10 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       val t =
         YTag(metaTextBuilder.result(), location(), current.buildTokens())
       pop(t)
-      current.tag = t
+      current match {
+        case n: NodeBuilder => n.tag = t
+        case _              =>
+      }
     }
   }
 
@@ -289,7 +297,8 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       list = list.tail
       r
     }
-    def top(): YamlBuilder = list.head
+    def top(): YamlBuilder     = list.head
+    def topNode(): NodeBuilder = list.tail.head.asInstanceOf[NodeBuilder]
 
   }
 

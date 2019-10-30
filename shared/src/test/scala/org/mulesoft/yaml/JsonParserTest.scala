@@ -1,7 +1,7 @@
 package org.mulesoft.yaml
 
 import org.mulesoft.common.io.{Fs, SyncFile}
-import org.mulesoft.lexer.InputRange
+import org.mulesoft.lexer.{InputRange, SourceLocation}
 import org.scalatest.{FunSuite, Matchers}
 import org.yaml.model._
 import org.yaml.parser.JsonParser
@@ -50,7 +50,7 @@ trait JsonParserTest extends FunSuite with Matchers {
 
   }
 
-  test("Parse map entries separeted with break line") {
+  test("Parse map entries separated with break line") {
     val errors = getErrorsFor(jsonDir / "diffline-map-entries.json")
     assert(errors.lengthCompare(0) == 0)
   }
@@ -162,7 +162,7 @@ trait JsonParserTest extends FunSuite with Matchers {
 
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
-    override def handle(node: YPart, e: SyamlException): Unit = errors += ErrorContainer(e, node.range)
+    override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.inputRange)
   }
   case class ErrorContainer(error: Exception, inputRange: InputRange)
 
