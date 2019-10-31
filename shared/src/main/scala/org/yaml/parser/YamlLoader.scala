@@ -43,7 +43,7 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
 
       case BeginDocument  => push(new DocBuilder)
       case BeginNode      => push(new NodeBuilder)
-      case BeginScalar    => push(new ScalarBuilder)
+      case BeginScalar    => push(new ScalarBuilder(current.tag))
       case BeginSequence  => push(new SeqBuilder)
       case BeginPair      => push(new PairBuilder)
       case BeginMapping   => push(new MapBuilder)
@@ -85,10 +85,6 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     }
   }
 
-  private def tagFor(tag: YTag, defaultType: YType) =
-    if (tag == null) defaultType.tag
-    else if (tag.tagType == YType.Empty) tag.withTag(tagType = defaultType)
-    else tag
 
   private class YamlBuilder(val first: SourceLocation = lexer.tokenData.range) {
     val tokens          = new ArrayBuffer[AstToken]
@@ -104,11 +100,21 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     var tag: YTag               = _
 
     def processWhitSpace() {}
-    def appendText(txt: CharSequence): Unit                                    = {}
-    def appendMetaText(): Unit                                                 = metaTextBuilder.append(lexer.tokenText)
-    def processLineBreak(): Unit                                               = if (escaping) current.metaTextBuilder.clear()
-    def create(): Unit                                                         = {}
-    def createScalar(txt: String, mark: ScalarMark, parts: Array[YPart]): Unit = {}
+    def appendText(txt: CharSequence): Unit = {}
+    def appendMetaText(): Unit              = metaTextBuilder.append(lexer.tokenText)
+    def processLineBreak(): Unit            = if (escaping) current.metaTextBuilder.clear()
+    def create(): Unit                      = {}
+
+    def setValue(v: YValue, defaultType: YType): Unit = {
+      value = v
+      if (tag == null) tag = defaultType.tag
+      else if (tag.tagType == YType.Empty) tag = tag.withTag(tagType = defaultType)
+    }
+
+    def setValue(v: YValue, t: YTag): Unit = {
+      value = v
+      tag = t
+    }
 
     def endEscape(): Unit = {
       appendText(metaTextBuilder.result().decode(ignoreErrors = true))
@@ -152,32 +158,21 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
   private class NodeBuilder extends YamlBuilder {
     override def create(): Unit = {
       val parts = buildParts()
-      if (alias.nonEmpty) {
-        val loc = location()
-        val anchor = aliases.get(alias)
-        val n      = new YNode.Alias(alias, anchor.getOrElse(YNode.Null), location(), parts)
-        if (anchor.isEmpty) eh.handle(loc, UndefinedAnchorException(alias))
-        pop(n)
-      }
-      else {
-        val n =
-          if (includeTag.nonEmpty && tag.text == includeTag)
-            new YNode.MutRef(value, tag, location(), parts)
-          else new YNodePlain(value, tag, anchor, location(), parts)
-        for (a <- anchor) aliases += a.name -> n
-        pop(n)
-      }
-    }
-
-    override def createScalar(txt: String, mark: ScalarMark, yParts: Array[YPart]): Unit = {
-      val b = new YScalar.Builder(txt, tag, mark, location(), yParts)
-      value = b.scalar
-      tag = b.tag
-      parts += value
+      val loc   = location()
+      val node =
+        if (alias.nonEmpty) new YNode.Alias(alias, aliases.getOrElse(alias, {
+          eh.handle(loc, UndefinedAnchorException(alias))
+          YNode.Null
+        }), loc, parts)
+        else if (includeTag.nonEmpty && tag.text == includeTag) new YNode.MutRef(value, tag, loc, parts)
+        else new YNodePlain(value, tag, anchor, loc, parts)
+      for (a <- anchor) aliases += a.name -> node
+      pop(node)
     }
   }
 
-  private class ScalarBuilder extends YamlBuilder {
+  private class ScalarBuilder(t: YTag) extends YamlBuilder {
+    tag = t
     private val text             = new StringBuilder()
     private var mark: ScalarMark = UnknownMark
 
@@ -194,14 +189,9 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
 
     override def create(): Unit = {
       val b =
-        new YScalar.Builder(text.result(),
-                            stack.topNode().tag,
-                            if (mark == UnknownMark) NoMark else mark,
-                            location(),
-                            buildParts())
+        new YScalar.Builder(text.result(), tag, if (mark == UnknownMark) NoMark else mark, location(), buildParts())
       pop(b.scalar)
-      current.value = b.scalar
-      current.tag = b.tag
+      current.setValue(b.scalar, b.tag)
     }
   }
 
@@ -227,8 +217,7 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     override def create(): Unit = {
       val v = YSequence(location(), buildParts())
       pop(v)
-      current.value = v
-      current.tag = tagFor(current.tag, YType.Seq)
+      current.setValue(v, YType.Seq)
     }
   }
 
@@ -238,8 +227,7 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       duplicates(parts)
       val v = YMap(location(), parts)
       pop(v)
-      current.value = v
-      current.tag = tagFor(current.tag, YType.Map)
+      current.setValue(v, YType.Map)
     }
   }
 
@@ -297,9 +285,7 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
       list = list.tail
       r
     }
-    def top(): YamlBuilder     = list.head
-    def topNode(): NodeBuilder = list.tail.head.asInstanceOf[NodeBuilder]
-
+    def top(): YamlBuilder = list.head
   }
 
 }
