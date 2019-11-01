@@ -85,7 +85,6 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     }
   }
 
-
   private class YamlBuilder(val first: SourceLocation = lexer.tokenData.range) {
     val tokens          = new ArrayBuffer[AstToken]
     val parts           = new ArrayBuffer[YPart]
@@ -188,10 +187,15 @@ private[parser] class YamlLoader(val lexer: YamlLexer,
     }
 
     override def create(): Unit = {
-      val b =
-        new YScalar.Builder(text.result(), tag, if (mark == UnknownMark) NoMark else mark, location(), buildParts())
-      pop(b.scalar)
-      current.setValue(b.scalar, b.tag)
+      val txt = text.result()
+      val m   = if (mark == UnknownMark) NoMark else mark
+      val loc = location()
+
+      val r = ScalarParser.parse(txt, m, tag, loc)
+      val scalar = new YScalar(r.value, txt, m, loc, buildParts())
+      pop(scalar)
+      current.setValue(scalar, r.tag)
+
     }
   }
 

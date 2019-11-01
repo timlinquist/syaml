@@ -2,12 +2,13 @@ package org.yaml.parser
 import java.lang.Long.parseLong
 
 import org.mulesoft.common.time.SimpleDateTime
+import org.mulesoft.lexer.SourceLocation
 import org.yaml.model.YType.{Bool, Float, Int, Str, Timestamp, Unknown, Null => tNull}
 import org.yaml.model._
 import org.yaml.parser.ScalarParser._
 import org.yaml.parser.ParserResult._
-import languageFeature.implicitConversions
 
+import languageFeature.implicitConversions
 import scala.Double.{NaN, NegativeInfinity, PositiveInfinity}
 
 class ScalarParser(text: String, var yType: YType) {
@@ -78,18 +79,18 @@ object ScalarParser {
   private val floatRegex = "-?(?:0|[1-9]\\d*)(?:\\.\\d*)?(?:[eE][-+]?\\d+)?".r
   private val infinity   = "([-+])?(?:\\.inf|\\.Inf|\\.INF)".r
 
-  def parse(text: String, scalarMark: ScalarMark, tag: YTag): ParserResult =
+  def parse(text: String, scalarMark: ScalarMark, tag: YTag, loc: SourceLocation)(
+      implicit eh: ParseErrorHandler): ParserResult =
     try {
       if (tag == null) guessType(text, scalarMark)
       else if (tag.isUnknown) {
         val pr = guessType(text, scalarMark)
         ParserResult(tag.withTag(pr.tag.tagType), pr.value)
-      }
-      else if (tag.isEmpty) ParserResult(tag.withTag(Str), text)
+      } else if (tag.isEmpty) ParserResult(tag.withTag(Str), text)
       else parseForType(tag, text)
     } catch {
-      case pe: ParseException => throw pe
-      case e: Exception       => throw ParseException(tag.tagType, text, e)
+      case pe: ParseException => eh.handle(loc, pe); from(text)
+      case e: Exception       => eh.handle(loc, ParseException(tag.tagType, text, e)); from(text)
     }
 
   private def guessType(text: String, scalarMark: ScalarMark): ParserResult = scalarMark match {
@@ -100,20 +101,20 @@ object ScalarParser {
 
   private def parseForType(tag: YTag, text: String): ParserResult =
     ParserResult(
-        tag,
-        tag.tagType match {
-          case YType.Bool                              => text.toBoolean
-          case YType.Null if NullTokens.contains(text) => null
-          case YType.Float                             => text.toDouble
-          case YType.Timestamp                         => parseDateTime(text)
-          case YType.Str                               => text
-          case YType.Int =>
-            if (text.startsWith("0o")) parseLong(text, 8)
-            else if (text.startsWith("0x")) parseLong(text, 16)
-            else parseInt(text)
-          case _ => text
+      tag,
+      tag.tagType match {
+        case YType.Bool                              => text.toBoolean
+        case YType.Null if NullTokens.contains(text) => null
+        case YType.Float                             => text.toDouble
+        case YType.Timestamp                         => parseDateTime(text)
+        case YType.Str                               => text
+        case YType.Int =>
+          if (text.startsWith("0o")) parseLong(text, 8)
+          else if (text.startsWith("0x")) parseLong(text, 16)
+          else parseInt(text)
+        case _ => text
 
-        }
+      }
     )
 
   private def guessType(text: String): ParserResult = {
@@ -158,8 +159,7 @@ object ScalarParser {
       if (tryDateTime) SimpleDateTime.parse(text) match {
         case Right(dt) => from(dt)
         case _         => from(text)
-      }
-      else from(text)
+      } else from(text)
   }
 
   private def parseInt(text: String): AnyVal =

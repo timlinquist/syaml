@@ -12,7 +12,7 @@ import org.yaml.parser.ScalarParser
 /**
   * A Yaml Scalar
   */
-class YScalar private[model] (val value: Any,
+class YScalar private[yaml] (val value: Any,
                               val text: String,
                               val mark: ScalarMark = NoMark,
                               location: SourceLocation,
