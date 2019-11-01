@@ -37,7 +37,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       consumeOrError(EndDocument)
     }
     val parts = current.buildParts()
-    val sl = current.location()
+    val sl    = current.location()
     pop()
     new YDocument(sl, parts)
   }
@@ -48,7 +48,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
 
   def expected(expected: String): Unit =
     reportError(
-        if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
+      if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
 
   private def expected(token: YamlToken): Boolean = {
     token match {
@@ -88,7 +88,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
 
   private def parseMap(): Boolean = {
     push()
-    val r     = parseList(BeginMapping, EndMapping, MapEntryParser())
+    val r  = parseList(BeginMapping, EndMapping, MapEntryParser())
     val sl = current.location()
     if (r) consume()
 
@@ -100,7 +100,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
 
   private def parseSeq(): Boolean = {
     push()
-    val r = parseList(BeginSequence, EndSequence, SequenceValueParser()) // should check if i parse something? empty pop if not?
+    val r  = parseList(BeginSequence, EndSequence, SequenceValueParser()) // should check if i parse something? empty pop if not?
     val sl = current.location()
     if (r) consume()
     val v = YSequence(sl, current.buildParts())
@@ -122,32 +122,31 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
     metaTextBuilder.mkString.decode(ignoreErrors = true)
   }
 
-  private def parseScalar(): Boolean = {
-    if (currentOrError(BeginScalar)) {
+  private def parseScalar(): Boolean =
+    if (!currentOrError(BeginScalar)) false
+    else {
       push()
       current.addNonContent()
       val textBuilder = new StringBuilder
-      var scalarMark  = ""
+      var markChar    = ""
       while (notCurrent(EndScalar)) {
         currentToken() match {
           case BeginEscape => textBuilder.append(parseEscaped())
-          case Indicator   => scalarMark = currentText()
+          case Indicator   => markChar = currentText()
           case Text        => textBuilder.append(lexer.tokenText)
           case _           =>
         }
         consume()
       }
-      val sl = current.location()
+      val loc = current.location()
       consumeOrError(EndScalar)
       current.addNonContent()
-      val tagType = if (scalarMark == DoubleQuoteMark.encodeChar.toString) YType.Str.tag else null
-      val b =
-        new YScalar.Builder(textBuilder.toString(), tagType, ScalarMark(scalarMark), sl, current.buildParts())
-      stackParts(buildNode(b.scalar, b.tag))
+      val txt = textBuilder.toString()
+      val sm  = ScalarMark(markChar)
+      val pr  = ScalarParser.parse(txt, sm, if (sm == DoubleQuoteMark) YType.Str.tag else null, loc)
+      stackParts(buildNode(new YScalar(pr.value, txt, sm, loc, current.buildParts()), pr.tag))
       true
     }
-    else false
-  }
 
   private def parseList(leftToken: YamlToken, rightToken: YamlToken, parser: ElementParser) = {
     assert(isCurrent(leftToken))
@@ -190,8 +189,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       if (parseEntry()) {
         val parts = current.buildParts()
         stackParts(YMapEntry(parts))
-      }
-      else {
+      } else {
         current.buildParts()
         pop()
       }
@@ -215,8 +213,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
           current.addNonContent()
         }
         k & parseValue()
-      }
-      else {
+      } else {
         advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
       }
@@ -226,8 +223,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
       val r = process()
       if (r) {
         current.addNonContent()
-      }
-      else {
+      } else {
         discardIf(Error)
         advanceTo(Indicator, EndMapping)
       }

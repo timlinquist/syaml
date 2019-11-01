@@ -63,6 +63,7 @@ object YNode {
   def apply(value: YValue, tt: YType, ref: YAnchor): YNode =
     YNode(value, tt.tag, Some(ref), sourceName = value.sourceName)
   def apply(value: YValue, tt: YType): YNode           = YNode(value, tt.tag, sourceName = value.sourceName)
+
   def apply(text: String, sourceName: String): YNode   = YNode(YScalar(text, sourceName), YType.Str)
   def apply(int: Int, sourceName: String): YNode       = YNode(YScalar(int, sourceName), YType.Int)
   def apply(long: Long, sourceName: String): YNode     = YNode(YScalar(long, sourceName), YType.Int)

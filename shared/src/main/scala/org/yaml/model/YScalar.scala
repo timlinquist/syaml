@@ -5,7 +5,6 @@ import java.util.Objects.{hashCode => hash}
 import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer.SourceLocation.Unknown
 import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
-import org.yaml.model.YType.{Empty, Str}
 import org.yaml.parser.ScalarParser
 //import org.yaml.parser.{ParserResult, ScalarParser}
 
@@ -13,10 +12,10 @@ import org.yaml.parser.ScalarParser
   * A Yaml Scalar
   */
 class YScalar private[yaml] (val value: Any,
-                              val text: String,
-                              val mark: ScalarMark = NoMark,
-                              location: SourceLocation,
-                              parts: IndexedSeq[YPart] = IndexedSeq.empty)
+                             val text: String,
+                             val mark: ScalarMark = NoMark,
+                             location: SourceLocation,
+                             parts: IndexedSeq[YPart] = IndexedSeq.empty)
     extends YValue(location, parts) {
 
   override def equals(obj: Any): Boolean = obj match {
@@ -61,86 +60,11 @@ object YScalar {
                 SourceLocation(sourceName),
                 Array(YNonContent(range, Array(astToken), sourceName)))
 
-  /** Used in amf-core. Remove ASAP! */
-  def withLocation(value: String, tag: YType, _sourceName: String, range: InputRange): YScalar = {
-    val location = SourceLocation(_sourceName, range)
-    new YScalar.Builder(value, tag.tag, NoMark, location, IndexedSeq.empty).scalar
+  /** Used in amf-core. Deprecate? */
+  def withLocation(text: String, tag: YType, loc: SourceLocation): YScalar = {
+    val r = ScalarParser.parse(text, NoMark, tag.tag, loc)
+    new YScalar(r.value, text, NoMark, loc, IndexedSeq.empty)
   }
-
-  class Builder(text: String,
-                t: YTag,
-                scalarMark: ScalarMark = NoMark,
-                location: SourceLocation,
-                parts: IndexedSeq[YPart] = IndexedSeq.empty)(implicit eh: ParseErrorHandler) {
-
-    var tag: YTag = _
-
-    val scalar: YScalar = {
-      var tt = if (t != null) {
-        if (t.tagType != Empty) t.tagType
-        else {
-          Str
-        }
-      }
-      else if (scalarMark == NoMark) YType.Unknown
-      else Str
-
-      var value: Either[ParseException, Any] = Right(text)
-      if (tt != Str) {
-        val sp = ScalarParser.apply(text, tt)
-        value = sp.parse()
-        tt = sp.yType
-      }
-
-      tag =
-        if (value.isLeft) Str.tag
-        else if (t == null) tt.tag
-        else if (t.isEmpty || t.isUnknown) t.withTag(tagType = tt)
-        else t
-
-      val result =
-        new YScalar(if (scalarMark == SingleQuoteMark) text.replace("''", "'")
-                    else value.getOrElse(text),
-                    text,
-                    scalarMark,
-                    location,
-                    parts)
-      // -------
-//      try {
-//        val pr = ScalarParser.parse(text, scalarMark, t)
-//        if (!isEqual(result.value, pr.value) || pr.tag.tagType != tag.tagType || pr.tag.text != tag.text) {
-//          println(pr, result.value, tag)
-//          throw new Exception
-//        }
-//      } catch {
-//        case e: ParseException =>
-//          if (value.left.get.text != e.text) {
-//            println(e)
-//            throw e
-//          }
-//          val pr = ParserResult(YType.Str, text)
-//          if (!isEqual(result.value, pr.value) || pr.tag.tagType != tag.tagType || pr.tag.text != tag.text) {
-//            println(pr, result.value, tag)
-//            throw new Exception
-//          }
-//      }
-      //
-
-      for (error <- value.left) eh.handle(location, error)
-      result
-    }
-
-  }
-
-//  private def isEqual(v1: Any, v2: Any) =
-//    v1 match {
-//      case d1: Double =>
-//        v2 match {
-//          case d2: Double => d1 == d2 || d1.isNaN && d2.isNaN
-//          case _          => false
-//        }
-//      case _ => v1 == v2
-//    }
 }
 
 trait ScalarMark {
