@@ -2,7 +2,7 @@ package org.mulesoft.yaml
 
 import org.scalatest.{Assertion, FunSuite, Matchers}
 import org.yaml.model.YPart
-import org.yaml.parser.{JsonParser, YamlParser}
+import org.yaml.parser.JsonParser
 
 /**
   * Test against golden files
@@ -54,22 +54,22 @@ trait JsonWithSourceNameTest extends FunSuite with Matchers {
   private val sourceName = "sourcename.json"
 
   test("assert source name root map") {
-    val document = JsonParser.withSource(rootMap, sourceName).documents().head
+    val document = JsonParser.withSource(rootMap, sourceName).document()
     assertNameInChild(document)
   }
 
   test("assert source name root seq") {
-    val document = JsonParser.withSource(rootSeq, sourceName).documents().head
+    val document = JsonParser.withSource(rootSeq, sourceName).document()
     assertNameInChild(document)
   }
 
   test("assert source name root scalar") {
-    val document = JsonParser.withSource(rootScalar, sourceName).documents().head
+    val document = JsonParser.withSource(rootScalar, sourceName).document()
     assertNameInChild(document)
   }
 
   test("assert empty source name root map") {
-    val document = JsonParser.withSource(rootMap, "").documents().head
+    val document = JsonParser.withSource(rootMap, "").document()
     assertEmptySourceName(document)
   }
 }

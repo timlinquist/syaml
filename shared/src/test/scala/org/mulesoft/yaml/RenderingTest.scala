@@ -161,7 +161,7 @@ trait RenderingTest extends FunSuite with Matchers {
     val str   = YamlRender.render(parts)
     str shouldBe text
 
-    val doc = YamlParser(text).documents()(0)
+    val doc = YamlParser(text).document()
     testDoc(doc, text, jsonText)
   }
 

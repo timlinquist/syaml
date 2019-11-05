@@ -47,22 +47,22 @@ trait YamlWithSourceNameTest extends FunSuite with Matchers {
   private val sourceName = "sourcename.yaml"
 
   test("assert source name root map"){
-    val document = YamlParser(rootMap,sourceName).documents().head
+    val document = YamlParser(rootMap,sourceName).document()
     assertNameInChild(document)
   }
 
   test("assert source name root seq"){
-    val document = YamlParser(rootSeq,sourceName).documents().head
+    val document = YamlParser(rootSeq,sourceName).document()
     assertNameInChild(document)
   }
 
   test("assert source name root scalar"){
-    val document = YamlParser(rootScalar,sourceName).documents().head
+    val document = YamlParser(rootScalar,sourceName).document()
     assertNameInChild(document)
   }
 
   test("assert empty source name root map"){
-    val document = YamlParser(rootMap,"").documents().head
+    val document = YamlParser(rootMap,"").document()
     assertEmptySourceName(document)
   }
 

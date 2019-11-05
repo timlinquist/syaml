@@ -46,10 +46,10 @@ trait RenderingBatchTest extends GoldenSuite with IgnoreParseErrorTest{
     }
   }
 
-  private def generateYaml(yamlFile: SyncFile, output: SyncFile, keepTokens: Boolean) =
+  private def generateYaml(yamlFile: SyncFile, output: SyncFile, keepTokens: Boolean): Unit =
     output.write(YamlRender.render(YamlParser(yamlFile.read()).parse(keepTokens)))
 
-  private def generateJson(yamlFile: SyncFile, output: SyncFile) =
-    output.write(JsonRender.render(YamlParser(yamlFile.read()).documents()(0)))
+  private def generateJson(yamlFile: SyncFile, output: SyncFile): Unit =
+    output.write(JsonRender.render(YamlParser(yamlFile.read()).document()))
 
 }

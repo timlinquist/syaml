@@ -360,7 +360,7 @@ object JsonParser {
     new JsonParser(JsonLexer(s))(eh)
 
   def obj(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YObj =
-    apply(s)(eh).documents()(0).obj
+    apply(s)(eh).document().obj
 
   def withSource(s: CharSequence, sourceName: String, positionOffset: Position = Position.Zero)(
       implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): JsonParser =
