@@ -219,13 +219,14 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
     private def parseEntry(): Boolean = {
       val k = parseKey()
-      if (k || currentByText(Indicator, ":")) {
+      val indicator = currentByText(Indicator, ":")
+      if (k || indicator) {
         if (currentByTextOrError(Indicator, ":")) {
           consume()
           skipWhiteSpace()
           current.addNonContent()
         }
-        k & parseValue()
+        k & (parseValue() || indicator)
       } else {
         advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
@@ -236,11 +237,14 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       val r = process()
       if (r) {
         current.addNonContent()
+        true
       } else {
+        discardIf(Error)
+        push()
         current.addNullNode()
         advanceTo(Indicator, EndMapping)
+        false
       }
-      true
     }
   }
 
@@ -320,6 +324,12 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
   private def buildNode(value: YValue, tag: YTag) = YNode(value, tag, sourceName = lexer.sourceName)
 
   class JsonBuilder {
+
+    def addNullNode(): Unit = {
+      addNonContent()
+      stackParts(YNode.nullNode(current.location()))
+    }
+
     var first: SourceLocation = lexer.tokenData.range
     val tokens                = new ArrayBuffer[AstToken]
     val parts                 = new ArrayBuffer[YPart]
@@ -364,13 +374,6 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
         parts.clear()
         r
       }
-    }
-
-    def addNullNode(): Unit = {
-      discardIf(Error)
-      push()
-      current.addNonContent()
-      stackParts(YNode.nullNode(current.location(),current.buildParts()))
     }
   }
 }

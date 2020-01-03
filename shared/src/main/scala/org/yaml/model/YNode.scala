@@ -78,7 +78,7 @@ object YNode {
   def apply(seq: YSequence): YNode = YNode(seq, YType.Seq)
   def apply(map: YMap): YNode      = YNode(map, YType.Map)
 
-  def nullNode(location:SourceLocation, children:IndexedSeq[YPart]): YNode = YNode(YScalar.nullYScalar(location,children), YType.Null)
+  def nullNode(location:SourceLocation): YNode = YNode(YScalar.nullYScalar(location), YType.Null)
 
   val Null: YNode = YNode(YScalar.Null, YType.Null)
   val Empty: YNode = YNode(new YScalar(null, "", location = Unknown), YType.Null)

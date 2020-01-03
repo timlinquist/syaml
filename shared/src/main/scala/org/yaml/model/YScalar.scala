@@ -39,7 +39,7 @@ object YScalar {
 
   val Null: YScalar = new YScalar(null, "null", location = Unknown)
 
-  def nullYScalar(location: SourceLocation, children: IndexedSeq[YPart]):YScalar = new YScalar(null, "null", location = location, parts = children)
+  def nullYScalar(location: SourceLocation):YScalar = new YScalar(null, "null", location = location)
 
   def apply(value: Int): YScalar =
     new YScalar(value.asInstanceOf[Long], String.valueOf(value), location = Unknown)
