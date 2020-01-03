@@ -237,18 +237,10 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       if (r) {
         current.addNonContent()
       } else {
-        `null`()
+        current.addNullNode()
         advanceTo(Indicator, EndMapping)
       }
       true
-    }
-
-    private def `null`():Unit = {
-      discardIf(Error)
-      push()
-      current.addNonContent()
-      //noinspection ScalaStyle
-      stackParts(buildNode(new YScalar(null, "null", location = current.location(), parts = current.buildParts()),YType.Null.tag))
     }
   }
 
@@ -372,6 +364,13 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
         parts.clear()
         r
       }
+    }
+
+    def addNullNode(): Unit = {
+      discardIf(Error)
+      push()
+      current.addNonContent()
+      stackParts(YNode.nullNode(current.location(),current.buildParts()))
     }
   }
 }
