@@ -160,6 +160,14 @@ trait JsonParserTest extends FunSuite with Matchers {
     testErrorHandler.errors.head.error.getMessage shouldBe "Duplicate key : 'a'"
   }
 
+  test("test recovery bad entry value"){
+    val jsonFile = jsonDir / "incomplete-entry-value.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    assert(eh.errors.size == 1)
+  }
+
   private def doTest(source: String, msg: String, n: Int): Any = {
     val errors = getErrorsFor(source)
     assert(errors.lengthCompare(n) == 0)
