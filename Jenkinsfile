@@ -6,6 +6,8 @@ pipeline {
   }
   environment {
     NEXUS = credentials('exchange-nexus')
+    GITHUB_ORG = 'mulesoft'
+    GITHUB_REPO = 'syaml'
   }
   stages {
     stage('Test') {
@@ -23,8 +25,29 @@ pipeline {
       }
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-          sh 'sbt syamlJS/publish'
-          sh 'sbt syamlJVM/publish'
+          sh '''
+              echo "about to publish in sbt"
+              sbt syamlJS/publish
+              sbt syamlJVM/publish
+              echo "sbt publishing successful"
+          '''
+        }
+      }
+    }
+    stage('Tag version') {
+      when {
+        branch 'master'
+      }
+      steps {
+        withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github-exchange', passwordVariable: 'GITHUB_PASS', usernameVariable: 'GITHUB_USER']]) {
+          sh '''#!/bin/bash
+                echo "about to tag the commit with the new version:"
+                version=$(sbt version | tail -n 1 | grep -o '[0-9].[0-9].[0-9].*')
+                url="https://${GITHUB_USER}:${GITHUB_PASS}@github.com/${GITHUB_ORG}/${GITHUB_REPO}"
+                git tag $version
+                git push $url $version
+                echo "tagging successful"
+          '''
         }
       }
     }

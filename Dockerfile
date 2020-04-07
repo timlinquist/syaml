@@ -15,7 +15,8 @@ RUN \
   apt-get update && \
   add-apt-repository ppa:openjdk-r/ppa && \
   apt-get update && \
-  apt-get install openjdk-8-jdk --assume-yes
+  apt-get install openjdk-8-jdk --assume-yes && \
+  apt-get install git -y
 
 # Install Scala
 ## Piping curl directly in tar
