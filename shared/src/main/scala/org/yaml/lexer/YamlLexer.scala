@@ -32,10 +32,8 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   }
 
   private def singleDocument() :Unit= {
-    while (documentPrefix()) {}
-    multilineComment() && {
-      implicitOrExplicitDocument() || singleDocumentRecovery()
-    }
+    def singleDoc(): Boolean = multilineComment() && { implicitOrExplicitDocument() || singleDocumentRecovery() }
+    advanceUntilEnd(singleDoc ,None)
   }
 
   private def implicitOrExplicitDocument():Boolean = zeroOrMore(directive()) &&  (explicitDocument() && optional(documentSuffix()) || bareDocument())
@@ -1403,7 +1401,9 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
 
   private def singleDocRootException(n:Int):Boolean = !isSingleDocument && isRootException(n)
 
-  private def looksLikeEntry(n:Int) = matches(indent(n) && someEntryIndicator())
+  private def looksLikeEntry(n:Int) = matches(exactEntryIndent(n) && someEntryIndicator())
+
+  private def exactEntryIndent(n:Int):Boolean = (n<=0 || input.countSpaces() == n) && indent(n)
 
   private def isRootException(n:Int) = n <= 0 && (isDirectiveChar || isDirectivesEnd || isDocumentEnd )
 
@@ -1411,7 +1411,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
 
   private def entryError(n:Int) = nonEof && indent(n) && consumeErrorLine()
 
-  private def entry(ind:Int): Boolean = matches(indent(ind) && blockMapEntry(ind))
+  private def entry(ind:Int): Boolean = matches(exactEntryIndent(ind) && blockMapEntry(ind))
 
   private def someEntryIndicator(): Boolean = explicitEntry || lineContainsMapIndicator()
 
@@ -1659,12 +1659,14 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )*
     * </blockquote></pre>
     */
-  def yamlStream(): Unit = {
+  def yamlStream(): Unit = advanceUntilEnd(anyDocument, Some(() => rootContent()))
+
+  private def advanceUntilEnd(docFunction:() => Boolean, otherContentFN: Option[() => Boolean]): Boolean = {
     while (documentPrefix()) {}
-    anyDocument()
+    docFunction()
     var currentOffset = input.offset
     while (nonEof) {
-      rootContent()
+      otherContentFN.foreach(f => f())
       if (input.offset == currentOffset) {
         consumeWhile(_ != EofChar)
         emit(Error)
@@ -1674,7 +1676,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     emit(EndStream)
   }
 
-  private def rootContent() = {
+  private def rootContent(): Boolean = {
     matches {
       oneOrMore(documentSuffix()) &&
         zeroOrMore(documentPrefix()) &&
