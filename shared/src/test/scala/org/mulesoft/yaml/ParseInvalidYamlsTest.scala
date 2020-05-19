@@ -153,14 +153,30 @@ trait ParseInvalidYamlsTest extends FunSuite {
         |  - seq1
         |  error
         |  - seq2""".stripMargin
-    val docs = YamlParser(text)(handler).documents()
-    assert(docs.length == 1)
-    val map = docs.head.node.as[YMap]
+    val docs = YamlParser(text)(handler).document()
+    val map = docs.node.as[YMap]
     assert(map.entries.length == 1)
     val seq: Seq[String] = map.entries.head.value.as[Seq[String]]
     assert(seq.length ==  2)
     assert(handler.errors.lengthCompare(1) == 0)
     assert(handler.errors.head.error.getMessage.equals("Syntax error in the following text: 'error\n'"))
+  }
+
+  test("Parse invalid entry value single document as scalar and map and recovery") {
+    val handler = TestErrorHandler()
+
+    val text =
+      """key:
+        |  key2: value
+        |    map: value
+        |  recovery: value""".stripMargin
+
+    val doc = YamlParser(text)(handler).document()
+    assert(doc.node.as[YMap].entries.head.value.as[YMap].entries.length == 2)
+
+    assert(handler.errors.lengthCompare(2) == 0)
+    assert(handler.errors.head.error.getMessage.equals("Syntax error in the following text: 'value'"))
+    assert(handler.errors.last.error.getMessage.equals("Syntax error in the following text: '  map: value\n'"))
   }
 
   case class TestErrorHandler() extends ParseErrorHandler {
