@@ -4,7 +4,7 @@ import org.scalatest.{FunSuite, Matchers}
 import org.yaml.builder.JsonOutputBuilder
 import org.yaml.model._
 import org.yaml.parser.{JsonParser, YamlParser}
-import org.yaml.render.{JsonRender, YamlRender}
+import org.yaml.render.{JsonRender, JsonRenderOptions, YamlRender, YamlRenderOptions}
 
 /**
   * Test Extractors and exception Handling
@@ -154,6 +154,91 @@ trait RenderingTest extends FunSuite with Matchers {
 
     val str = JsonRender.render(doc, 4)
     str shouldBe expected
+  }
+
+  test("Json render options - spacesInTab") {
+    val text =
+      """{
+        |  "aKey": {
+        |    "anotherKey": [
+        |      "scalar"
+        |    ]
+        |  }
+        |}""".stripMargin
+
+    val expected4spaces =
+      """{
+        |    "aKey": {
+        |        "anotherKey": [
+        |            "scalar"
+        |        ]
+        |    }
+        |}
+        |""".stripMargin
+
+    val parts = JsonParser(text).parse(false)
+    val doc:YDocument = parts.collectFirst({case d:YDocument => d}).get
+
+    val output4spaces = JsonRender.render(doc, 0, new JsonRenderOptions().withIndentationSize(4))
+    output4spaces shouldBe expected4spaces
+  }
+
+  test("Json render options - preferSapces false") {
+    val text =
+      """{
+        |  "aKey": {
+        |    "anotherKey": [
+        |      "scalar"
+        |    ]
+        |  }
+        |}""".stripMargin
+
+
+    val expectedTabs =
+      s"""{
+         |\t"aKey": {
+         |\t\t"anotherKey": [
+         |\t\t\t"scalar"
+         |\t\t]
+         |\t}
+         |}
+         |""".stripMargin
+
+    val parts = JsonParser(text).parse(false)
+    val doc:YDocument = parts.collectFirst({case d:YDocument => d}).get
+
+    val outputTabs = JsonRender.render(doc, 0, new JsonRenderOptions().withPreferSpaces(false))
+    outputTabs shouldBe expectedTabs
+  }
+
+  test("Yaml render options - indentation size") {
+    val text =
+      """aKey:
+        |  anotherKey:
+        |    - scalar
+        |  new: val""".stripMargin
+
+    val expected1space =
+      """aKey:
+        | anotherKey:
+        |  - scalar
+        | new: val
+        |""".stripMargin
+
+    val expected4spaces =
+      """aKey:
+        |    anotherKey:
+        |        - scalar
+        |    new: val
+        |""".stripMargin
+
+    val parts         = YamlParser(text).parse(false)
+    val output1space  = YamlRender.render(parts, expandReferences = false, new YamlRenderOptions().withIndentationSize(1))
+    val output4spaces = YamlRender.render(parts, expandReferences = false, new YamlRenderOptions().withIndentationSize(4))
+
+    output4spaces shouldBe expected4spaces
+    output1space shouldBe expected1space
+
   }
 
   private def testDoc(text: String, jsonText: String): Unit = {
