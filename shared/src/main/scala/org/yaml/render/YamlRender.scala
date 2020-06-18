@@ -6,19 +6,20 @@ import org.mulesoft.common.core.Strings
 import org.mulesoft.common.io.Output
 import org.mulesoft.common.io.Output._
 import org.mulesoft.lexer.AstToken
+import org.yaml.lexer.YamlToken
 import org.yaml.model.{YDocument, _}
 
 /**
   * Yaml Render
   */
-class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initialIndentation:Int = 0) {
+class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initialIndentation:Int = 0, options: YamlRenderOptions = YamlRenderOptions()) {
   private val buffer = new StringBuilder
 
-  private var indentation    = initialIndentation - 2
-  private def indent(): Unit = indentation += 2
-  private def dedent(): Unit = indentation -= 2
+  private var indentation    = initialIndentation - options.indentationSize
+  private def indent(): Unit = indentation += options.indentationSize
+  private def dedent(): Unit = indentation -= options.indentationSize
   private def renderIndent(): this.type = {
-    for (_ <- 0 until indentation) buffer append ' '
+    print(" " * indentation)
     this
   }
   private var hasDirectives = false
@@ -214,11 +215,15 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
 object YamlRender {
 
   /** Render a Seq of Parts to a Writer */
-  def render[W: Output](writer: W, parts: Seq[YPart]): Unit = render(writer, parts, expandReferences = false)
+  def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean, indentation:Int, options: YamlRenderOptions): Unit =
+    new YamlRender(writer, expandReferences, indentation, options).renderParts(parts)
 
   /** Render a Seq of Parts to a Writer */
   def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean, indentation:Int = 0): Unit =
-    new YamlRender(writer, expandReferences, indentation).renderParts(parts)
+  render(writer, parts, expandReferences, indentation, YamlRenderOptions())
+
+  /** Render a Seq of Parts to a Writer */
+  def render[W: Output](writer: W, parts: Seq[YPart]): Unit = render(writer, parts, expandReferences = false)
 
   /** Render a YamlPart to a Writer */
   def render[W: Output](writer: W, part: YPart): Unit = render(part, expandReferences = false)
@@ -231,10 +236,18 @@ object YamlRender {
   def render(parts: Seq[YPart]): String = render(parts, expandReferences = false)
 
   /** Render a Seq of Parts as an String */
-  def render(parts: Seq[YPart], expandReferences: Boolean): String = {
+  def render(parts: Seq[YPart], options: YamlRenderOptions): String = render(parts, expandReferences = false)
+
+  /** Render a Seq of Parts as an String */
+  def render(parts: Seq[YPart], expandReferences: Boolean, options: YamlRenderOptions): String = {
     val s = new StringWriter
-    render(s, parts, expandReferences)
+    render(s, parts, expandReferences, 0, options)
     s.toString
+  }
+
+  /** Render a Seq of Parts as an String */
+  def render(parts: Seq[YPart], expandReferences: Boolean): String = {
+    render(parts, expandReferences, YamlRenderOptions())
   }
 
   /** Render a YamlPart as an String */
@@ -244,6 +257,13 @@ object YamlRender {
   def render(part: YPart, expandReferences: Boolean): String = {
     val s = new StringWriter
     render(s, part, expandReferences)
+    s.toString
+  }
+
+  /** Render a YamlParts as an String starting at a given indentation*/
+  def render(parts: YPart, indentation:Int, options: YamlRenderOptions): String = {
+    val s = new StringWriter
+    render(s, Seq(parts),expandReferences = false, indentation = indentation, options)
     s.toString
   }
 

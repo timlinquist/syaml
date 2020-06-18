@@ -17,10 +17,13 @@ class JsonRender[W: Output] private (private val writer: W,
   override def toString: String = writer.toString
 
   private var indentation    = initialIndentation
-  private def indent(): Unit = indentation += 2
-  private def dedent(): Unit = indentation -= 2
+  private def indent(): Unit = indentation += options.indentationSize
+  private def dedent(): Unit = indentation -= options.indentationSize
   private def renderIndent(): this.type = {
-    if (indentation > 0) writer.append(" " * indentation)
+    if (indentation > 0) {
+      if(options.preferSpaces) writer.append(" " * indentation)
+      else writer.append("\t" * (indentation / options.indentationSize))
+    }
     this
   }
   private def render(node: YNode): this.type = {
