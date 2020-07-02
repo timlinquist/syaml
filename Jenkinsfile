@@ -37,6 +37,7 @@ pipeline {
     stage('Tag version') {
       when {
         branch 'master'
+        branch 'recovery-internal-snapshot'
       }
       steps {
         withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github-exchange', passwordVariable: 'GITHUB_PASS', usernameVariable: 'GITHUB_USER']]) {
