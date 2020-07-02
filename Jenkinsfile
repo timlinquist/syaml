@@ -22,6 +22,7 @@ pipeline {
     stage('Publish') {
       when {
         branch 'master'
+        branch 'recovery-internal-snapshot'
       }
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
@@ -37,7 +38,6 @@ pipeline {
     stage('Tag version') {
       when {
         branch 'master'
-        branch 'recovery-internal-snapshot'
       }
       steps {
         withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github-exchange', passwordVariable: 'GITHUB_PASS', usernameVariable: 'GITHUB_USER']]) {
