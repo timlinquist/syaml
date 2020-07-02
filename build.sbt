@@ -8,13 +8,14 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
   version := {
-    val major = 1
-    val minor = 0
-
-    lazy val build  = sys.env.getOrElse("BUILD_NUMBER", "0")
-    lazy val branch = sys.env.get("BRANCH_NAME")
-
-    if (branch.contains("master")) s"$major.$minor.$build" else s"$major.${minor + 1}.0-SNAPSHOT"
+//    val major = 1
+//    val minor = 0
+//
+//    lazy val build  = sys.env.getOrElse("BUILD_NUMBER", "0")
+//    lazy val branch = sys.env.get("BRANCH_NAME")
+//
+//    if (branch.contains("master")) s"$major.$minor.$build" else s"$major.${minor + 1}.0-SNAPSHOT"
+    "2.0.0-SNAPSHOT-INTERNAL"
   },
   libraryDependencies ++= Seq(
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
