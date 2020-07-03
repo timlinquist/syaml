@@ -21,8 +21,10 @@ pipeline {
     }
     stage('Publish') {
       when {
-        branch 'master'
-        branch 'recovery-internal-snapshot'
+        anyOf {
+          branch 'master'
+          branch 'recovery-internal-snapshot'
+        }
       }
       steps {
         wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
