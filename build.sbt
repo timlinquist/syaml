@@ -15,7 +15,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
 //    lazy val branch = sys.env.get("BRANCH_NAME")
 //
 //    if (branch.contains("master")) s"$major.$minor.$build" else s"$major.${minor + 1}.0-SNAPSHOT"
-    "2.0.0-SNAPSHOT-INTERNAL"
+    "2.0.0-INTERNAL-SNAPSHOT"
   },
   libraryDependencies ++= Seq(
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
