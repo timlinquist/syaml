@@ -1,0 +1,13 @@
+YDocument    [1,0..3,0]      new-line-flow-map.yaml
+YNodePlain   [1,0..3,0]      new-line-flow-map.yaml
+YMap         [1,0..3,0]      new-line-flow-map.yaml
+YMapEntry    [1,0..3,0]      new-line-flow-map.yaml
+YNodePlain   [1,0..1,4]      new-line-flow-map.yaml
+YScalar      [1,0..1,4]      new-line-flow-map.yaml
+YNodePlain   [2,2..2,12]     new-line-flow-map.yaml
+YMap         [2,2..2,12]     new-line-flow-map.yaml
+YMapEntry    [2,3..2,11]     new-line-flow-map.yaml
+YNodePlain   [2,3..2,6]      new-line-flow-map.yaml
+YScalar      [2,3..2,6]      new-line-flow-map.yaml
+YNodePlain   [2,8..2,11]     new-line-flow-map.yaml
+YScalar      [2,8..2,11]     new-line-flow-map.yaml
