@@ -1,0 +1,9 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "zulu"
+  : !!map {
+    ? !!str "a"
+    : !!str "b"
+  }
+}
