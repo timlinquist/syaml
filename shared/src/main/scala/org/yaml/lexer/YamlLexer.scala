@@ -1125,7 +1125,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   def chompedEmpty(n: Int, t: Char): Boolean = {
     if (t != '+') {
       if (t != '-') emit(EndScalar)
-      zeroOrMore(indentLessOrEqual(n) && breakNonContent()) //strip empty
+      zeroOrMore(indentLessOrEqual(n) && breakComment()) //strip empty
     }
     else {
       zeroOrMore(emptyLine(n, BlockIn)) // keep empty
