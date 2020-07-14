@@ -1125,7 +1125,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   def chompedEmpty(n: Int, t: Char): Boolean = {
     if (t != '+') {
       if (t != '-') emit(EndScalar)
-      zeroOrMore(indentLessOrEqual(n) && breakNonContent()) //strip empty
+      zeroOrMore(indentLessOrEqual(n) && breakComment()) //strip empty
     }
     else {
       zeroOrMore(emptyLine(n, BlockIn)) // keep empty
@@ -1483,7 +1483,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )
     */
   def mapImplicitValue(n: Int): Boolean = indicator(':') && {
-    blockNode(n, BlockOut) || blockNodeRecovery(n) || commentOrErrorLine(n)
+    matches(multilineComment() && isFlowIndicator(lookAhead(input.countSpaces())) && flowNode(n)) || blockNode(n, BlockOut) || blockNodeRecovery(n) || commentOrErrorLine(n)
   }
 
   private def commentOrErrorLine(n:Int): Boolean = matches(emptyNode() && (multilineComment() || sameErrorLine(n)))
@@ -1530,11 +1530,14 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [197] s-l+flow-in-block(n) ::=	s-separate(n+1,flow-out) ns-flow-node(n+1,flow-out) s-l-comments
     */
   def blockNode(n: Int, ctx: YamlContext): Boolean =
-    matches(blockInBlock(n, ctx)) || matches {
-      val b1 = separate(n + 1, FlowOut) && emit(BeginNode)
-      b1 && flowNode(n + 1, FlowOut) && emit(EndNode) && multilineComment()
-    }
+     blockIndentedNode(n,ctx) || flowNode(n)
 
+  private def blockIndentedNode(n:Int, ctx:YamlContext) = matches(blockInBlock(n, ctx))
+
+  private def flowNode(n:Int): Boolean = matches {
+    val b1 = separate(n + 1, FlowOut) && emit(BeginNode)
+    b1 && flowNode(n + 1, FlowOut) && emit(EndNode) && multilineComment()
+  }
   /*
    *  [198]	s-l+block-in-block(n,c)	::=	s-l+block-scalar(n,c) | s-l+block-collection(n,c)
    */

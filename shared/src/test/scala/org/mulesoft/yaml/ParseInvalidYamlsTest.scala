@@ -179,6 +179,15 @@ trait ParseInvalidYamlsTest extends FunSuite {
     assert(handler.errors.last.error.getMessage.equals("Syntax error in the following text: '  map: value\n'"))
   }
 
+  test("Empty line indented"){
+    val handler = TestErrorHandler()
+
+    val text = "example: |\n  a multiline string\n  "
+
+    YamlParser(text)(handler).document()
+    assert(handler.errors.lengthCompare(0) == 0)
+  }
+
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
 
