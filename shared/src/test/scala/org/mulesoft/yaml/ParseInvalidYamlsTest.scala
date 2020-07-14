@@ -183,6 +183,8 @@ trait ParseInvalidYamlsTest extends FunSuite {
     val handler = TestErrorHandler()
 
     val text = "example: |\n  a multiline string\n  "
+
+    YamlParser(text)(handler).document()
     assert(handler.errors.lengthCompare(0) == 0)
   }
 
