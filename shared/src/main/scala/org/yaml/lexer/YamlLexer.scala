@@ -816,10 +816,10 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   @tailrec private def flowMapEntries(n: Int, ctx: YamlContext): Boolean = currentChar != '}' && {
     flowMapEntry(n, ctx) && {
       separateFlow(n, ctx)
-      indicator(',') && {
+      if(indicator(',')) {
         separateFlow(n, ctx)
         flowMapEntries(n, ctx)
-      }
+      }else true
     }
   }
 
@@ -1383,12 +1383,14 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )+
     * <p> For some fixed auto-detected m greater than 0
     */
-  def blockMapping(n: Int): Boolean = beginOfLine && {
+  def blockMapping(n: Int, ctx:YamlContext): Boolean = beginOfLine && {
     val m = detectMapStart(n)
     (m > 0) && emit(BeginMapping) &&
       entryList(n+m) &&
       emit(EndMapping)
   }
+
+  private def isFlowOrPlainIndicator(chr:Int) = isFlowIndicator(chr) ||  chr == '\'' || chr == '"'
 
   private def entryList(n:Int): Boolean = oneOrMore {
     entry(n) ||
@@ -1413,7 +1415,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
 
   private def entry(ind:Int): Boolean = matches(exactEntryIndent(ind) && blockMapEntry(ind))
 
-  private def someEntryIndicator(): Boolean = explicitEntry || lineContainsMapIndicator()
+  private def someEntryIndicator(): Boolean = explicitEntry || lineContainsMapIndicator() || isFlowOrPlainIndicator(currentChar)
 
   private def explicitEntry:Boolean = currentChar == '?'
   /**
@@ -1483,7 +1485,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )
     */
   def mapImplicitValue(n: Int): Boolean = indicator(':') && {
-    matches(multilineComment() && isFlowIndicator(lookAhead(input.countSpaces())) && flowNode(n)) || blockNode(n, BlockOut) || blockNodeRecovery(n) || commentOrErrorLine(n)
+    blockNode(n, BlockOut) || blockNodeRecovery(n) || commentOrErrorLine(n)
   }
 
   private def commentOrErrorLine(n:Int): Boolean = matches(emptyNode() && (multilineComment() || sameErrorLine(n)))
@@ -1574,7 +1576,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     *
     */
   def blockCollection(n: Int, ctx: YamlContext): Boolean = {
-    def bc() = multilineComment() && (blockSequence(if (ctx == BlockOut) n - 1 else n) || blockMapping(n))
+    def bc() = multilineComment() && (blockSequence(if (ctx == BlockOut) n - 1 else n) || blockMapping(n, ctx))
 
     matches(separate(n + 1, ctx) && nodeProperties(n + 1, ctx) && bc()) || matches(bc())
   }
