@@ -188,6 +188,30 @@ trait ParseInvalidYamlsTest extends FunSuite {
     assert(handler.errors.lengthCompare(0) == 0)
   }
 
+  test("Quoted string with flow tokens"){
+    val handler = TestErrorHandler()
+    val text = "example:  \n  '{\"message\": \"Flight added (but not really)\"'"
+
+    YamlParser(text)(handler).document()
+    assert(handler.errors.lengthCompare(0) == 0)
+  }
+
+  test("Array as key"){
+    val handler = TestErrorHandler()
+    val text = "toplevel:\n  []:\n    son: value"
+
+    YamlParser(text)(handler).document()
+    assert(handler.errors.lengthCompare(0) == 0)
+  }
+
+  test("Flow map as key"){
+    val handler = TestErrorHandler()
+    val text = "toplevel:\n  {}:\n    son: value"
+
+    YamlParser(text)(handler).document()
+    assert(handler.errors.lengthCompare(0) == 0)
+  }
+
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
 
