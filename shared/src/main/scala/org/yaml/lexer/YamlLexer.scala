@@ -1303,7 +1303,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
 
   // advance with error until sequence char: errorsUntilSeq
   // if not - is detected, advance until the indentation is the same that the father (n+1?) and go out. Father map recovery
-  private def errorUntilSeq(n:Int, m:Int) = oneOrMoreErrorSeqEntries(n,m,() => !looksLikeSeq(n,m)) && looksLikeSeq(n,m) && emitError()
+  private def errorUntilSeq(n:Int, m:Int) = oneOrMoreErrorSeqEntries(n,m,() => (!looksLikeSeq(n,m) && input.countSpaces()> n+m)) && looksLikeSeq(n,m) && emitError()
 
   private def errorsUntilBack(n:Int, m:Int) = oneOrMoreErrorSeqEntries(n,m, () => seqIndentedFromFather(n)) && emitError() || !nonEof
 
