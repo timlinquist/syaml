@@ -1393,7 +1393,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   private def isFlowOrPlainIndicator(chr:Int) = isFlowIndicator(chr) ||  chr == '\'' || chr == '"'
 
   private def entryList(n:Int): Boolean = oneOrMore {
-    entry(n) ||
+    entry(n) || matches(lineComment()) ||
       (entryErrors(n) && emitError())
   }
 
