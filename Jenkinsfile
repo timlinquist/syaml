@@ -23,7 +23,6 @@ pipeline {
       when {
         anyOf {
           branch 'master'
-          branch 'recovery-internal-snapshot'
         }
       }
       steps {
