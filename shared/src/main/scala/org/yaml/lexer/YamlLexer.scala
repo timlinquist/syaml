@@ -16,12 +16,27 @@ import scala.annotation.tailrec
 final class YamlLexer private (input: LexerInput, positionOffset: Position = Position.Zero)
     extends BaseLexer[YamlToken](input, positionOffset) {
 
+  private var context: LexerContext = StreamLexerContext
+  private def isSingleDocument: Boolean = context == SingleDocumentLexerContext
   //~ Methods ..........................................................................................................
 
-  override protected def initialize(): Unit = {
-    yamlStream()
-    advance()
+  def initialize(context:LexerContext): YamlLexer = {
+    this.context = context
+    initialize()
   }
+
+  override def initialize(): YamlLexer = {
+    if(isSingleDocument) singleDocument() else yamlStream()
+    advance()
+    this
+  }
+
+  private def singleDocument() :Unit= {
+    def singleDoc(): Boolean = multilineComment() && { implicitOrExplicitDocument() || singleDocumentRecovery() }
+    advanceUntilEnd(singleDoc ,None)
+  }
+
+  private def implicitOrExplicitDocument():Boolean = zeroOrMore(directive()) &&  (explicitDocument() && optional(documentSuffix()) || bareDocument())
 
   override protected def processPending(): Unit = emit(EndStream)
 
@@ -30,13 +45,18 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   /** Check that the current char is the specified one and if so emit it as an Indicator */
   @failfast def indicator(chr: Int): Boolean = currentChar == chr && consumeAndEmit(Indicator)
 
+  private def singleDocumentRecovery(): Boolean = {
+    val n = - 1
+    def recoveryFN(): Boolean = lineContainsEntry(n) || lineContainsSeq(n)
+    matches {
+      errorUntil(n, recoveryFN)
+      blockNode(n, BlockIn)
+    }
+  }
 
-  //  def ensureDocumentStarted(): Boolean =
-  //    if (stack.exists(s => s.isInstanceOf[InDocument])) false
-  //    else {
-  //      InDocument()(this)
-  //      true
-  //    }
+  private def lineContainsEntry(n:Int) = detectMapStart(n) > 0
+
+  private def lineContainsSeq(n:Int) = detectSequenceStart(n) > 0
 
   /**
     * Recognition of lineBreak Sequence<p>
@@ -63,6 +83,10 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     */
   def breakAsLineFeed(): Boolean = lineBreak(LineFeed)
 
+  private def errorUntil(n:Int, untilFN: () => Boolean): Boolean = {
+    !emptyScalar(n) && oneOrMore( !untilFN() && indentedErrorLine(n)) && emitError()
+  }
+
   /**
     * Outside scalar content, YAML allows any line break to be used to terminate lines.<p>
     * [30]	b-non-content	::=	b-break
@@ -81,7 +105,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
       consume()
       true
     }
-    else if (currentChar == '%' && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
+    else if ( isDirectiveChar && isNsHexDigit(lookAhead(1)) && isNsHexDigit(lookAhead(2))) {
       consume(3)
       true
     }
@@ -278,7 +302,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * s-l-comments
     */
   private def directive() =
-    currentChar == '%' && emit(BeginDirective) && emitIndicator() && (
+    isDirectiveChar && emit(BeginDirective) && emitIndicator() && (
         matches(yamlDirective()) || matches(tagDirective()) || matches(reservedDirective())
     ) && emit(EndDirective) && multilineComment()
 
@@ -436,7 +460,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
                 emit(MetaText)
               }
             } ||
-            emit(Error)
+            emitError()
         )
       }
     } &&
@@ -541,7 +565,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
           }
           else {
             inText = false
-            emit(Error)
+            emitError()
             done = true
           }
         case '\\' if quoteChar == '"' =>
@@ -575,7 +599,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
           }
 
         case EofChar =>
-          emit(Error)
+          emitError()
           done = true
 
         case _ =>
@@ -792,10 +816,10 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   @tailrec private def flowMapEntries(n: Int, ctx: YamlContext): Boolean = currentChar != '}' && {
     flowMapEntry(n, ctx) && {
       separateFlow(n, ctx)
-      indicator(',') && {
+      if(indicator(',')) {
         separateFlow(n, ctx)
         flowMapEntries(n, ctx)
-      }
+      }else true
     }
   }
 
@@ -1101,7 +1125,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
   def chompedEmpty(n: Int, t: Char): Boolean = {
     if (t != '+') {
       if (t != '-') emit(EndScalar)
-      zeroOrMore(indentLessOrEqual(n) && breakNonContent()) //strip empty
+      zeroOrMore(indentLessOrEqual(n) && breakComment()) //strip empty
     }
     else {
       zeroOrMore(emptyLine(n, BlockIn)) // keep empty
@@ -1272,11 +1296,28 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     m > 0 &&
     emit(BeginSequence) &&
     oneOrMore {
-      val b1 = indent(n + m)
-      b1 && blockSeqEntry(n + m)
+        matches(seqMember(n + m)) || matches(errorUntilSeq(n,m)) || matches(errorsUntilBack(n,m))
     } &&
     emit(EndSequence)
   }
+
+  // advance with error until sequence char: errorsUntilSeq
+  // if not - is detected, advance until the indentation is the same that the father (n+1?) and go out. Father map recovery
+  private def errorUntilSeq(n:Int, m:Int) = oneOrMoreErrorSeqEntries(n,m,() => !looksLikeSeq(n,m)) && looksLikeSeq(n,m) && emitError()
+
+  private def errorsUntilBack(n:Int, m:Int) = oneOrMoreErrorSeqEntries(n,m, () => seqIndentedFromFather(n)) && emitError() || !nonEof
+
+  private def seqIndentedFromFather(n:Int): Boolean = input.countSpaces() > n + 1
+
+  private def oneOrMoreErrorSeqEntries(n:Int,m:Int, whileFN:() => Boolean): Boolean = oneOrMore(whileFN() && checkSeqIndent(n,m)  && seqEntryError(n))
+
+  private def seqEntryError(n:Int) = nonEof && consumeErrorLine()
+
+  private def looksLikeSeq(n:Int, m:Int) = detectSequenceStart(n) == m
+
+  private def checkSeqIndent(n:Int, m:Int) = !(n == -1 && input.countSpaces()==0) && indent(n+m)
+
+  private def seqMember(idn:Int): Boolean = indent(idn) && blockSeqEntry(idn)
 
   private def detectSequenceStart(n: Int) = {
     val spaces = input.countSpaces(0, MAX_VALUE)
@@ -1342,26 +1383,52 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )+
     * <p> For some fixed auto-detected m greater than 0
     */
-  def blockMapping(n: Int): Boolean = beginOfLine && {
+  def blockMapping(n: Int, ctx:YamlContext): Boolean = beginOfLine && {
     val m = detectMapStart(n)
-    (m > 0) && emit(BeginMapping) && oneOrMore {
-      indent(n + m) && blockMapEntry(n + m)
-    } && emit(EndMapping)
+    (m > 0) && emit(BeginMapping) &&
+      entryList(n+m) &&
+      emit(EndMapping)
   }
 
+  private def isFlowOrPlainIndicator(chr:Int) = isFlowIndicator(chr) ||  chr == '\'' || chr == '"'
+
+  private def entryList(n:Int): Boolean = oneOrMore {
+    entry(n) ||
+      (entryErrors(n) && emitError())
+  }
+
+  private def entryErrors(n:Int) = oneOrMore( !validEntryContent(n)  && entryError(n))
+
+  private def validEntryContent(n:Int) = looksLikeEntry(n) || singleDocRootException(n)
+
+  private def singleDocRootException(n:Int):Boolean = !isSingleDocument && isRootException(n)
+
+  private def looksLikeEntry(n:Int) = matches(exactEntryIndent(n) && someEntryIndicator())
+
+  private def exactEntryIndent(n:Int):Boolean = (n<=0 || input.countSpaces() == n) && indent(n)
+
+  private def isRootException(n:Int) = n <= 0 && (isDirectiveChar || isDirectivesEnd || isDocumentEnd )
+
+  private def isDirectiveChar: Boolean = currentChar == '%'
+
+  private def entryError(n:Int) = nonEof && indent(n) && consumeErrorLine()
+
+  private def entry(ind:Int): Boolean = matches(exactEntryIndent(ind) && blockMapEntry(ind))
+
+  private def someEntryIndicator(): Boolean = explicitEntry || lineContainsMapIndicator() || isFlowOrPlainIndicator(currentChar)
+
+  private def explicitEntry:Boolean = currentChar == '?'
   /**
     * [188]	ns-l-block-map-entry(n)	::=
     * [[mapExplicitEntry c-l-block-map-explicit-entry(n)]]
     * | [[mapImplicitEntry ns-l-block-map-implicit-entry(n)]]
     */
   @failfast def blockMapEntry(n: Int): Boolean = {
-    val explicit = currentChar == '?'
-    val entry    = explicit || lineContainsMapIndicator()
-    if (!entry) false
+    if (!someEntryIndicator()) false
     else
       matches {
         emit(BeginPair)
-        (if (explicit) mapExplicitEntry(n) else mapImplicitEntry(n)) &&
+        (if (explicitEntry) mapExplicitEntry(n) else mapImplicitEntry(n)) &&
         emit(EndPair)
       }
   }
@@ -1418,8 +1485,39 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )
     */
   def mapImplicitValue(n: Int): Boolean = indicator(':') && {
-    blockNode(n, BlockOut) ||
-    emptyNode() && (matches(multilineComment()) || matches(error() && multilineComment()))
+    blockNode(n, BlockOut) || blockNodeRecovery(n) || commentOrErrorLine(n)
+  }
+
+  private def commentOrErrorLine(n:Int): Boolean = matches(emptyNode() && (multilineComment() || sameErrorLine(n)))
+
+  private def blockNodeRecovery(n:Int): Boolean = matches {
+    multilineComment() &&
+      errorUntil(n, () => blockNode(n,BlockOut)) &&
+      blockNode(n,BlockOut)
+  }
+
+  private def emptyScalar(n:Int) = input.countSpaces() == 0 && lineBreakSequence() != 0 && input.column > n
+
+  private def sameErrorLine(n:Int) = {
+    n < input.column && {
+      consumeWhile(!isBreakComment(_))
+      emitError()
+      breakComment()
+    }
+  }
+
+  private def indentedErrorLine(n:Int): Boolean = nonEof && input.countSpaces() > n && consumeErrorLine()
+
+  private def consumeErrorLine(): Boolean = {
+    consumeWhile(c => !isBreakComment(c))
+    consumeLineBreak() || !nonEof
+  }
+
+  private def consumeLineBreak(): Boolean = {
+    val n = lineBreakSequence()
+    n != 0 && {
+      consume(n); true
+    }
   }
 
   /**
@@ -1434,11 +1532,14 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * [197] s-l+flow-in-block(n) ::=	s-separate(n+1,flow-out) ns-flow-node(n+1,flow-out) s-l-comments
     */
   def blockNode(n: Int, ctx: YamlContext): Boolean =
-    matches(blockInBlock(n, ctx)) || matches {
-      val b1 = separate(n + 1, FlowOut) && emit(BeginNode)
-      b1 && flowNode(n + 1, FlowOut) && emit(EndNode) && multilineComment()
-    }
+     blockIndentedNode(n,ctx) || flowNode(n)
 
+  private def blockIndentedNode(n:Int, ctx:YamlContext) = matches(blockInBlock(n, ctx))
+
+  private def flowNode(n:Int): Boolean = matches {
+    val b1 = separate(n + 1, FlowOut) && emit(BeginNode)
+    b1 && flowNode(n + 1, FlowOut) && emit(EndNode) && multilineComment()
+  }
   /*
    *  [198]	s-l+block-in-block(n,c)	::=	s-l+block-scalar(n,c) | s-l+block-collection(n,c)
    */
@@ -1475,7 +1576,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     *
     */
   def blockCollection(n: Int, ctx: YamlContext): Boolean = {
-    def bc() = multilineComment() && (blockSequence(if (ctx == BlockOut) n - 1 else n) || blockMapping(n))
+    def bc() = multilineComment() && (blockSequence(if (ctx == BlockOut) n - 1 else n) || blockMapping(n, ctx))
 
     matches(separate(n + 1, ctx) && nodeProperties(n + 1, ctx) && bc()) || matches(bc())
   }
@@ -1534,7 +1635,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     *
     * [209]	l-directive-document	::=	l-directive+ l-explicit-document
     */
-  private def directiveDocument() = currentChar == '%' && oneOrMore(directive()) && explicitDocument()
+  private def directiveDocument() = isDirectiveChar && oneOrMore(directive()) && explicitDocument()
 
   /** [210]	l-any-document	::=	  l-directive-document | l-explicit-document | l-bare-document */
   private def anyDocument() = nonEof && matches {
@@ -1542,6 +1643,8 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     (directiveDocument() || explicitDocument() || bareDocument()) &&
     emit(EndDocument)
   }
+
+  private def errorLine():Boolean = error() && breakNonContent()
 
   /**
     * A YAML stream consists of zero or more documents.
@@ -1561,22 +1664,14 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     * )*
     * </blockquote></pre>
     */
-  def yamlStream(): Unit = {
+  def yamlStream(): Unit = advanceUntilEnd(anyDocument, Some(() => rootContent()))
+
+  private def advanceUntilEnd(docFunction:() => Boolean, otherContentFN: Option[() => Boolean]): Boolean = {
     while (documentPrefix()) {}
-    anyDocument()
+    docFunction()
     var currentOffset = input.offset
     while (nonEof) {
-      matches {
-        oneOrMore(documentSuffix()) &&
-        zeroOrMore(documentPrefix()) &&
-        optional(anyDocument())
-      } ||
-      matches {
-        zeroOrMore(documentPrefix())
-        emit(BeginDocument) &&
-        explicitDocument() &&
-        emit(EndDocument)
-      }
+      otherContentFN.foreach(f => f())
       if (input.offset == currentOffset) {
         consumeWhile(_ != EofChar)
         emit(Error)
@@ -1584,6 +1679,20 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
       currentOffset = input.offset
     }
     emit(EndStream)
+  }
+
+  private def rootContent(): Boolean = {
+    matches {
+      oneOrMore(documentSuffix()) &&
+        zeroOrMore(documentPrefix()) &&
+        optional(anyDocument())
+    } ||
+      matches {
+        zeroOrMore(documentPrefix())
+        emit(BeginDocument) &&
+          explicitDocument() &&
+          emit(EndDocument)
+      }
   }
 
   /** Check if the line contains a map Indicator (":" plus space or end of text) */
@@ -1615,12 +1724,14 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     case _ => None
   }
 
+  def emitError(): Boolean = emit(Error)
+
   /** Emit an error and Consume until end of line or file */
   def error(): Boolean =
     if (isBreakComment(currentChar)) true
     else {
       do consume() while (!isBreakComment(currentChar))
-      emit(Error)
+      emitError()
     }
 
   private def nonEndOfDocument = { // Todo optimize
