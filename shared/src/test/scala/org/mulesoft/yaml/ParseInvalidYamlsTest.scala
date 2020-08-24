@@ -14,6 +14,12 @@ import scala.collection.mutable
 trait ParseInvalidYamlsTest extends FunSuite {
 
   private val yamlDir = Fs syncFile "shared/src/test/data/parser/invalid"
+  test("No error when ending with \\r"){
+    val handler = TestErrorHandler()
+    val text = "standardHeaders:\n  headers: value\n\r"
+    YamlParser(text)(handler).document()
+    assert(handler.errors.lengthCompare(0) == 0)
+  }
 
   test("Parse duplicate key") {
     val yamlFile = yamlDir / "duplicate-key.yaml"
@@ -145,13 +151,31 @@ trait ParseInvalidYamlsTest extends FunSuite {
     assert(secondMap.entries.length == 1)
   }
 
-  test("Sequence recovery in middle") {
+  // http://ben-kiki.org/ypaste/ reads and scalar here, not a sequence
+  ignore("Sequence recovery at begin") {
+    val handler = TestErrorHandler()
+
+    val text =
+      """key:
+        |  error
+        |  - seq1""".stripMargin
+    val docs = YamlParser(text)(handler).document()
+    val map = docs.node.as[YMap]
+    assert(map.entries.length == 1)
+    val seq: Seq[String] = map.entries.head.value.as[Seq[String]]
+    assert(seq.length ==  2)
+    assert(handler.errors.lengthCompare(1) == 0)
+    assert(handler.errors.head.error.getMessage.equals("Syntax error in the following text: 'error\n'"))
+  }
+
+  // this way look like error y part of the text, is ok?
+  ignore("Sequence recovery in middle") {
     val handler = TestErrorHandler()
 
     val text =
       """key:
         |  - seq1
-        |  error
+        |   error
         |  - seq2""".stripMargin
     val docs = YamlParser(text)(handler).document()
     val map = docs.node.as[YMap]
