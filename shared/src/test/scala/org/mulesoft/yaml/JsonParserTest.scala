@@ -140,6 +140,26 @@ trait JsonParserTest extends FunSuite with Matchers {
     doTest("{ ]", "Syntax error : Expecting '\"' but ']' found", 2)
   }
 
+  test("Duplicate keys don't throw exception with default error handler") {
+    val source = """{"a": "aValue", "b": 1, "a": "anotherValue"}"""
+    val testErrorHandler = TestErrorHandler()
+    val handler = new DefaultJsonErrorHandler {
+      override val errorHandler: ParseErrorHandler = testErrorHandler
+    }
+    JsonParser(source)(handler).parse()
+    testErrorHandler.errors.size shouldBe 0
+  }
+
+  test("JsonErrorHandler notifies of Duplicate Keys in JSON") {
+    val source = """{"a": "aValue", "b": 1, "a": "anotherValue"}"""
+    val testErrorHandler = TestErrorHandler()
+    val handler = new DefaultJsonErrorHandler {
+      override protected def onIgnoredException(location: SourceLocation, e: SyamlException): Unit = testErrorHandler.handle(location, e)
+    }
+    JsonParser(source)(handler).parse()
+    testErrorHandler.errors.head.error.getMessage shouldBe "Duplicate key : 'a'"
+  }
+
   private def doTest(source: String, msg: String, n: Int): Any = {
     val errors = getErrorsFor(source)
     assert(errors.lengthCompare(n) == 0)

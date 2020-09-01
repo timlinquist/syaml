@@ -11,7 +11,10 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * A Json Parser
   */
-class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseErrorHandler) extends YParser {
+class JsonParser private[parser] (val lexer: JsonLexer)(
+    implicit val eh: ParseErrorHandler)
+    extends YParser
+    with DuplicateDetection {
 
   type TD = TokenData[YamlToken]
 
@@ -96,7 +99,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
     if (r) consume()
 
     val parts = current.buildParts()
-    val v     = YMap(sl, parts)
+    duplicates(parts)
+    val v = YMap(sl, parts)
     stackParts(buildNode(v, YType.Map.tag))
     r
   }
@@ -359,18 +363,18 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
 }
 
 object JsonParser {
-  def apply(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): JsonParser =
+  def apply(s: CharSequence)(implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     new JsonParser(JsonLexer(s))(eh)
 
-  def obj(s: CharSequence)(implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): YObj =
+  def obj(s: CharSequence)(implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): YObj =
     apply(s)(eh).document().obj
 
   def withSource(s: CharSequence, sourceName: String, positionOffset: Position = Position.Zero)(
-      implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): JsonParser =
+      implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     new JsonParser(JsonLexer(s, sourceName, positionOffset))(eh)
 
   @deprecated("Use Position argument", "")
   def withSourceOffset(s: CharSequence, sourceName: String, offset: (Int, Int))(
-      implicit eh: ParseErrorHandler = ParseErrorHandler.parseErrorHandler): JsonParser =
+      implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     withSource(s, sourceName, Position(offset._1, offset._2))
 }
