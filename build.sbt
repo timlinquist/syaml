@@ -4,18 +4,11 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "syaml"
 
+version in ThisBuild := getVersion(1, 0)
+
 val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
-  version := {
-    val major = 1
-    val minor = 0
-
-    lazy val build  = sys.env.getOrElse("BUILD_NUMBER", "0")
-    lazy val branch = sys.env.get("BRANCH_NAME")
-
-    if (branch.contains("master")) s"$major.$minor.$build" else s"$major.${minor + 1}.0-SNAPSHOT"
-  },
   libraryDependencies ++= Seq(
     "org.scalatest" %%% "scalatest" % "3.0.0" % Test
   ),
@@ -51,3 +44,10 @@ lazy val syaml = crossProject(JSPlatform, JVMPlatform)
 
 lazy val syamlJVM = syaml.jvm.in(file("./jvm")).sourceDependency(scalaCommonJVMRef, scalaCommonLibJVM)
 lazy val syamlJS  = syaml.js.in(file("./js")).sourceDependency(scalaCommonJSRef, scalaCommonLibJS)
+
+def getVersion(major: Int, minor: Int) = {
+  lazy val build  = sys.env.getOrElse("BUILD_NUMBER", "0")
+  lazy val branch = sys.env.get("BRANCH_NAME")
+
+  if (branch.contains("master")) s"$major.$minor.$build" else s"$major.${minor + 1}.0-SNAPSHOT"
+}
