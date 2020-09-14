@@ -28,8 +28,8 @@ class YamlParser private[parser] (val lexer: YamlLexer)(implicit val eh: ParseEr
   private def parse(keepTokens:  Boolean, ctx:LexerContext):IndexedSeq[YPart] =
     new YamlLoader(lexer.initialize(ctx), keepTokens, includeTag, eh).parse()
 
-  override def document(): YDocument = {
-    new YDocument(SourceLocation(lexer.sourceName), parse(keepTokens = false, SingleDocumentLexerContext))
+  override def document(keepTokens:Boolean = false): YDocument = {
+    new YDocument(SourceLocation(lexer.sourceName), parse(keepTokens = keepTokens, SingleDocumentLexerContext))
   }
 
   /** Define an Include Tag if not empty it will generate Mutable Node References for tagged nodes */
