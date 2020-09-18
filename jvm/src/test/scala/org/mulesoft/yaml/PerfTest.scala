@@ -26,5 +26,4 @@ class PerfTest extends FunSuite with Matchers {
         println((nanoTime() - t) / 1000000000.0)
         
     }
-
 }
