@@ -12,8 +12,8 @@ class YamlParser private[parser] (val lexer: YamlLexer)(implicit val eh: ParseEr
   private var includeTag = ""
 
   /** Parse the Yaml and return the list of documents */
-  def documents(): IndexedSeq[YDocument] = {
-    val parts = parse(keepTokens = false)
+  def documents(keepTokens:Boolean = false): IndexedSeq[YDocument] = {
+    val parts = parse(keepTokens)
     // Merge header into first document
     val header = parts.takeWhile(p => !p.isInstanceOf[YDocument])
     val docs: Array[YDocument] =

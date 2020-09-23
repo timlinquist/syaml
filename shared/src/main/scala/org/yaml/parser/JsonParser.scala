@@ -25,8 +25,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
   private var stack      = List(current)
 
   /** Parse the Json and return the list of documents */
-  def documents(): IndexedSeq[YDocument] = {
-    keepTokens = false
+  def documents(keepTokens:Boolean = false): IndexedSeq[YDocument] = {
+    this.keepTokens = keepTokens
     Array(parseDocument())
   }
 
@@ -34,6 +34,11 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
   def parse(keepTokens: Boolean = true): IndexedSeq[YPart] = { // i can only have one doc in json
     this.keepTokens = keepTokens
     IndexedSeq(parseDocument())
+  }
+
+  override def document(keepTokens:Boolean = false): YDocument = {
+    this.keepTokens = keepTokens
+    parseDocument()
   }
 
   private def parseDocument(): YDocument = {
