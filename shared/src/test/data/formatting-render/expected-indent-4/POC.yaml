@@ -1,0 +1,65 @@
+# %Dialect 1.0
+key: val
+multiLine:  |
+  this is a multi line string
+  testing
+inlineSequence:
+    - my
+    - test
+    - sequence
+sequence: 
+  # Comment before sequence
+    - one # Comment on sequence element
+    - two
+    - three
+# Comment after seq
+
+com:  # Comment on same level as key
+    k: v         # Comment on same level as value        
+        # Badly formatted comment (should insert space)        
+        # Below we have a map with wrong indent        
+wrongIndent: 
+    a: b
+    key: value
+explicitMap:
+    key: val
+    key2: val
+map: 
+    a:
+        - b
+        - c
+          # Comment        
+    c: d
+
+
+
+whitelineInMap: 
+    a: b
+
+    g: h
+
+depth: 
+    some: 
+        depth2: 
+            - enumeration
+            - value2
+        key:
+            k: v
+            seq:
+                - 1
+                - 2
+                - 3
+        random: 
+            keys: 
+                seq: 
+                    - a
+# Comment
+                    - b
+                    - c
+
+                    - d
+                map: 
+                    k: v
+                    k1: v                         # Comment                        
+
+                    k3: v
