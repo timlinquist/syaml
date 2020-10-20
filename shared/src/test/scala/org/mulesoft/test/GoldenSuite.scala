@@ -24,5 +24,5 @@ trait GoldenSuite extends FunSuite with Matchers {
     assert(deltas.isEmpty, s"diff -y -W 150 $yeastFile $goldenFile\n\n${deltas.mkString}")
   }
 
-  private def lines(file: SyncFile) = file.read().toString.split("\n")
+  protected def lines(file: SyncFile): Array[String] = file.read().toString.split("\n")
 }

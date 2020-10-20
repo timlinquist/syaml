@@ -244,18 +244,18 @@ object YamlRender {
   def render(parts: Seq[YPart]): String = render(parts, expandReferences = false)
 
   /** Render a Seq of Parts as an String */
-  def render(parts: Seq[YPart], options: YamlRenderOptions): String = render(parts, expandReferences = false, options)
+  def render(parts: Seq[YPart], options: YamlRenderOptions): String = render(parts,expandReferences = false, options, 0)
 
   /** Render a Seq of Parts as an String */
-  def render(parts: Seq[YPart], expandReferences: Boolean, options: YamlRenderOptions): String = {
+  def render(parts: Seq[YPart], expandReferences: Boolean, options: YamlRenderOptions, initialIndentation: Int): String = {
     val s = new StringWriter
-    render(s, parts, expandReferences, 0, options)
+    render(s, parts, expandReferences, initialIndentation, options)
     s.toString
   }
 
   /** Render a Seq of Parts as an String */
   def render(parts: Seq[YPart], expandReferences: Boolean): String = {
-    render(parts, expandReferences, YamlRenderOptions())
+    render(parts, expandReferences, YamlRenderOptions(), 0)
   }
 
   /** Render a YamlPart as an String */

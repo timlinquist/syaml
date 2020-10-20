@@ -1,0 +1,71 @@
+{
+    "key": "val",
+
+    "inlineSequence": [
+        "my",
+        "test",
+        "sequence"
+    ],
+    "sequence": [
+        "one",
+        "two",
+        "three"
+    ],
+
+
+    "com": {
+        "k": "v"
+
+    },
+    "wrongIndent": {
+        "a": "b",
+        "key": "value"
+    },
+    "map": {
+        "a": [
+            "b",
+            "c"
+        ],
+        "c": "d"
+    },
+    "whitelineInMap": {
+        "a": "b",
+
+        "g": "h"
+    },
+    "depth": {
+        "some": {
+            "depth2": [
+                "enumeration",
+                "value2"
+            ],
+            "key": {
+                "k": "v",
+                "seq": [
+                    1,
+
+
+                    2,
+                    3
+                ]
+            },
+            "random": {
+
+                "keys": {
+                    "seq": [
+                        "a",
+                        "b",
+                        "c",
+                        "d"
+                    ],
+                    "map": {
+                        "k": "v",
+
+                        "k1": "v",
+                        "k3": "v"
+                    }
+                }
+            }
+        }
+    }
+}

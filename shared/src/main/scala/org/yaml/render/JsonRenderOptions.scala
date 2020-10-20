@@ -28,9 +28,17 @@ class JsonRenderOptions extends RenderOptions {
   def preferSpaces: Boolean = insertSpaces;
 
   def encodesNonAscii: Boolean = encodeNonAscii
+
+  def withApplyFormatting(v: Boolean) : JsonRenderOptions = {
+    shouldApplyFormatting = v
+    this
+  }
 }
 
 object JsonRenderOptions {
 
   def apply(): JsonRenderOptions = new JsonRenderOptions()
+
+  def apply(indentationSize: Int, preferSpaces: Boolean, applyFormatting: Boolean = false): JsonRenderOptions =
+    new JsonRenderOptions().withIndentationSize(indentationSize).withPreferSpaces(preferSpaces).withApplyFormatting(applyFormatting)
 }

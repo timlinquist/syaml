@@ -1,4 +1,4 @@
-inSequence:
+inSequence: 
   - b
 
   - c
@@ -8,7 +8,7 @@ inSequence:
 
 # Comment
 
-inMap:
+inMap: 
   key1: v
 
   key2: v

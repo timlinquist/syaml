@@ -39,6 +39,7 @@ class JsonRender[W: Output] private (private val writer: W,
     yPart match {
       case node: YNode      => render(node)
       case entry: YMapEntry => renderEntry(entry)
+      case map: YMap        => renderMap(map)
       case other            => render(other.toString)
     }
   }

@@ -233,8 +233,8 @@ trait RenderingTest extends FunSuite with Matchers {
         |""".stripMargin
 
     val parts         = YamlParser(text).parse(false)
-    val output1space  = YamlRender.render(parts, expandReferences = false, new YamlRenderOptions().withIndentationSize(1))
-    val output4spaces = YamlRender.render(parts, expandReferences = false, new YamlRenderOptions().withIndentationSize(4))
+    val output1space  = YamlRender.render(parts, expandReferences = false, new YamlRenderOptions().withIndentationSize(1), 0)
+    val output4spaces = YamlRender.render(parts, expandReferences = false, new YamlRenderOptions().withIndentationSize(4), 0)
 
     output4spaces shouldBe expected4spaces
     output1space shouldBe expected1space
