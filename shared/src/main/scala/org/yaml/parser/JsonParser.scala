@@ -185,6 +185,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
   case class SequenceValueParser() extends ElementParser {
     override def parse(): Unit = {
+      current.addNonContent()
       val r = process()
       if (!r) {
         discardIf(Error)
