@@ -161,16 +161,16 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
   }
 
   private def renderComment(text: String, tks: IndexedSeq[AstToken]) = {
-    if (options.applyFormatting) printComment(text,addLineBreak = false)
+    if (options.applyFormatting) printComment(text)
     else if (!renderTokens(tks)) {
-      printComment(text, addLineBreak = true)
+      printComment(text)
+      println()
     }
   }
 
-  private def printComment(text: String, addLineBreak: Boolean) = {
+  private def printComment(text: String) = {
     if (buffer.nonEmpty && !buffer.last.isWhitespace) print(" ")
     print("#" + (if (!text.startsWith(" ") && options.applyFormatting) " " else "") + text)
-    if(addLineBreak) println()
   }
 
   private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
@@ -193,8 +193,9 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
         e match {
           case n: YNode    => println().renderIndent().print("- ").render(n)
           case c: YComment => render(c)
-          case n: YNonContent if(options.applyFormatting) =>
-            render(new YNonContent(n.location, n.tokens.filter(p => p.tokenType == YamlToken.LineBreak)))
+          case n: YNonContent if options.applyFormatting =>
+            // if we apply formatting we should still preserve the linebreaks on the sequence
+            renderTokens(n.tokens.filter(p => p.tokenType == YamlToken.LineBreak))
           case _           =>
         }
       }
