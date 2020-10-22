@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import org.mulesoft.common.ext.Diff
 import org.mulesoft.common.io.SyncFile
 import org.mulesoft.test.GoldenSuite
-import org.yaml.model.{YDocument, YPart}
+import org.yaml.model.YPart
 import org.yaml.parser.{JsonParser, YamlParser}
 import org.yaml.render.{JsonRender, JsonRenderOptions, YamlRender, YamlRenderOptions}
 

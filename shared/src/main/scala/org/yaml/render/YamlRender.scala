@@ -170,7 +170,7 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
 
   private def printComment(text: String) = {
     if (buffer.nonEmpty && !buffer.last.isWhitespace) print(" ")
-    print("#" + (if (!text.startsWith(" ") && !text.startsWith("%") && options.applyFormatting) " " else "") + text)
+    print("#" + (if (!text.startsWith(" ") && options.applyFormatting) " " else "") + text)
   }
 
   private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
