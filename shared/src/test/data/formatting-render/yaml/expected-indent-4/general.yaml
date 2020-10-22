@@ -1,4 +1,4 @@
-# %Dialect 1.0
+#%Dialect 1.0
 key: val
 multiLine:  |
   this is a multi line string

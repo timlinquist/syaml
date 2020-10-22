@@ -61,9 +61,6 @@ trait RenderFormattingTest extends GoldenSuite {
     }
   }
 
-
-
-
   private def generateYaml(yamlFile: SyncFile, output: SyncFile, indentation: Int): Unit =
     output.write(YamlRender.render(YamlParser(yamlFile.read()).parse(), YamlRenderOptions(indentation, applyFormatting = true)))
 
@@ -74,6 +71,6 @@ trait RenderFormattingTest extends GoldenSuite {
 
   override def doDeltas(yeastFile: SyncFile, goldenFile: SyncFile): Unit = {
     val deltas = Diff.caseSensitive.diff(lines(yeastFile), lines(goldenFile))
-    assert(deltas.isEmpty, s"diff -y -W 150 $yeastFile $goldenFile\n\n${deltas.mkString}")
+    assert(deltas.isEmpty, s"diff -y -W 150 $yeastFile $goldenFile")
   }
 }
