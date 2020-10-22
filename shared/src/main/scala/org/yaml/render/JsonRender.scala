@@ -2,6 +2,7 @@ package org.yaml.render
 
 import java.io.StringWriter
 
+import org.mulesoft.common.core
 import org.mulesoft.common.core._
 import org.mulesoft.common.io.Output
 import org.mulesoft.common.io.Output._
@@ -23,7 +24,7 @@ class JsonRender[W: Output] private (private val writer: W,
   private def dedent(): Unit = indentation -= options.indentationSize
   private def renderIndent(): this.type = {
     if (indentation > 0) {
-      if(options.preferSpaces) writer.append(" " * indentation)
+      if (options.preferSpaces) writer.append(" " * indentation)
       else writer.append("\t" * (indentation / options.indentationSize))
     }
     this
@@ -38,7 +39,7 @@ class JsonRender[W: Output] private (private val writer: W,
   }
 
   def renderDocument(document: YDocument): JsonRender[W] = {
-    if(document.node == YNode.Null) render("{}")
+    if (document.node == YNode.Null) render("{}")
     else {
       document.children.foreach(renderIndent().render(_).render("\n"))
     }
@@ -46,7 +47,7 @@ class JsonRender[W: Output] private (private val writer: W,
   }
 
   def renderLinebreaks(nc: YNonContent, skips: Int = 0): Int = {
-    val linebreaks = nc.tokens.filter(_.tokenType == YamlToken.LineBreak)
+    val linebreaks   = nc.tokens.filter(_.tokenType == YamlToken.LineBreak)
     val shouldRender = linebreaks.drop(skips)
     renderTokens(shouldRender)
     linebreaks.length - shouldRender.length // Returns the amount of linebreaks skipped
@@ -62,12 +63,12 @@ class JsonRender[W: Output] private (private val writer: W,
 
   private def render(yPart: YPart): JsonRender[W] = {
     yPart match {
-      case node: YNode          => render(node)
-      case entry: YMapEntry     => renderEntry(entry)
-      case map: YMap            => renderMap(map)
-      case document: YDocument  => renderDocument(document)
-      case _ : YNonContent      => this // Consume non-content
-      case other                => render(other.toString)
+      case node: YNode         => render(node)
+      case entry: YMapEntry    => renderEntry(entry)
+      case map: YMap           => renderMap(map)
+      case document: YDocument => renderDocument(document)
+      case _: YNonContent      => this // Consume non-content
+      case other               => render(other.toString)
     }
   }
 
@@ -76,17 +77,22 @@ class JsonRender[W: Output] private (private val writer: W,
     else {
       render("[\n")
       indent()
-      val total = seq.nodes.size
-      var c     = 0
+      val total          = seq.nodes.size
+      val count          = seq.children.size
+      var c              = 0
+      var i              = 0
       var linebreakSkips = 1
 
-      seq.children.foreach {
-        case node: YNode =>
-          renderIndent().render(node).render(if (c < total - 1) ",\n" else "\n")
-          c += 1
-          linebreakSkips += 1
-        case nc: YNonContent if options.applyFormatting => linebreakSkips -= renderLinebreaks(nc, linebreakSkips)
-        case _ =>
+      while (i < count) {
+        seq.children(i) match {
+          case node: YNode =>
+            renderIndent().render(node).render(if (c < total - 1) ",\n" else "\n")
+            c += 1
+            linebreakSkips += 1
+          case nc: YNonContent if options.applyFormatting => linebreakSkips -= renderLinebreaks(nc, linebreakSkips)
+          case _                                          =>
+        }
+        i += 1
       }
       dedent()
       renderIndent().render("]")
@@ -97,16 +103,21 @@ class JsonRender[W: Output] private (private val writer: W,
     else {
       render("{\n")
       indent()
-      val total = map.entries.size
-      var c     = 0
+      val total          = map.entries.size
+      val count          = map.children.size
+      var c              = 0
+      var i              = 0
       var linebreakSkips = 1
 
-      map.children.foreach {
-        case entry: YMapEntry =>
-          renderIndent().renderEntry(entry).render(if (c < total - 1) ",\n" else "\n")
-          c += 1
-          linebreakSkips += 1
-        case nc: YNonContent if options.applyFormatting => linebreakSkips -= renderLinebreaks(nc, linebreakSkips)
+      while (i < count) {
+        map.children(i) match {
+          case entry: YMapEntry =>
+            renderIndent().renderEntry(entry).render(if (c < total - 1) ",\n" else "\n")
+            c += 1
+            linebreakSkips += 1
+          case nc: YNonContent if options.applyFormatting => linebreakSkips -= renderLinebreaks(nc, linebreakSkips)
+        }
+        i += 1
       }
       dedent()
       renderIndent().render("}")
