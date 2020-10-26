@@ -1,0 +1,10 @@
+a: 
+  - b
+# Comment1
+  - a # Comment2
+  - c
+# Comment3
+seq:
+  - a
+  - b
+  - c   # Comment4  

@@ -160,9 +160,17 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
     }
   }
 
-  private def renderComment(text: String, tks: IndexedSeq[AstToken]) = if (!renderTokens(tks)) {
+  private def renderComment(text: String, tks: IndexedSeq[AstToken]) = {
+    if (options.applyFormatting) printComment(text)
+    else if (!renderTokens(tks)) {
+      printComment(text)
+      println()
+    }
+  }
+
+  private def printComment(text: String) = {
     if (buffer.nonEmpty && !buffer.last.isWhitespace) print(" ")
-    print("#" + text).println()
+    print("#" + (if (!text.startsWith(" ") && options.applyFormatting) " " else "") + text)
   }
 
   private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
@@ -185,6 +193,9 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
         e match {
           case n: YNode    => println().renderIndent().print("- ").render(n)
           case c: YComment => render(c)
+          case n: YNonContent if options.applyFormatting =>
+            // if we apply formatting we should still preserve the linebreaks on the sequence
+            renderTokens(n.tokens.filter(p => p.tokenType == YamlToken.LineBreak))
           case _           =>
         }
       }
@@ -201,15 +212,13 @@ class YamlRender[W: Output](val writer: W, val expandReferences: Boolean, initia
 
   private def renderParts(parts: YPart): Boolean = {
     val nodes     = parts.children
-    val hasTokens = nodes.nonEmpty && nodes.head.isInstanceOf[YNonContent]
+    val hasTokens = nodes.nonEmpty && nodes.head.isInstanceOf[YNonContent] && !options.applyFormatting
     if (hasTokens) doRenderParts(nodes)
     hasTokens
   }
-
   private def doRenderParts(children: IndexedSeq[YPart], yType: Option[YType] = None): Unit = children foreach {
     render(_, yType)
   }
-
 }
 
 object YamlRender {
@@ -236,18 +245,18 @@ object YamlRender {
   def render(parts: Seq[YPart]): String = render(parts, expandReferences = false)
 
   /** Render a Seq of Parts as an String */
-  def render(parts: Seq[YPart], options: YamlRenderOptions): String = render(parts, expandReferences = false)
+  def render(parts: Seq[YPart], options: YamlRenderOptions): String = render(parts,expandReferences = false, options, 0)
 
   /** Render a Seq of Parts as an String */
-  def render(parts: Seq[YPart], expandReferences: Boolean, options: YamlRenderOptions): String = {
+  def render(parts: Seq[YPart], expandReferences: Boolean, options: YamlRenderOptions, initialIndentation: Int): String = {
     val s = new StringWriter
-    render(s, parts, expandReferences, 0, options)
+    render(s, parts, expandReferences, initialIndentation, options)
     s.toString
   }
 
   /** Render a Seq of Parts as an String */
   def render(parts: Seq[YPart], expandReferences: Boolean): String = {
-    render(parts, expandReferences, YamlRenderOptions())
+    render(parts, expandReferences, YamlRenderOptions(), 0)
   }
 
   /** Render a YamlPart as an String */

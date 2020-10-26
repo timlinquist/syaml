@@ -1,0 +1,14 @@
+inSequence: 
+    - b
+
+    - c
+
+
+# Between comments
+
+# Comment
+
+inMap: 
+    key1: v
+
+    key2: v
