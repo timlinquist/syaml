@@ -180,16 +180,16 @@ trait JsonParserTest extends FunSuite with Matchers {
     val jsonFile = jsonDir / "incomplete-entry-3.json"
     val eh = TestErrorHandler()
     val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
-    assert(eh.errors.size == 4)
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
+    assert(eh.errors.size == 3)
   }
 
   test("test recovery bad entry 4"){
     val jsonFile = jsonDir / "incomplete-entry-4.json"
     val eh = TestErrorHandler()
     val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
-    assert(eh.errors.size == 2)
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    assert(eh.errors.size == 5)
   }
 
   test("test recovery bad map 1"){

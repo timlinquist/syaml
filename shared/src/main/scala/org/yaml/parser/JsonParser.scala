@@ -141,7 +141,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       current.addNonContent()
       val textBuilder = new StringBuilder
       var markChar    = ""
-      while (notCurrent(EndScalar)) {
+      while (notCurrent(EndScalar) && !currentByText(Indicator, "\n")) {
         currentToken() match {
           case BeginEscape => textBuilder.append(parseEscaped())
           case Indicator   => markChar = currentText()
@@ -219,8 +219,14 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
     private def parseEntry(): Boolean = {
       val k = parseKey()
+      val wellEnded = !currentByText(Indicator, "\n")
       val indicator = currentByText(Indicator, ":")
-      if (k || indicator) {
+      if (!wellEnded) {
+        advanceTo(EndScalar)
+        consume()
+        skipWhiteSpace()
+        false
+      } else if (k || indicator) {
         if (currentByTextOrError(Indicator, ":")) {
           consume()
           skipWhiteSpace()
@@ -251,11 +257,6 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
   private def currentToken(): YamlToken = {
     skipWhiteSpace()
     val t = lexer.token
-//    if (t == Error)
-//      eh.handle(
-//          new YNonContent(lexer.tokenData.range, IndexedSeq.empty),
-//          LexerException(lexer.tokenText.toString)
-//      )
     t
   }
 
