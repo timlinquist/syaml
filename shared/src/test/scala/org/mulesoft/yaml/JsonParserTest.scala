@@ -192,6 +192,14 @@ trait JsonParserTest extends FunSuite with Matchers {
     assert(eh.errors.size == 5)
   }
 
+  test("test recovery bad value in seq 1"){
+    val jsonFile = jsonDir / "incomplete-value-seq-1.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YSequence].nodes.length == 3)
+    assert(eh.errors.size == 3)
+  }
+
   test("test recovery bad map 1"){
     val jsonFile = jsonDir / "incomplete-map-1.json"
     val eh = TestErrorHandler()
