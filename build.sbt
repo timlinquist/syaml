@@ -4,7 +4,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 name := "syaml"
 
-version in ThisBuild := getVersion(1, 0)
+version in ThisBuild := getVersion(1, 1)
 
 val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
