@@ -91,13 +91,13 @@ final class JsonLexer private (input: LexerInput, positionOffset: Position = Pos
     emit(EndScalar)
   }
 
-  private def string(): Unit = { // todo: handle breaking lines (invalid in jsons)
+  private def string(): Unit = {
     var hasText          = false
     def emitText(): Unit = if (hasText) { emit(Text); hasText = false }
 
     emit(BeginScalar)
     consumeAndEmit(Indicator)
-    while (currentChar != '"' && currentChar != EofChar) {
+    while (currentChar != '"' && currentChar != '\n' && currentChar != EofChar) {
       if (currentChar == '\\') {
         emitText()
         emit(BeginEscape)
@@ -111,7 +111,8 @@ final class JsonLexer private (input: LexerInput, positionOffset: Position = Pos
         consume()
       }
     }
-    emitText()
+    if (currentChar == '\n') emit(Error)
+    else emitText()
     consumeAndEmit(Indicator)
     emit(EndScalar)
   }

@@ -11,12 +11,12 @@ import org.yaml.parser.ScalarParser
 /**
   * A Yaml Scalar
   */
-class YScalar private[yaml] (val value: Any,
-                             val text: String,
-                             val mark: ScalarMark = NoMark,
-                             location: SourceLocation,
-                             parts: IndexedSeq[YPart] = IndexedSeq.empty)
-    extends YValue(location, parts) {
+class YScalar private[yaml](val value: Any,
+                            val text: String,
+                            val mark: ScalarMark = NoMark,
+                            location: SourceLocation,
+                            parts: IndexedSeq[YPart] = IndexedSeq.empty)
+  extends YValue(location, parts) {
 
   override def equals(obj: Any): Boolean = obj match {
     case s: YScalar => s.value == this.value
@@ -29,7 +29,8 @@ class YScalar private[yaml] (val value: Any,
   }
 
   override def hashCode(): Int = hash(value)
-  def plain: Boolean           = mark.plain
+
+  def plain: Boolean = mark.plain
 
   override def toString: String = mark.markText(text)
 }
@@ -37,6 +38,8 @@ class YScalar private[yaml] (val value: Any,
 object YScalar {
 
   val Null: YScalar = new YScalar(null, "null", location = Unknown)
+
+  def nullYScalar(location: SourceLocation):YScalar = new YScalar(null, "null", location = location)
 
   def apply(value: Int): YScalar =
     new YScalar(value.asInstanceOf[Long], String.valueOf(value), location = Unknown)
@@ -55,10 +58,10 @@ object YScalar {
 
   def fromToken(astToken: AstToken, range: InputRange, sourceName: String = "") =
     new YScalar(astToken.text,
-                astToken.text,
-                NoMark,
-                SourceLocation(sourceName),
-                Array(YNonContent(range, Array(astToken), sourceName)))
+      astToken.text,
+      NoMark,
+      SourceLocation(sourceName),
+      Array(YNonContent(range, Array(astToken), sourceName)))
 
   /** Used in amf-core. Deprecate? */
   def withLocation(text: String, tag: YType, loc: SourceLocation): YScalar = {
@@ -69,18 +72,22 @@ object YScalar {
 
 trait ScalarMark {
   def plain: Boolean
+
   def markText(text: String): String = text
 }
 
 trait QuotedMark extends ScalarMark {
   val encodeChar: Char
-  override def plain: Boolean                 = false
+
+  override def plain: Boolean = false
+
   override def markText(text: String): String = encodeChar + text.encode + encodeChar
 }
 
 object DoubleQuoteMark extends QuotedMark {
   override val encodeChar: Char = '"'
 }
+
 object SingleQuoteMark extends QuotedMark {
   override val encodeChar: Char = '\''
 }
@@ -88,12 +95,15 @@ object SingleQuoteMark extends QuotedMark {
 object MultilineMark extends ScalarMark {
   override def plain: Boolean = false
 }
+
 object FoldedMark extends ScalarMark {
   override def plain: Boolean = false
 }
+
 object UnknownMark extends ScalarMark {
   override def plain: Boolean = false
 }
+
 object NoMark extends ScalarMark {
   override def plain: Boolean = true
 }
@@ -101,10 +111,10 @@ object NoMark extends ScalarMark {
 object ScalarMark {
   def apply(mark: String): ScalarMark = mark match {
     case "\"" => DoubleQuoteMark
-    case "'"  => SingleQuoteMark
-    case "|"  => MultilineMark
-    case ">"  => FoldedMark
-    case ""   => NoMark
-    case _    => UnknownMark
+    case "'" => SingleQuoteMark
+    case "|" => MultilineMark
+    case ">" => FoldedMark
+    case "" => NoMark
+    case _ => UnknownMark
   }
 }

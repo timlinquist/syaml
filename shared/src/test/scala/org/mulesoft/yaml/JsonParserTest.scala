@@ -160,6 +160,86 @@ trait JsonParserTest extends FunSuite with Matchers {
     testErrorHandler.errors.head.error.getMessage shouldBe "Duplicate key : 'a'"
   }
 
+  test("test recovery bad entry 1"){
+    val jsonFile = jsonDir / "incomplete-entry-1.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    assert(eh.errors.size == 1)
+  }
+
+  test("test recovery bad entry 2"){
+    val jsonFile = jsonDir / "incomplete-entry-2.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 3)
+    assert(eh.errors.size == 1)
+  }
+
+  test("test recovery bad entry 3"){
+    val jsonFile = jsonDir / "incomplete-entry-3.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
+    assert(eh.errors.size == 3)
+  }
+
+  test("test recovery bad entry 4"){
+    val jsonFile = jsonDir / "incomplete-entry-4.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    assert(eh.errors.size == 5)
+  }
+
+  test("test recovery bad value in seq 1"){
+    val jsonFile = jsonDir / "incomplete-value-seq-1.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YSequence].nodes.length == 3)
+    assert(eh.errors.size == 3)
+  }
+
+  test("test recovery bad map 1"){
+    val jsonFile = jsonDir / "incomplete-map-1.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    assert(eh.errors.size == 1)
+  }
+
+  test("test recovery bad map 2"){
+    val jsonFile = jsonDir / "incomplete-map-2.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    assert(eh.errors.size == 1)
+  }
+
+  test("test recovery bad seq 1"){
+    val jsonFile = jsonDir / "incomplete-seq-1.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    assert(eh.errors.size == 5)
+  }
+
+  test("test recovery bad seq 2"){
+    val jsonFile = jsonDir / "incomplete-seq-2.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    assert(eh.errors.size == 11)
+  }
+
+  test("test recovery bad seq 3"){
+    val jsonFile = jsonDir / "incomplete-seq-3.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    assert(eh.errors.size == 1)
+  }
+
   private def doTest(source: String, msg: String, n: Int): Any = {
     val errors = getErrorsFor(source)
     assert(errors.lengthCompare(n) == 0)

@@ -141,7 +141,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       current.addNonContent()
       val textBuilder = new StringBuilder
       var markChar    = ""
-      while (notCurrent(EndScalar)) {
+      while (notCurrent(EndScalar) && !isLineBreakScalarSituation) {
         currentToken() match {
           case BeginEscape => textBuilder.append(parseEscaped())
           case Indicator   => markChar = currentText()
@@ -191,6 +191,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
         discardIf(Error)
         advanceToByText((Indicator, Some(",")), (EndSequence, None))
       }
+      if (isLineBreakScalarSituation) saveLineBreakScalarSituation()
     }
   }
 
@@ -219,13 +220,17 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
     private def parseEntry(): Boolean = {
       val k = parseKey()
-      if (k || currentByText(Indicator, ":")) {
+      val indicator = currentByText(Indicator, ":")
+      if (isLineBreakScalarSituation) {
+        saveLineBreakScalarSituation()
+        false
+      } else if (k || indicator) {
         if (currentByTextOrError(Indicator, ":")) {
           consume()
           skipWhiteSpace()
           current.addNonContent()
         }
-        k & parseValue()
+        k & (parseValue() || indicator)
       } else {
         advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
@@ -236,22 +241,20 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       val r = process()
       if (r) {
         current.addNonContent()
+        true
       } else {
         discardIf(Error)
+        push()
+        current.addNullNode()
         advanceTo(Indicator, EndMapping)
+        false
       }
-      r
     }
   }
 
   private def currentToken(): YamlToken = {
     skipWhiteSpace()
     val t = lexer.token
-//    if (t == Error)
-//      eh.handle(
-//          new YNonContent(lexer.tokenData.range, IndexedSeq.empty),
-//          LexerException(lexer.tokenText.toString)
-//      )
     t
   }
 
@@ -317,9 +320,25 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
   private def consumeOrError(token: YamlToken): Boolean = if (currentOrError(token)) consume() else false
 
+  // When a non closed scalar has a non escaped linebreak this is an error.
+  // This method is to check if we are in that situation
+  private def isLineBreakScalarSituation: Boolean = currentByText(Indicator, "\n")
+
+  private def saveLineBreakScalarSituation(): Unit = {
+    advanceTo(EndScalar)
+    consume()
+    skipWhiteSpace()
+  }
+
   private def buildNode(value: YValue, tag: YTag) = YNode(value, tag, sourceName = lexer.sourceName)
 
   class JsonBuilder {
+
+    def addNullNode(): Unit = {
+      addNonContent()
+      stackParts(YNode.nullNode(current.location()))
+    }
+
     var first: SourceLocation = lexer.tokenData.range
     val tokens                = new ArrayBuffer[AstToken]
     val parts                 = new ArrayBuffer[YPart]
