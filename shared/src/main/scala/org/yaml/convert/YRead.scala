@@ -40,7 +40,7 @@ abstract class ScalarYRead[T](expectedType: YType, dv: T) extends YRead[T] {
     */
   override def read(node: YNode): Either[YError, T] = {
     val tagType = node.tagType
-    if (tagType != expectedType) return error(node, s"Expecting $expectedType and $tagType provided")
+    if (tagType != expectedType) return error(node, s"Expecting $expectedType, $tagType provided")
     node.asScalar match {
       case Some(v) =>
         try {
