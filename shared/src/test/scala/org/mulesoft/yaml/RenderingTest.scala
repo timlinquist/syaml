@@ -1,19 +1,16 @@
 package org.mulesoft.yaml
 
 import org.scalatest.{FunSuite, Matchers}
-import org.yaml.builder.JsonOutputBuilder
 import org.yaml.model._
 import org.yaml.parser.{JsonParser, YamlParser}
-import org.yaml.render.{JsonRender, JsonRenderOptions, YamlRender, YamlRenderOptions}
+import org.yaml.render._
 
 /**
   * Test Extractors and exception Handling
   */
 trait RenderingTest extends FunSuite with Matchers {
-
   test("Simple Document") {
-    testDoc(
-        """# Simple list
+    testDoc("""# Simple list
               |# Very simple
               |- 100 # A Number
               |- 123456789
@@ -238,6 +235,210 @@ trait RenderingTest extends FunSuite with Matchers {
 
     output4spaces shouldBe expected4spaces
     output1space shouldBe expected1space
+
+  }
+
+  test("Yaml flow render - mixed flow and block map") {
+    val text =
+      """p1: {
+        |  key: value,
+        |  map: {
+        |    k1: v,
+        |    k2: v
+        |  },
+        |  brother: value
+        |}
+        |p2:
+        |   k:
+        |     k1: v1
+        |     k2: {
+        |       in: flow
+        |     }""".stripMargin
+
+    val expected =
+      """{
+        |  p1: {
+        |    key: value,
+        |    map: {
+        |      k1: v,
+        |      k2: v
+        |    },
+        |    brother: value
+        |  },
+        |  p2: {
+        |    k: {
+        |      k1: v1,
+        |      k2: {
+        |        in: flow
+        |      }
+        |    }
+        |  }
+        |}
+        |""".stripMargin
+
+    val parts   = YamlParser(text).parse(false)
+    val output  = FlowYamlRender.render(parts, expandReferences = false)
+
+    output shouldBe expected
+  }
+
+  test("Yaml flow render - map test") {
+    val text =
+      """p1:
+        |  anotherKey: scalar
+        |  key:
+        |    k1: v1
+        |    k2: v2
+        |  new: val
+        |p2:
+        |   k:
+        |     k1: v1
+        |     k2: v2""".stripMargin
+
+    val expected =
+      """{
+        |  p1: {
+        |    anotherKey: scalar,
+        |    key: {
+        |      k1: v1,
+        |      k2: v2
+        |    },
+        |    new: val
+        |  },
+        |  p2: {
+        |    k: {
+        |      k1: v1,
+        |      k2: v2
+        |    }
+        |  }
+        |}
+        |""".stripMargin
+
+    val parts         = YamlParser(text).parse(false)
+    val output = FlowYamlRender.render(parts, expandReferences = false)
+
+    output shouldBe expected
+
+  }
+
+  test("Yaml flow render - sequence test") {
+    val text =
+      """- a
+        |- b
+        |- - c1
+        |  - c2
+        |  - c3
+        |- d""".stripMargin
+
+    val expected =
+      """[
+        |  a,
+        |  b,
+        |  [
+        |    c1,
+        |    c2,
+        |    c3
+        |  ],
+        |  d
+        |]
+        |""".stripMargin
+
+    val parts         = YamlParser(text).parse(false)
+    val output = FlowYamlRender.render(parts, expandReferences = false, new YamlRenderOptions(), 0)
+
+    output shouldBe expected
+
+  }
+
+  test("Yaml flow render - full test") {
+    val text =
+      """key:
+        |  subkey1:
+        |   - enum
+        |   - with
+        |   - scalars
+        |  subkey2:
+        |   - enum:
+        |       with: map
+        |   - another:
+        |       enum:
+        |         with: map
+        |       brother: val
+        |  subkey3:
+        |    map:
+        |      key: [enum, enum2]
+        |      key2: val
+        |      key3: val""".stripMargin
+
+    val expected =
+      """{
+        |  key: {
+        |    subkey1: [
+        |      enum,
+        |      with,
+        |      scalars
+        |    ],
+        |    subkey2: [
+        |      {
+        |        enum: {
+        |          with: map
+        |        }
+        |      },
+        |      {
+        |        another: {
+        |          enum: {
+        |            with: map
+        |          },
+        |          brother: val
+        |        }
+        |      }
+        |    ],
+        |    subkey3: {
+        |      map: {
+        |        key: [
+        |          enum,
+        |          enum2
+        |        ],
+        |        key2: val,
+        |        key3: val
+        |      }
+        |    }
+        |  }
+        |}
+        |""".stripMargin
+
+    val parts         = YamlParser(text).parse(false)
+    val output = FlowYamlRender.render(parts, expandReferences = false)
+
+    output shouldBe expected
+
+  }
+
+  test("Yaml flow render - YMapEntry"){
+    val k = YMapEntry(YNode("k"), YNode("v"))
+    val k2 = YMapEntry(YNode("k2"), YNode(YSequence(IndexedSeq(YNode("a"), YNode("b")))))
+    val middleMap = YMapEntry(YNode("map"),YMap(IndexedSeq(k, k2), ""))
+    val ymapentry = YMapEntry(YNode("key"), YNode(YMap(IndexedSeq(k, middleMap, k2), "")))
+    val expected =
+      """key: {
+        |  k: v,
+        |  map: {
+        |    k: v,
+        |    k2: [
+        |      a,
+        |      b
+        |    ]
+        |  },
+        |  k2: [
+        |    a,
+        |    b
+        |  ]
+        |}
+        |""".stripMargin
+
+    val output = FlowYamlRender.render(ymapentry, expandReferences = false)
+
+    output shouldBe expected
 
   }
 
