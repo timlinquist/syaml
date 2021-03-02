@@ -129,9 +129,7 @@ abstract class BaseYamlRender[W: Output] {
       var c = 0
       while (c < map.entries.size) {
         val entry = map.entries(c)
-        println().renderIndent().buildAndRenderMapEntry(entry)
-        // tood: heeereee
-        collectionSeparator(map.entries.size - c)
+        println().renderIndent().buildAndRenderMapEntry(entry, map.entries.size - c)
         c += 1
       }
       dedent()
@@ -174,7 +172,7 @@ abstract class BaseYamlRender[W: Output] {
     if (!renderParts(e)) buildAndRenderMapEntry(e) else this
 
 
-  protected def buildAndRenderMapEntry(e: YMapEntry): this.type = {
+  protected def buildAndRenderMapEntry(e: YMapEntry, diff: Int = 0): this.type = {
     // The key
     val key = e.key
     key.value match {
@@ -198,7 +196,7 @@ abstract class BaseYamlRender[W: Output] {
       .dropWhile(!_.eq(key))
       .tail
       .dropWhile(c =>
-        c.isInstanceOf[YNonContent] && c.asInstanceOf[YNonContent].tokens.headOption.exists(t => t.text == ":"))
+        c.isInstanceOf[YNonContent])
       .span(!_.eq(value))
     val after = tail.tail
 
@@ -209,6 +207,7 @@ abstract class BaseYamlRender[W: Output] {
 
     // Render the value (special case Null as Empty)
     if (value.tagType != YType.Null || value.toString.nonEmpty) render(value)
+    collectionSeparator(diff)
 
     // Render after comments
     if (after.nonEmpty) {

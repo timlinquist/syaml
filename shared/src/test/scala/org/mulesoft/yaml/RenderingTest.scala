@@ -433,7 +433,8 @@ trait RenderingTest extends FunSuite with Matchers {
         |    a,
         |    b
         |  ]
-        |}""".stripMargin
+        |}
+        |""".stripMargin
 
     val output = FlowYamlRender.render(ymapentry, expandReferences = false)
 

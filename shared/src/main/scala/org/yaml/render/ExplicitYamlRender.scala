@@ -10,6 +10,7 @@ class ExplicitYamlRender[W: Output](override val writer: W,
                                     override val expandReferences: Boolean,
                                     override val initialIndentation:Int = 0,
                                     override val options: YamlRenderOptions = YamlRenderOptions()) extends BaseYamlRender[W]{
+
   override protected def renderParts(parts: YPart): Boolean = false
 }
 
