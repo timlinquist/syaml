@@ -32,7 +32,7 @@ class FlowYamlRender[W : Output](override val writer: W,
   }
 }
 
-object FlowYamlRender extends YamlRenderBuilder {
+object FlowYamlRender extends YamlPartRender {
 
   /** Render a Seq of Parts to a Writer */
   def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean, indentation:Int, options: YamlRenderOptions): Unit =

@@ -5,7 +5,7 @@ import org.yaml.model.YPart
 
 import java.io.StringWriter
 
-trait YamlRenderBuilder {
+trait YamlPartRender {
   def render[W: Output](writer: W, parts: Seq[YPart], expandReferences: Boolean, indentation:Int, options: YamlRenderOptions): Unit
 
   /** Render a Seq of Parts to a Writer */
