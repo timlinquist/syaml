@@ -10,7 +10,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
   libraryDependencies ++= Seq(
-    "org.scalatest" %%% "scalatest" % "3.0.0" % Test,
+    "org.scalatest"   %%% "scalatest"         % "3.0.0" % Test,
     "org.mule.common" %%% "scala-common-test" % "0.0.6" % Test
   ),
   resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
@@ -23,7 +23,7 @@ lazy val workspaceDirectory: File =
     case _       => Path.userHome / "mulesoft"
   }
 
-val scalaCommonVersion = "1.0.82"
+val scalaCommonVersion = "1.0.83"
 
 lazy val scalaCommonJVMRef = ProjectRef(workspaceDirectory / "scala-common", "commonJVM")
 lazy val scalaCommonJSRef  = ProjectRef(workspaceDirectory / "scala-common", "commonJS")
