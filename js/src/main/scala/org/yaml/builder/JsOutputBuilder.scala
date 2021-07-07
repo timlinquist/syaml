@@ -11,7 +11,7 @@ import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 class JsOutputBuilder extends DocBuilder[js.Any] {
 
   private var obj: js.Any         = _
-  override def isDefined: Boolean = obj eq null
+  override def isDefined: Boolean = !(obj eq null)
 
   override def result: js.Any = obj
 

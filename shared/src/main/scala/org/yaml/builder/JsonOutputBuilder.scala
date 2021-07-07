@@ -1,6 +1,5 @@
 package org.yaml.builder
-import java.io.StringWriter
-
+import java.io.{StringWriter, Writer}
 import org.mulesoft.common.core._
 import org.mulesoft.common.io.Output
 import org.mulesoft.common.io.Output.{OutputWriter, _}
@@ -92,6 +91,10 @@ object JsonOutputBuilder {
 
   def apply(prettyPrint: Boolean): JsonOutputBuilder[StringWriter] =
     new JsonOutputBuilder(new StringWriter, prettyPrint)(OutputWriter.asInstanceOf[Output[StringWriter]])
+
+  // So it can be called from Java
+  def apply(writer: Writer, prettyPrint: Boolean): JsonOutputBuilder[Writer] =
+    new JsonOutputBuilder(writer, prettyPrint)
 
   def apply(): JsonOutputBuilder[StringWriter] = apply(false)
 }

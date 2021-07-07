@@ -9,6 +9,13 @@ import scala.scalajs.js.JSON
   */
 class JsYamlDocBuilderTest extends YamlDocBuilderTest {
 
+  test("Result should be defined if not null") {
+    val builder = JsOutputBuilder()
+    builder.isDefined shouldBe false
+    builder.doc(_ += "A Document")
+    builder.isDefined shouldBe true
+  }
+
   test("Scalar to js.Any") {
     val obj = JsOutputBuilder().doc(_ += "A Document")
     obj shouldBe "A Document"
