@@ -1,6 +1,6 @@
 # %Dialect 1.0
 key: val
-multiLine:  |
+multiLine: |
   this is a multi line string
   testing
 inlineSequence:
@@ -15,9 +15,9 @@ sequence:
 # Comment after seq
 
 com:  # Comment on same level as key
-  k: v     # Comment on same level as value    
-    # Badly formatted comment (should insert space)    
-    # Below we have a map with wrong indent    
+  k: v # Comment on same level as value
+# Badly formatted comment (should insert space)
+# Below we have a map with wrong indent
 wrongIndent: 
   a: b
   key: value
@@ -28,7 +28,7 @@ map:
   a:
     - b
     - c
-      # Comment    
+  # Comment
   c: d
 
 
@@ -60,6 +60,6 @@ depth:
           - d
         map: 
           k: v
-          k1: v             # Comment            
+          k1: v # Comment
 
           k3: v

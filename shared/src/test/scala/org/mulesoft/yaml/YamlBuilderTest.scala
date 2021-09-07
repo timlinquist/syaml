@@ -158,7 +158,7 @@ trait YamlBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTest {
       })
       b.name2 = 10
     }
-    YamlRender.render(doc1) shouldBe "name: #A Comment\n  #Line 2\nname2: 10\n"
+    YamlRender.render(doc1) shouldBe "name: #A Comment\n#Line 2\nname2: 10\n"
 
   }
   test("Build Map mix styles") {
