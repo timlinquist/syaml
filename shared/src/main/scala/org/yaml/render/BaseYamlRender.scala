@@ -206,14 +206,19 @@ abstract class BaseYamlRender[W: Output] {
     dedent()
 
     // Render the value (special case Null as Empty)
-    if (value.tagType != YType.Null || value.toString.nonEmpty) render(value)
+    if (value.tagType != YType.Null || value.toString.nonEmpty) {
+      value.value match {
+        case scalar: YScalar if options.applyFormatting && scalar.mark == MultilineMark => render(scalar)
+        case _ => render(value)
+      }
+    }
     collectionSeparator(diff)
 
     // Render after comments
     if (after.nonEmpty) {
       render(after.head)
       indent()
-      for (c <- after.tail) renderIndent().render(c)
+      for (c <- after.tail) render(c)
       dedent()
     }
     this
