@@ -13,3 +13,5 @@ classes
 .gradle
 build/
 .sonar/
+.metals
+.vscode
