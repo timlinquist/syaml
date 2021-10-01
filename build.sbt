@@ -42,7 +42,8 @@ lazy val syaml = crossProject(JSPlatform, JVMPlatform)
     // JS-specific settings here
     scalaJSModuleKind := ModuleKind.CommonJSModule,
     scalacOptions += "-P:scalajs:suppressExportDeprecations"
-  )
+  )  .disablePlugins(SonarPlugin)
+
 
 lazy val syamlJVM = syaml.jvm.in(file("./jvm")).sourceDependency(scalaCommonJVMRef, scalaCommonLibJVM)
 lazy val syamlJS  = syaml.js.in(file("./js")).sourceDependency(scalaCommonJSRef, scalaCommonLibJS)
@@ -53,3 +54,20 @@ def getVersion(major: Int, minor: Int) = {
 
   if (branch.contains("master")) s"$major.$minor.$build" else s"$major.${minor + 1}.0-SNAPSHOT"
 }
+
+lazy val sonarUrl   = sys.env.getOrElse("SONAR_SERVER_URL", "Not found url.")
+lazy val sonarToken = sys.env.getOrElse("SONAR_SERVER_TOKEN", "Not found token.")
+lazy val branch     = sys.env.getOrElse("BRANCH_NAME", "develop")
+
+sonarProperties := Map(
+  "sonar.login"                      -> sonarToken,
+  "sonar.projectKey"                 -> "mulesoft.syaml",
+  "sonar.projectName"                -> "syaml",
+  "sonar.projectVersion"             -> version.value,
+  "sonar.sourceEncoding"             -> "UTF-8",
+  "sonar.github.repository"          -> "aml-org/syaml",
+  "sonar.branch.name"                -> branch,
+  "sonar.scala.coverage.reportPaths" -> "jvm/target/scala-2.12/scoverage-report/scoverage.xml",
+  "sonar.sources"                    -> "shared/src/main/scala",
+  "sonar.tests"                      -> "shared/src/test/scala"
+)
