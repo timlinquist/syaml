@@ -1,7 +1,7 @@
 package org.mulesoft.lexer
 
 import org.mulesoft.lexer.LexerInput.EofChar
-
+import org.mulesoft.common.core.Chars
 import scala.collection.mutable.ArrayBuffer
 
 abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: Position) extends Lexer[T] {
@@ -76,6 +76,8 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
   }
 
   protected final def currentChar: Int = input.current
+
+  def currentIsBOM: Boolean = currentChar.toChar.isBom
 
   final def lookAhead(n: Int): Int = input.lookAhead(n)
 

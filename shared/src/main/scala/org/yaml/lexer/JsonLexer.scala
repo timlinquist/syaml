@@ -13,6 +13,7 @@ final class JsonLexer private (input: LexerInput, positionOffset: Position = Pos
 
   /** Init must initialize the stack and the current _tokenData (may be invoking advance) */
   override def initialize(): JsonLexer = {
+    if(currentIsBOM) consume() // For compatibility with YAML
     emit(BeginDocument)
     advance()
     this
