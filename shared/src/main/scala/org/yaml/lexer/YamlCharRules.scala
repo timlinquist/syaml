@@ -23,11 +23,6 @@ object YamlCharRules {
     */
   def isNbJson(c: Int): Boolean = c == '\t' || c >= ' ' && c <= 0x10FFFF
 
-  /**
-    * [3]	c-byte-order-mark	::=	#xFEFF
-    */
-  final val BomMark = 0xFEFF
-
   /*
    * Is an Indicator ?
    * [22]	c-indicator	::=	“-” | “?” | “:” | “,” | “[” | “]” | “{” | “}”

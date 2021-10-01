@@ -1,0 +1,11 @@
+%YAML 1.2
+---
+!!map {
+  ? !!str "openapi"
+  : !!str "3.0.1",
+  ? !!str "info"
+  : !!map {
+    ? !!str "title"
+    : !!str "The Jira Cloud platform REST API"
+  }
+}

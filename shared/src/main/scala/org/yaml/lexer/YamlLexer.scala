@@ -1588,7 +1588,7 @@ final class YamlLexer private (input: LexerInput, positionOffset: Position = Pos
     */
   private def documentPrefix() =
     nonEof &&
-      (currentChar == BomMark && consumeAndEmit(Bom) &&
+      ( currentIsBOM && consumeAndEmit(Bom) &&
         optional(breakComment() || commentText()) && zeroOrMore(lineComment()) ||
         oneOrMore(lineComment()))
 

@@ -1,8 +1,9 @@
 package org.mulesoft.lexer
 
+import org.mulesoft.common.core.BomMark
+import org.mulesoft.common.core.Chars
 import java.lang.Character._
 import java.lang.Integer.{MAX_VALUE => IntMax}
-
 import org.mulesoft.lexer.CharSequenceLexerInput.InputState
 import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
 
@@ -18,7 +19,7 @@ class CharSequenceLexerInput private (val data: CharSequence,
   private var state = InputState(offset = startOffset, nextOffset = startOffset).init(data, endOffset)
 
   /** The index of the character relative to the beginning of the line, as a 16 bit java character. (0 based) */
-  override def column: Int = state.column
+  override def column: Int = if (state.lineWithBOM) state.column - 1 else state.column
 
   /** The current Line number (1 based). */
   override def line: Int = state.line
@@ -105,14 +106,16 @@ object CharSequenceLexerInput {
   def apply(data: CharSequence = "",
             startOffset: Int = 0,
             endOffset: Int = IntMax,
-            sourceName: String = ""): CharSequenceLexerInput =
+            sourceName: String = ""): CharSequenceLexerInput = {
     new CharSequenceLexerInput(data, startOffset, Math.min(data.length(), endOffset), sourceName)
+  }
 
   case class InputState(var column: Int = 0,
                         var line: Int = 1,
                         var offset: Int = 0,
                         var nextOffset: Int = 0,
-                        var current: Int = EofChar)
+                        var current: Int = EofChar,
+                        var lineWithBOM:Boolean = false)
       extends Mark {
 
     private[CharSequenceLexerInput] def nonEof             = current != EofChar
@@ -123,6 +126,7 @@ object CharSequenceLexerInput {
       if (current == '\n') {
         column = 0
         line += 1
+        lineWithBOM = false
       }
       else column += nextOffset - offset
       offset = nextOffset
@@ -131,6 +135,8 @@ object CharSequenceLexerInput {
         return
       }
 
+      if(current.toChar.isBom)
+        lineWithBOM = true
       val chr = data.charAt(offset)
       nextOffset += 1
 
