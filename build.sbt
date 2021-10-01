@@ -1,7 +1,6 @@
 import org.scalajs.core.tools.linker.ModuleKind
 import sbt.Keys.{libraryDependencies, resolvers, scalacOptions}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
-import sbtsonar.SonarPlugin.autoImport.sonarProperties
 
 name := "syaml"
 
@@ -43,7 +42,8 @@ lazy val syaml = crossProject(JSPlatform, JVMPlatform)
     // JS-specific settings here
     scalaJSModuleKind := ModuleKind.CommonJSModule,
     scalacOptions += "-P:scalajs:suppressExportDeprecations"
-  )
+  )  .disablePlugins(SonarPlugin)
+
 
 lazy val syamlJVM = syaml.jvm.in(file("./jvm")).sourceDependency(scalaCommonJVMRef, scalaCommonLibJVM)
 lazy val syamlJS  = syaml.js.in(file("./js")).sourceDependency(scalaCommonJSRef, scalaCommonLibJS)
