@@ -11,8 +11,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
   organization := "org.mule.syaml",
   name := "syaml",
   libraryDependencies ++= Seq(
-    "org.scalatest"   %%% "scalatest"         % "3.0.0" % Test,
-    "org.mule.common" %%% "scala-common-test" % "0.0.6" % Test
+    "org.mule.common" %%% "scala-common-test" % "0.0.10" % Test
   ),
   resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
   credentials ++= Common.credentials()

@@ -2,12 +2,13 @@ package org.mulesoft.yaml
 
 import org.mulesoft.lexer.Position.Zero
 import org.mulesoft.lexer.{Position, SourceLocation}
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Test Builders
   */
-trait PositionTest extends FunSuite with Matchers {
+trait PositionTest extends AnyFunSuite with Matchers {
 
   test("Position by Offset") {
     val a = Position(10)

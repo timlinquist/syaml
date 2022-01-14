@@ -1,11 +1,12 @@
 package org.mulesoft.common.io
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Created by emilio.gabeiras on 31/10/2017.
   */
-class IoTest  extends FunSuite with Matchers {
+class IoTest extends AnyFunSuite with Matchers {
 //    test("read file") {
 //            val fs = new JsServerFileSystem
 //            val f = fs.readFile("/Users/emilio/x")

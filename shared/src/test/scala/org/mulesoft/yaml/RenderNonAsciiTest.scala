@@ -1,11 +1,12 @@
 package org.mulesoft.yaml
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model.YDocument
 import org.yaml.parser.JsonParser
 import org.yaml.render.{JsonRender, JsonRenderOptions}
 
-trait RenderNonAsciiTest extends FunSuite with Matchers {
+trait RenderNonAsciiTest extends AnyFunSuite with Matchers {
 
   test("Option not to encode non ascii characters") {
     val text =

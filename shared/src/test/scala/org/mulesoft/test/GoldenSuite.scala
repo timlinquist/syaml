@@ -1,13 +1,14 @@
 package org.mulesoft.test
 
-import org.mulesoft.common.test.Diff
 import org.mulesoft.common.io.{FileSystem, SyncFile}
-import org.scalatest.{FunSuite, Matchers}
+import org.mulesoft.common.test.Diff
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 
 /**
   * Golden based test
   */
-trait GoldenSuite extends FunSuite with Matchers {
+trait GoldenSuite extends AnyFunSuite with Matchers {
   def fs: FileSystem
 
   def mkdir(str: String*): SyncFile = {

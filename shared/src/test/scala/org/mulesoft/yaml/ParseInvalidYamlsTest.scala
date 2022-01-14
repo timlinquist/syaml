@@ -2,8 +2,8 @@ package org.mulesoft.yaml
 
 import org.mulesoft.common.io.Fs
 import org.mulesoft.lexer.{InputRange, SourceLocation}
-import org.scalatest.FunSuite
-import org.yaml.model.{ParseErrorHandler, SyamlException, YMap, YPart}
+import org.scalatest.funsuite.AnyFunSuite
+import org.yaml.model.{ParseErrorHandler, SyamlException, YMap}
 import org.yaml.parser.YamlParser
 
 import scala.collection.mutable
@@ -11,7 +11,7 @@ import scala.collection.mutable
 /**
   * Test handling errors
   */
-trait ParseInvalidYamlsTest extends FunSuite {
+trait ParseInvalidYamlsTest extends AnyFunSuite {
 
   private val yamlDir = Fs syncFile "shared/src/test/data/parser/invalid"
   test("No error when ending with \\r"){

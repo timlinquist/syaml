@@ -2,7 +2,8 @@ package org.mulesoft.yaml
 
 import org.mulesoft.common.io.{Fs, SyncFile}
 import org.mulesoft.lexer.{InputRange, SourceLocation}
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model._
 import org.yaml.parser.JsonParser
 
@@ -11,7 +12,7 @@ import scala.collection.mutable
 /**
   * Test handling errors
   */
-trait JsonParserTest extends FunSuite with Matchers {
+trait JsonParserTest extends AnyFunSuite with Matchers {
 
   private val jsonDir = Fs syncFile "shared/src/test/data/invalid-json"
 

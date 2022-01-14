@@ -1,6 +1,7 @@
 package org.mulesoft.yaml
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model._
 import org.yaml.parser.{JsonParser, YamlParser}
 import org.yaml.render._
@@ -8,7 +9,8 @@ import org.yaml.render._
 /**
   * Test Extractors and exception Handling
   */
-trait RenderingTest extends FunSuite with Matchers {
+trait RenderingTest extends AnyFunSuite with Matchers {
+
   test("Simple Document") {
     testDoc("""# Simple list
               |# Very simple

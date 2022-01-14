@@ -1,13 +1,14 @@
 package org.mulesoft.yaml
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model.YPart
 import org.yaml.parser.{JsonParser, YamlParser}
 
 /**
   * Test against golden files
   */
-trait JsonVsYamlTest extends FunSuite with Matchers {
+trait JsonVsYamlTest extends AnyFunSuite with Matchers {
   private val rootMap =
     """{
       | "map": {
