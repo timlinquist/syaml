@@ -1,7 +1,8 @@
 package org.mulesoft.yaml
 
 import org.mulesoft.common.time.SimpleDateTime
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.convert.YRead.DoubleYRead
 import org.yaml.model.YDocument._
 import org.yaml.model._
@@ -11,7 +12,7 @@ import org.yaml.parser.YamlParser
   * Test Extractors and exception Handling
   */
 //noinspection SpellCheckingInspection
-trait YamlNavigatorTest extends FunSuite with Matchers {
+trait YamlNavigatorTest extends AnyFunSuite with Matchers {
 
   val addressBase: YNode = obj(
       given = "Chris",

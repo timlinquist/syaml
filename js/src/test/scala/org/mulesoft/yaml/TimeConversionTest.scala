@@ -1,17 +1,17 @@
 package org.mulesoft.yaml
 
-import java.util.Date
-
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.convert.YReadTime._
 import org.yaml.model.YDocument
 
+import java.util.Date
 import scala.scalajs.js
 
 /**
   * Time Conversion tests
   */
-class TimeConversionTest extends FunSuite with Matchers {
+class TimeConversionTest extends AnyFunSuite with Matchers {
   test("Time Types") {
     val doc2 = YDocument.parseYaml("""
                                          | - 2001-01-01 10:00:00

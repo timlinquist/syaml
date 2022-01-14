@@ -2,14 +2,16 @@ package org.mulesoft.yaml
 
 import org.mulesoft.common.core._
 import org.mulesoft.common.test.Diff
-import org.scalatest.{Assertion, FunSuite, Matchers}
+import org.scalatest.Assertion
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model._
 import org.yaml.render.YamlRender
 
 /**
   * Test render all rules of scalar flows
   */
-trait ScalarFlowRenderingTest extends FunSuite with Matchers {
+trait ScalarFlowRenderingTest extends AnyFunSuite with Matchers {
 
   val cIndicators = Seq(",", "[", "]", "{", "}", "#", "&", "*", "!", "|", ">", "'", "\"", "%", "@", "`")
   val withSpaceIndicator = Seq("?", ":", "-")

@@ -1,15 +1,15 @@
 package org.mulesoft.yaml
 
-import java.lang.System.nanoTime
-
 import org.mulesoft.common.io.Fs
-import org.scalatest.{FunSuite, Matchers}
-import org.yaml.parser.YamlParser
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
+
+import java.lang.System.nanoTime
 
 /**
   * Test against golden files
   */
-class PerfTest extends FunSuite with Matchers {
+class PerfTest extends AnyFunSuite with Matchers {
 
   private val yamlDir   = Fs syncFile "shared/src/test/data/perf"
   private val file  = System.getProperty("yaml")

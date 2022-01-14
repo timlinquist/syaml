@@ -1,16 +1,17 @@
 package org.mulesoft.yaml
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model.YDocument.{list, obj, objFromBuilder}
+import org.yaml.model.YNode._
 import org.yaml.model.YType._
 import org.yaml.model._
 import org.yaml.render.YamlRender
-import org.yaml.model.YNode._
 
 /**
   * Test Builders
   */
-trait YamlBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTest {
+trait YamlBuilderTest extends AnyFunSuite with Matchers with IgnoreParseErrorTest {
 
   test("Build Simple Scalar") {
     val doc1 = YDocument(_ += "A Document")

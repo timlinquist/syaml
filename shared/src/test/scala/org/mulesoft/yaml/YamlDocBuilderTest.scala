@@ -1,8 +1,7 @@
 package org.mulesoft.yaml
 
-import java.io.StringWriter
-
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.builder
 import org.yaml.builder.{DocBuilder, JsonOutputBuilder, YDocumentBuilder}
 import org.yaml.model.YNode._
@@ -10,10 +9,12 @@ import org.yaml.model.YType._
 import org.yaml.model.{YDocument, YMap, YNode, YType}
 import org.yaml.render.{JsonRender, YamlRender}
 
+import java.io.StringWriter
+
 /**
   * Test Builders
   */
-trait YamlDocBuilderTest extends FunSuite with Matchers with IgnoreParseErrorTest {
+trait YamlDocBuilderTest extends AnyFunSuite with Matchers with IgnoreParseErrorTest {
 
   type BuildDoc[T] = DocBuilder[T] => T
 

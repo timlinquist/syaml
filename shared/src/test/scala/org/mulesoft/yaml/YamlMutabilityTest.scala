@@ -1,6 +1,7 @@
 package org.mulesoft.yaml
 
-import org.scalatest.{FunSuite, Matchers}
+import org.scalatest.funsuite.AnyFunSuite
+import org.scalatest.matchers.should.Matchers
 import org.yaml.model.YDocument._
 import org.yaml.model._
 import org.yaml.parser.YamlParser
@@ -10,7 +11,7 @@ import org.yaml.render.YamlRender
   * Test mutability
   */
 //noinspection SpellCheckingInspection
-trait YamlMutabilityTest extends FunSuite with Matchers {
+trait YamlMutabilityTest extends AnyFunSuite with Matchers {
 
   private def doc = YDocument("").obj(
       selection = YNode.include("replacement.txt"),
