@@ -3,7 +3,7 @@ package org.mulesoft.yaml
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.yaml.builder
-import org.yaml.builder.{DocBuilder, JsonOutputBuilder, YDocumentBuilder}
+import org.yaml.builder.{DocBuilder, JsonOutputBuilder, YDocumentBuilder, YamlOutputBuilder}
 import org.yaml.model.YNode._
 import org.yaml.model.YType._
 import org.yaml.model.{YDocument, YMap, YNode, YType}
@@ -177,4 +177,11 @@ trait YamlDocBuilderTest extends AnyFunSuite with Matchers with IgnoreParseError
     str.trim shouldBe "\"A Document\""
   }
 
+  test("Render entry with '-' as value") {
+    val str = YamlOutputBuilder().obj { entry =>
+      entry.entry("default", "-")
+    }.toString.trim
+    val expected = """default: "-"""".stripMargin
+    str should equal(expected)
+  }
 }

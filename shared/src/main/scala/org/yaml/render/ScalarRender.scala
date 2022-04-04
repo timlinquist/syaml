@@ -54,7 +54,7 @@ object ScalarRender {
     if (l == 0)
       return if (mustBeString || !mark.plain) DoubleQuoteMark else NoMark
 
-    if (text.head == ' ' || text.endsWith("\n\n")) return DoubleQuoteMark
+    if (shouldDoubleQuote(text)) return DoubleQuoteMark
 
     var oneLine   = true
     var allSpaces = true
@@ -87,6 +87,9 @@ object ScalarRender {
     else if (allSpaces) DoubleQuoteMark
     else MultilineMark
   }
+
+  private def shouldDoubleQuote(text: String) = text.head == ' ' || text.endsWith("\n\n") || text == "-"
+
   private class ScalarIterator(text: String) {
 
     private var c     = 0
