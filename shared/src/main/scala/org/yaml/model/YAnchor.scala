@@ -1,7 +1,8 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.SourceLocation.Unknown
-import org.mulesoft.lexer.{AstToken, SourceLocation}
+import org.mulesoft.common.client.lexical.SourceLocation
+import org.mulesoft.common.client.lexical.SourceLocation.Unknown
+import org.mulesoft.lexer.AstToken
 
 /**
   * A YReference is either an anchor or an alias

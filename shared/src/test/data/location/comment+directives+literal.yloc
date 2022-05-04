@@ -1,8 +1,8 @@
-YComment     [1,0..1,20]     comment+directives+literal.yaml
-YDocument    [3,0..13,0]     comment+directives+literal.yaml
-YDirective   [3,0..3,9]      comment+directives+literal.yaml
-YComment     [5,0..5,37]     comment+directives+literal.yaml
-YNodePlain   [6,3..13,0]     comment+directives+literal.yaml
-YScalar      [7,0..11,0]     comment+directives+literal.yaml
-YComment     [7,2..7,19]     comment+directives+literal.yaml
-YComment     [12,0..12,17]   comment+directives+literal.yaml
+YComment     [(1,0)-(1,20)]  comment+directives+literal.yaml
+YDocument    [(3,0)-(13,0)]  comment+directives+literal.yaml
+YDirective   [(3,0)-(3,9)]   comment+directives+literal.yaml
+YComment     [(5,0)-(5,37)]  comment+directives+literal.yaml
+YNodePlain   [(6,3)-(13,0)]  comment+directives+literal.yaml
+YScalar      [(7,0)-(11,0)]  comment+directives+literal.yaml
+YComment     [(7,2)-(7,19)]  comment+directives+literal.yaml
+YComment     [(12,0)-(12,17)] comment+directives+literal.yaml

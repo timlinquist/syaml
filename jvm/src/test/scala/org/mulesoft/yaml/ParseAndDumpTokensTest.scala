@@ -1,14 +1,14 @@
 package org.mulesoft.yaml
 
-import java.io.{CharArrayWriter, PrintWriter}
-
+import org.mulesoft.common.client.lexical.{Position, PositionRange}
 import org.mulesoft.common.io.{FileSystem, Fs}
-import org.mulesoft.lexer.{InputRange, Position}
 import org.mulesoft.test.GoldenSuite
 import org.scalatest.Assertion
 import org.yaml.lexer.YamlLexer
 import org.yaml.model._
 import org.yaml.parser.YamlParser
+
+import java.io.{CharArrayWriter, PrintWriter}
 
 /**
   * Test against golden files
@@ -92,13 +92,13 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
   private def dump(elements: IndexedSeq[YPart], writer: PrintWriter, indent: String): Int = {
     var n = 0
 
-    def dumpTokens(cc: String, ts: YTokens, range: InputRange): Unit = {
+    def dumpTokens(cc: String, ts: YTokens, range: PositionRange): Unit = {
       val str = indent + cc + "  " + ts.tokens.map(_.tokenType.abbreviation).mkString(" ")
       writer.printf("%-50s %s%n", str, range)
       n += ts.tokens.size
     }
 
-    def dumpParts(cc: String, children: IndexedSeq[YPart], range: InputRange): Unit = {
+    def dumpParts(cc: String, children: IndexedSeq[YPart], range: PositionRange): Unit = {
       writer.printf("%-50s %s%n", indent + cc, range)
       n += dump(children, writer, indent + "  ")
     }

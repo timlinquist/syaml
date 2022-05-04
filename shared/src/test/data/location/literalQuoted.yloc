@@ -1,3 +1,3 @@
-YDocument    [1,0..23,0]     literalQuoted.yaml
-YNodePlain   [1,0..22,1]     literalQuoted.yaml
-YScalar      [1,0..22,1]     literalQuoted.yaml
+YDocument    [(1,0)-(23,0)]  literalQuoted.yaml
+YNodePlain   [(1,0)-(22,1)]  literalQuoted.yaml
+YScalar      [(1,0)-(22,1)]  literalQuoted.yaml

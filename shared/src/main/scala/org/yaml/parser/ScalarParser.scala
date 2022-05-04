@@ -1,8 +1,8 @@
 package org.yaml.parser
-import java.lang.Long.parseLong
+import org.mulesoft.common.client.lexical.SourceLocation
 
+import java.lang.Long.parseLong
 import org.mulesoft.common.time.SimpleDateTime
-import org.mulesoft.lexer.SourceLocation
 import org.yaml.model.YType.{Bool, Float, Int, Str, Timestamp, Unknown, Null => tNull}
 import org.yaml.model._
 import org.yaml.parser.ScalarParser._

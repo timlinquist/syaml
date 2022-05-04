@@ -1,7 +1,8 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.SourceLocation.Unknown
-import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
+import org.mulesoft.common.client.lexical.SourceLocation.Unknown
+import org.mulesoft.common.client.lexical.{PositionRange, SourceLocation}
+import org.mulesoft.lexer.AstToken
 
 /** Yaml Comment Part */
 class YComment(val metaText: String,
@@ -34,8 +35,8 @@ class YNonContent(location: SourceLocation, tokens: IndexedSeq[AstToken] = Index
 
 object YNonContent {
 //  @deprecated("", "Use Constructor")
-  def apply(range: InputRange, tokens: IndexedSeq[AstToken], sourceName: String): YNonContent =
+  def apply(range: PositionRange, tokens: IndexedSeq[AstToken], sourceName: String): YNonContent =
     new YNonContent(SourceLocation(sourceName, range.lineFrom, range.columnFrom, range.lineTo, range.columnTo), tokens)
 
-  def apply(tokens: IndexedSeq[AstToken]): YNonContent = new YNonContent(tokens.head.range to tokens.last.range, tokens)
+  def apply(tokens: IndexedSeq[AstToken]): YNonContent = new YNonContent(tokens.head.location to tokens.last.location, tokens)
 }

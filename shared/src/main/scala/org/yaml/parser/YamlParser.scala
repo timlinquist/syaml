@@ -1,5 +1,6 @@
 package org.yaml.parser
 
+import org.mulesoft.common.client.lexical.{Position, SourceLocation}
 import org.mulesoft.lexer._
 import org.yaml.lexer.YamlLexer
 import org.yaml.model._

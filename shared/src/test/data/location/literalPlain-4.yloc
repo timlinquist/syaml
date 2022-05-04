@@ -1,3 +1,3 @@
-YDocument    [1,0..4,0]      literalPlain-4.yaml
-YNodePlain   [1,1..3,15]     literalPlain-4.yaml
-YScalar      [1,1..3,15]     literalPlain-4.yaml
+YDocument    [(1,0)-(4,0)]   literalPlain-4.yaml
+YNodePlain   [(1,1)-(3,15)]  literalPlain-4.yaml
+YScalar      [(1,1)-(3,15)]  literalPlain-4.yaml

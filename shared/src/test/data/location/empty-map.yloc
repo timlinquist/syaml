@@ -1,8 +1,8 @@
-YDocument    [1,0..1,7]      empty-map.yaml
-YNodePlain   [1,0..1,7]      empty-map.yaml
-YMap         [1,0..1,7]      empty-map.yaml
-YMapEntry    [1,0..1,7]      empty-map.yaml
-YNodePlain   [1,0..1,3]      empty-map.yaml
-YScalar      [1,0..1,3]      empty-map.yaml
-YNodePlain   [1,5..1,7]      empty-map.yaml
-YMap         [1,5..1,7]      empty-map.yaml
+YDocument    [(1,0)-(1,7)]   empty-map.yaml
+YNodePlain   [(1,0)-(1,7)]   empty-map.yaml
+YMap         [(1,0)-(1,7)]   empty-map.yaml
+YMapEntry    [(1,0)-(1,7)]   empty-map.yaml
+YNodePlain   [(1,0)-(1,3)]   empty-map.yaml
+YScalar      [(1,0)-(1,3)]   empty-map.yaml
+YNodePlain   [(1,5)-(1,7)]   empty-map.yaml
+YMap         [(1,5)-(1,7)]   empty-map.yaml

@@ -1,8 +1,8 @@
-YDocument    [1,0..4,0]      example-6.22.yaml
-YDirective   [1,0..1,34]     example-6.22.yaml
-YTag         [1,9..1,34]     example-6.22.yaml
-YNodePlain   [2,3..4,0]      example-6.22.yaml
-YSequence    [3,0..4,0]      example-6.22.yaml
-YNodePlain   [3,2..3,14]     example-6.22.yaml
-YTag         [3,2..3,8]      example-6.22.yaml
-YScalar      [3,9..3,14]     example-6.22.yaml
+YDocument    [(1,0)-(4,0)]   example-6.22.yaml
+YDirective   [(1,0)-(1,34)]  example-6.22.yaml
+YTag         [(1,9)-(1,34)]  example-6.22.yaml
+YNodePlain   [(2,3)-(4,0)]   example-6.22.yaml
+YSequence    [(3,0)-(4,0)]   example-6.22.yaml
+YNodePlain   [(3,2)-(3,14)]  example-6.22.yaml
+YTag         [(3,2)-(3,8)]   example-6.22.yaml
+YScalar      [(3,9)-(3,14)]  example-6.22.yaml

@@ -1,7 +1,8 @@
 package org.yaml.lexer
 
-import java.lang.Integer.MAX_VALUE
+import org.mulesoft.common.client.lexical.Position
 
+import java.lang.Integer.MAX_VALUE
 import org.mulesoft.common.core.countWhile
 import org.mulesoft.lexer.LexerInput.{EofChar, Mark}
 import org.mulesoft.lexer._
@@ -13,7 +14,7 @@ import scala.annotation.tailrec
 /**
   * Yaml Lexer for 1.2 Specification
   */
-final class YamlLexer private (input: LexerInput, positionOffset: Position = Position.Zero)
+final class YamlLexer private (input: LexerInput, positionOffset: Position = Position.ZERO)
     extends BaseLexer[YamlToken](input, positionOffset) {
 
   private var context: LexerContext = StreamLexerContext

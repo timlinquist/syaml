@@ -1,7 +1,7 @@
 package org.mulesoft.yaml
 
+import org.mulesoft.common.client.lexical.{PositionRange, SourceLocation}
 import org.mulesoft.common.io.{Fs, SyncFile}
-import org.mulesoft.lexer.{InputRange, SourceLocation}
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.yaml.model._
@@ -21,7 +21,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
 
     errors.length shouldBe 1
     assert(errors.head.error.getMessage.equals("Syntax error : Expecting '\"' but 'abb' found"))
-    assert(errors.head.inputRange.equals(InputRange(3, 2, 3, 5)))
+    assert(errors.head.range.equals(PositionRange(3, 2, 3, 5)))
 
   }
 
@@ -30,7 +30,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
 
     assert(errors.lengthCompare(1) == 0)
     assert(errors.head.error.getMessage.equals("Syntax error : Unexpected 'invalid'"))
-    assert(errors.head.inputRange.equals(InputRange(3, 10, 3, 17)))
+    assert(errors.head.range.equals(PositionRange(3, 10, 3, 17)))
   }
 
   test("Parse scalar in map entry in map") {
@@ -38,7 +38,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
 
     assert(errors.lengthCompare(1) == 0)
     assert(errors.head.error.getMessage.equals("Syntax error : Expecting '\"' but '#an invalid json comment only to check the raw render' found"))
-    assert(errors.head.inputRange.equals(InputRange(5, 4, 5, 57)))
+    assert(errors.head.range.equals(PositionRange(5, 4, 5, 57)))
   }
 
   test("Parse unclosed map") {
@@ -47,7 +47,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
     assert(errors.lengthCompare(1) == 0)
     val error = errors.head
     assert(error.error.getMessage.startsWith("Syntax error : Missing '}'"))
-    assert(errors.head.inputRange.equals(InputRange(3, 57, 3, 57)))
+    assert(errors.head.range.equals(PositionRange(3, 57, 3, 57)))
 
   }
 
@@ -287,8 +287,8 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
 
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
-    override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.inputRange)
+    override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.range)
   }
-  case class ErrorContainer(error: Exception, inputRange: InputRange)
+  case class ErrorContainer(error: Exception, range: PositionRange)
 
 }

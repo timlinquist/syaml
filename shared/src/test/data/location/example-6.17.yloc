@@ -1,7 +1,7 @@
-YDocument    [1,0..4,0]      example-6.17.yaml
-YDirective   [1,0..1,11]     example-6.17.yaml
-YTag         [1,7..1,11]     example-6.17.yaml
-YDirective   [2,0..2,11]     example-6.17.yaml
-YTag         [2,7..2,11]     example-6.17.yaml
-YNodePlain   [3,0..3,3]      example-6.17.yaml
-YScalar      [3,0..3,3]      example-6.17.yaml
+YDocument    [(1,0)-(4,0)]   example-6.17.yaml
+YDirective   [(1,0)-(1,11)]  example-6.17.yaml
+YTag         [(1,7)-(1,11)]  example-6.17.yaml
+YDirective   [(2,0)-(2,11)]  example-6.17.yaml
+YTag         [(2,7)-(2,11)]  example-6.17.yaml
+YNodePlain   [(3,0)-(3,3)]   example-6.17.yaml
+YScalar      [(3,0)-(3,3)]   example-6.17.yaml

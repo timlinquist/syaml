@@ -1,7 +1,9 @@
 package org.mulesoft.lexer
 
+import org.mulesoft.common.client.lexical.{Position, SourceLocation}
 import org.mulesoft.lexer.LexerInput.EofChar
 import org.mulesoft.common.core.Chars
+
 import scala.collection.mutable.ArrayBuffer
 
 abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: Position) extends Lexer[T] {
