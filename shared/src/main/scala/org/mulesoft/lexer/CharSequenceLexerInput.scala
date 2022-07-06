@@ -1,7 +1,9 @@
 package org.mulesoft.lexer
 
+import org.mulesoft.common.client.lexical.Position
 import org.mulesoft.common.core.BomMark
 import org.mulesoft.common.core.Chars
+
 import java.lang.Character._
 import java.lang.Integer.{MAX_VALUE => IntMax}
 import org.mulesoft.lexer.CharSequenceLexerInput.InputState

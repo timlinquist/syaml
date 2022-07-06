@@ -1,12 +1,12 @@
 package org.yaml.model
 
-import java.util.Objects.{hashCode => hash}
+import org.mulesoft.common.client.lexical.SourceLocation.Unknown
+import org.mulesoft.common.client.lexical.{PositionRange, SourceLocation}
 
+import java.util.Objects.{hashCode => hash}
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.SourceLocation.Unknown
-import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
+import org.mulesoft.lexer.AstToken
 import org.yaml.parser.ScalarParser
-//import org.yaml.parser.{ParserResult, ScalarParser}
 
 /**
   * A Yaml Scalar
@@ -56,7 +56,7 @@ object YScalar {
   def nonPlain(value: String, sourceName: String = "") =
     new YScalar(value, value, DoubleQuoteMark, location = SourceLocation(sourceName)) // double quoted? or create a NonPlain object?
 
-  def fromToken(astToken: AstToken, range: InputRange, sourceName: String = "") =
+  def fromToken(astToken: AstToken, range: PositionRange, sourceName: String = "") =
     new YScalar(astToken.text,
       astToken.text,
       NoMark,

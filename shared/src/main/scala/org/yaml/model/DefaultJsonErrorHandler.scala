@@ -1,5 +1,6 @@
 package org.yaml.model
-import org.mulesoft.lexer.SourceLocation
+
+import org.mulesoft.common.client.lexical.SourceLocation
 
 trait DefaultJsonErrorHandler extends ParseErrorHandler {
 

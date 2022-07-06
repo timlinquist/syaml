@@ -1,7 +1,7 @@
 package org.mulesoft.yaml
 
+import org.mulesoft.common.client.lexical.{PositionRange, SourceLocation}
 import org.mulesoft.common.io.Fs
-import org.mulesoft.lexer.{InputRange, SourceLocation}
 import org.scalatest.funsuite.AnyFunSuite
 import org.yaml.model.{ParseErrorHandler, SyamlException, YMap}
 import org.yaml.parser.YamlParser
@@ -30,10 +30,10 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
     assert(handler.errors.lengthCompare(2) == 0)
     val normal = handler.errors.head
     assert(normal.error.getMessage.equals("Duplicate key : 'normal'"))
-    assert(normal.inputRange.equals(InputRange(2, 0, 2, 6)))
+    assert(normal.range.equals(PositionRange(2, 0, 2, 6)))
     val quotation = handler.errors(1)
     assert(quotation.error.getMessage.equals("Duplicate key : 'withQuotation'"))
-    assert(quotation.inputRange.equals(InputRange(4, 0, 4, 15)))
+    assert(quotation.range.equals(PositionRange(4, 0, 4, 15)))
   }
 
   test("Parse invalid entry value as scalar and map") {
@@ -239,9 +239,9 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
   case class TestErrorHandler() extends ParseErrorHandler {
     val errors = new mutable.ListBuffer[ErrorContainer]()
 
-    case class ErrorContainer(error: Exception, inputRange: InputRange)
+    case class ErrorContainer(error: Exception, range: PositionRange)
 
-    override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.inputRange)
+    override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.range)
   }
 
 }

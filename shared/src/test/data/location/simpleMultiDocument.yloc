@@ -1,6 +1,6 @@
-YDocument    [1,0..2,0]      simpleMultiDocument.yaml
-YNodePlain   [1,0..1,5]      simpleMultiDocument.yaml
-YScalar      [1,0..1,5]      simpleMultiDocument.yaml
-YDocument    [3,0..3,8]      simpleMultiDocument.yaml
-YNodePlain   [3,0..3,8]      simpleMultiDocument.yaml
-YScalar      [3,0..3,8]      simpleMultiDocument.yaml
+YDocument    [(1,0)-(2,0)]   simpleMultiDocument.yaml
+YNodePlain   [(1,0)-(1,5)]   simpleMultiDocument.yaml
+YScalar      [(1,0)-(1,5)]   simpleMultiDocument.yaml
+YDocument    [(3,0)-(3,8)]   simpleMultiDocument.yaml
+YNodePlain   [(3,0)-(3,8)]   simpleMultiDocument.yaml
+YScalar      [(3,0)-(3,8)]   simpleMultiDocument.yaml

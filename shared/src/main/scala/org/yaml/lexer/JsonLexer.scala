@@ -1,14 +1,15 @@
 package org.yaml.lexer
 
+import org.mulesoft.common.client.lexical.Position
 import org.mulesoft.lexer.LexerInput.EofChar
-import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput, Position}
+import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput}
 import org.yaml.lexer.JsonLexer._
 import org.yaml.lexer.YamlToken._
 
 /**
   * Json Lexer
   */
-final class JsonLexer private (input: LexerInput, positionOffset: Position = Position.Zero)
+final class JsonLexer private (input: LexerInput, positionOffset: Position = Position.ZERO)
     extends BaseLexer[YamlToken](input, positionOffset) {
 
   /** Init must initialize the stack and the current _tokenData (may be invoking advance) */

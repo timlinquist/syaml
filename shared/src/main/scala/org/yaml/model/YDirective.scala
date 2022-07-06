@@ -1,7 +1,7 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.SourceLocation
-import org.mulesoft.lexer.SourceLocation.Unknown
+import org.mulesoft.common.client.lexical.SourceLocation
+import org.mulesoft.common.client.lexical.SourceLocation.Unknown
 
 /** Yaml Directive */
 class YDirective(val name: String,

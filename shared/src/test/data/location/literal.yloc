@@ -1,4 +1,4 @@
-YComment     [1,0..1,23]     literal.yaml
-YDocument    [2,0..8,0]      literal.yaml
-YNodePlain   [2,0..8,0]      literal.yaml
-YScalar      [2,0..8,0]      literal.yaml
+YComment     [(1,0)-(1,23)]  literal.yaml
+YDocument    [(2,0)-(8,0)]   literal.yaml
+YNodePlain   [(2,0)-(8,0)]   literal.yaml
+YScalar      [(2,0)-(8,0)]   literal.yaml

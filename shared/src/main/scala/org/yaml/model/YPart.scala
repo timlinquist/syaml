@@ -1,15 +1,16 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.SourceLocation.Unknown
-import org.mulesoft.lexer.{AstToken, InputRange, SourceLocation}
+import org.mulesoft.common.client.lexical.{ASTElement, PositionRange, SourceLocation}
+import org.mulesoft.common.client.lexical.SourceLocation.Unknown
+import org.mulesoft.lexer.AstToken
 import org.yaml.model.YPart.locationOf
 
 /**
   * A Part of a Yaml Document
   */
-abstract class YPart(_location: SourceLocation, val children: IndexedSeq[YPart] = IndexedSeq.empty) {
-  val location: SourceLocation = locationOf(_location, children)
-  def range: InputRange        = location.inputRange
+abstract class YPart(_location: SourceLocation, val children: IndexedSeq[YPart] = IndexedSeq.empty) extends ASTElement{
+  override val location: SourceLocation = locationOf(_location, children)
+  def range: PositionRange        = location.range
   def sourceName: String       = location.sourceName
 }
 

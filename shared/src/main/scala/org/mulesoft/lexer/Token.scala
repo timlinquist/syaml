@@ -1,5 +1,6 @@
 package org.mulesoft.lexer
 
+import org.mulesoft.common.client.lexical.SourceLocation
 import org.mulesoft.common.core._
 
 /**
@@ -20,6 +21,6 @@ case class TokenData[T <: Token](token: T, range: SourceLocation) {
   * A Token that contains the associated text.
   * So it can be used to into the AST to serialize the input without keeping the original source
   */
-case class AstToken(tokenType: Token, text: String, range: SourceLocation) {
+case class AstToken(tokenType: Token, text: String, location: SourceLocation) {
     override def toString: String =  s"$tokenType '${text.encode}'"
 }

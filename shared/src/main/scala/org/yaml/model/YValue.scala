@@ -1,6 +1,6 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.SourceLocation
+import org.mulesoft.common.client.lexical.SourceLocation
 
 /** A YamlValue is either a Scalar, a Sequence or a Map */
 abstract class YValue(location: SourceLocation, parts: IndexedSeq[YPart]) extends YPart(location, parts) with YValueLike

@@ -1,7 +1,8 @@
 package org.yaml.parser
 
+import org.mulesoft.common.client.lexical.SourceLocation
 import org.mulesoft.common.core.Strings
-import org.mulesoft.lexer.{AstToken, SourceLocation}
+import org.mulesoft.lexer.AstToken
 import org.yaml.lexer.YamlLexer
 import org.yaml.lexer.YamlToken._
 import org.yaml.model._

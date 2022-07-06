@@ -1,7 +1,8 @@
 package org.mulesoft.lexer
 
-import java.lang.Integer.MAX_VALUE
+import org.mulesoft.common.client.lexical.Position
 
+import java.lang.Integer.MAX_VALUE
 import org.mulesoft.lexer.LexerInput.Mark
 import org.yaml.lexer.YamlCharRules.isWhite
 

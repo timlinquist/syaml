@@ -1,7 +1,7 @@
-YComment     [1,0..1,28]     directives.yaml
-YDocument    [3,0..8,3]      directives.yaml
-YDirective   [3,0..3,9]      directives.yaml
-YComment     [5,0..5,13]     directives.yaml
-YDirective   [7,0..7,19]     directives.yaml
-YNodePlain   [8,3..8,3]      directives.yaml
-YScalar      [8,3..8,3]      directives.yaml
+YComment     [(1,0)-(1,28)]  directives.yaml
+YDocument    [(3,0)-(8,3)]   directives.yaml
+YDirective   [(3,0)-(3,9)]   directives.yaml
+YComment     [(5,0)-(5,13)]  directives.yaml
+YDirective   [(7,0)-(7,19)]  directives.yaml
+YNodePlain   [(8,3)-(8,3)]   directives.yaml
+YScalar      [(8,3)-(8,3)]   directives.yaml

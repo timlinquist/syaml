@@ -1,6 +1,6 @@
 package org.yaml.model
 
-import org.mulesoft.lexer.SourceLocation
+import org.mulesoft.common.client.lexical.SourceLocation
 import org.yaml.convert.YRead
 import org.yaml.parser.{JsonParser, YamlParser}
 

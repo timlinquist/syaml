@@ -1,4 +1,4 @@
-YDocument    [1,0..3,0]      literalPlain-2.yaml
-YNodePlain   [1,0..2,10]     literalPlain-2.yaml
-YScalar      [1,0..2,10]     literalPlain-2.yaml
-YComment     [2,11..2,17]    literalPlain-2.yaml
+YDocument    [(1,0)-(3,0)]   literalPlain-2.yaml
+YNodePlain   [(1,0)-(2,10)]  literalPlain-2.yaml
+YScalar      [(1,0)-(2,10)]  literalPlain-2.yaml
+YComment     [(2,11)-(2,17)] literalPlain-2.yaml

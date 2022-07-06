@@ -1,9 +1,9 @@
 File: example-5.13.yaml
-YD                                                 [1,0..5,23]
-  YI  O                                            [1,0..1,0]
-  YN                                               [1,0..5,23]
-    YI  N                                          [1,0..1,0]
-    YS  S I T E I t e l E I t e T E I t e T E I t e T E I t e T E I t e T E I b e E I t e T E I t e T E I t e T E I t e T E I t e T E I b e E I t e T E I t e T E I t e T E I t e T E I t e T E I b e E I I t e T E I I t e T E I I t e I s [1,0..5,23]
-    YI  n                                          [5,23..5,23]
-  YI  o                                            [5,23..5,23]
+YD                                                 [(1,0)-(5,23)]
+  YI  O                                            [(1,0)-(1,0)]
+  YN                                               [(1,0)-(5,23)]
+    YI  N                                          [(1,0)-(1,0)]
+    YS  S I T E I t e l E I t e T E I t e T E I t e T E I t e T E I t e T E I b e E I t e T E I t e T E I t e T E I t e T E I t e T E I b e E I t e T E I t e T E I t e T E I t e T E I t e T E I b e E I I t e T E I I t e T E I I t e I s [(1,0)-(5,23)]
+    YI  n                                          [(5,23)-(5,23)]
+  YI  o                                            [(5,23)-(5,23)]
 118 tokens dumped.

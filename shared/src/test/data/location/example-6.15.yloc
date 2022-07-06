@@ -1,5 +1,5 @@
-YDocument    [1,0..4,0]      example-6.15.yaml
-YDirective   [1,0..1,9]      example-6.15.yaml
-YDirective   [2,0..2,9]      example-6.15.yaml
-YNodePlain   [3,0..3,3]      example-6.15.yaml
-YScalar      [3,0..3,3]      example-6.15.yaml
+YDocument    [(1,0)-(4,0)]   example-6.15.yaml
+YDirective   [(1,0)-(1,9)]   example-6.15.yaml
+YDirective   [(2,0)-(2,9)]   example-6.15.yaml
+YNodePlain   [(3,0)-(3,3)]   example-6.15.yaml
+YScalar      [(3,0)-(3,3)]   example-6.15.yaml

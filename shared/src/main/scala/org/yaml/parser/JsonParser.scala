@@ -1,5 +1,6 @@
 package org.yaml.parser
 
+import org.mulesoft.common.client.lexical.{Position, SourceLocation}
 import org.mulesoft.common.core.Strings
 import org.mulesoft.lexer._
 import org.yaml.lexer.YamlToken.{BeginDocument, _}
@@ -399,7 +400,7 @@ object JsonParser {
   def obj(s: CharSequence)(implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): YObj =
     apply(s)(eh).document().obj
 
-  def withSource(s: CharSequence, sourceName: String, positionOffset: Position = Position.Zero)(
+  def withSource(s: CharSequence, sourceName: String, positionOffset: Position = Position.ZERO)(
       implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     new JsonParser(JsonLexer(s, sourceName, positionOffset))(eh)
 

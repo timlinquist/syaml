@@ -1,3 +1,3 @@
-YDocument    [1,0..4,10]     complex-folded-lines.yaml
-YNodePlain   [1,0..4,10]     complex-folded-lines.yaml
-YScalar      [1,0..4,10]     complex-folded-lines.yaml
+YDocument    [(1,0)-(4,10)]  complex-folded-lines.yaml
+YNodePlain   [(1,0)-(4,10)]  complex-folded-lines.yaml
+YScalar      [(1,0)-(4,10)]  complex-folded-lines.yaml
