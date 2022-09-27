@@ -31,6 +31,8 @@ object DocBuilder {
     case object Float extends SType
     case object Int   extends SType
     case object Bool  extends SType
+
+    case object Null  extends SType
   }
 
   case class Scalar(t: SType, value: Any)
@@ -42,11 +44,14 @@ object DocBuilder {
     def apply(value: Double): Scalar  = new Scalar(Float, value)
     def apply(value: Boolean): Scalar = new Scalar(Bool, value)
 
+    def `null`(): Scalar = new Scalar(Null, null)
+
     def apply(t: SType, value: String): Scalar = t match {
       case Str   => Scalar(value)
       case Int   => tryMake(Scalar(value.toLong), value)
       case Float => tryMake(Scalar(value.toDouble), value)
       case Bool  => tryMake(Scalar(value.toBoolean), value)
+      case Null  => `null`()
     }
 
     def tryMake[U](make: => Scalar, str: String): Scalar =

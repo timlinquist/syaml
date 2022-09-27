@@ -61,6 +61,7 @@ class YamlOutputBuilder[W: Output](writer: W) extends BaseOutputBuilder(writer, 
     case (Bool, b: Boolean) => writer.append(b.toString)
     case (Int, l: Long)     => writer.append(l.toString)
     case (Float, v: Double) => writer.append(v.toString)
+    case (Null, _) => writer.append("null")
     case _                  =>
   }
 
