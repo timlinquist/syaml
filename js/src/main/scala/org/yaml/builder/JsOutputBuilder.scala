@@ -1,5 +1,5 @@
 package org.yaml.builder
-import org.yaml.builder.DocBuilder.SType.{Bool, Float, Int, Str}
+import org.yaml.builder.DocBuilder.SType.{Bool, Float, Int, Null, Str}
 import org.yaml.builder.DocBuilder.{Entry, Part, Scalar}
 
 import scala.scalajs.js
@@ -55,6 +55,7 @@ class JsOutputBuilder extends DocBuilder[js.Any] {
     case Bool  => scalar.value.asInstanceOf[Boolean]
     case Float => scalar.value.asInstanceOf[Double]
     case Int   => scalar.value.asInstanceOf[Long]
+    case Null   => null
   }
 
   private def createObj(f: Entry[js.Any] => Unit): js.Object = {

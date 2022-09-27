@@ -42,6 +42,7 @@ class JsonOutputBuilder[W: Output](writer: W, prettyPrint: Boolean) extends Base
       var s = v.toString
       if (s.indexOf('.') == -1 && !s.contains('e') && !s.contains('E')) s += ".0" // Bug in scala-js toString
       writer.append(s)
+    case (Null, _)     => writer.append("null")
     case _ =>
   }
 

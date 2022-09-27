@@ -60,6 +60,7 @@ class YDocumentBuilder extends DocBuilder[YPart] {
     case Bool  => scalar.value.asInstanceOf[Boolean]
     case Float => scalar.value.asInstanceOf[Double]
     case Int   => scalar.value.asInstanceOf[Long]
+    case Null => YNode.Null
   }
 
   private def createMapNode(f: Entry[YPart] => Unit) = {

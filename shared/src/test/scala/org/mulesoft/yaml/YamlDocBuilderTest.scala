@@ -3,6 +3,7 @@ package org.mulesoft.yaml
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
 import org.yaml.builder
+import org.yaml.builder.DocBuilder.Scalar
 import org.yaml.builder.{DocBuilder, JsonOutputBuilder, YDocumentBuilder, YamlOutputBuilder}
 import org.yaml.model.YNode._
 import org.yaml.model.YType._
@@ -37,12 +38,13 @@ trait YamlDocBuilderTest extends AnyFunSuite with Matchers with IgnoreParseError
       b += "Line 2"
       b += 1.0
       b += true
+      b += Scalar.`null`()
     }
     val ydoc = doc(YDocumentBuilder()).asInstanceOf[YDocument]
 
     ydoc.tagType shouldBe Seq
     val seq = ydoc.node.as[Seq[YNode]]
-    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Float, Bool)
+    seq.map(_.tagType) should contain theSameElementsInOrderAs List(Str, Str, Float, Bool, YType.Null)
     ydoc.obj(3).as[Boolean] shouldBe true
 
     testJson(doc, ydoc)

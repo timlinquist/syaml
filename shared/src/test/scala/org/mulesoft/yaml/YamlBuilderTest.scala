@@ -2,6 +2,7 @@ package org.mulesoft.yaml
 
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should.Matchers
+import org.yaml.builder.DocBuilder.Scalar
 import org.yaml.model.YDocument.{list, obj, objFromBuilder}
 import org.yaml.model.YNode._
 import org.yaml.model.YType._
