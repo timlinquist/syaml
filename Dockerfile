@@ -1,9 +1,9 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 
 ARG USER_HOME_DIR="/root"
 
-ENV SCALA_VERSION 2.12.11
-ENV SBT_VERSION 1.6.1
+ENV SCALA_VERSION 2.12.13
+ENV SBT_VERSION 1.7.1
 
 # Update the repository sources list and install dependencies
 RUN apt-get update
@@ -24,7 +24,7 @@ ENV LC_ALL en_US.UTF-8
 USER root
 RUN mkdir -p /usr/share/man/man1 && \
     apt-get update -y && \
-    apt-get install -y openjdk-8-jdk
+    apt-get install -y openjdk-11-jdk
 
 RUN apt-get install unzip -y && \
     apt-get autoremove -y && \
@@ -43,13 +43,13 @@ RUN \
   curl -L -o sbt-$SBT_VERSION.deb https://scala.jfrog.io/artifactory/debian/sbt-$SBT_VERSION.deb && \
   dpkg -i sbt-$SBT_VERSION.deb && \
   rm sbt-$SBT_VERSION.deb && \
-  sbt -Dsbt.rootdir=true sbtVersion
+  sbt -Dsbt.rootdir=true -Djava.io.tmpdir=$HOME sbtVersion
 
 VOLUME "$USER_HOME_DIR/.sbt"
 
 # Install nodejs
 RUN \
-  curl -sL https://deb.nodesource.com/setup_8.x | bash -
+  curl -sL https://deb.nodesource.com/setup_16.x | bash -
 
 RUN \
   apt-get install nodejs --assume-yes
