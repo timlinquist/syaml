@@ -73,4 +73,14 @@ trait RenderFormattingTest extends GoldenSuite {
     val deltas = Diff.caseSensitive.diff(lines(yeastFile), lines(goldenFile))
     assert(deltas.isEmpty, s"diff -y -W 150 $yeastFile $goldenFile")
   }
+
+
+
+  test("test rendering with spaces after colon") {
+    val content: String = "k:    \n  k2: v \n"
+    val golden: String = "k: \n  k2: v\n"
+    val str = YamlRender.render(YamlParser(content).parse(true), YamlRenderOptions(2, applyFormatting = true))
+    val deltas = Diff.caseSensitive.diff(str, golden)
+    assert(deltas.isEmpty, s"diff -y -W 150 new - golden")
+  }
 }

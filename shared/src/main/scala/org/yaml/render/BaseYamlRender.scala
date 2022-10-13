@@ -6,6 +6,7 @@ import org.mulesoft.common.io.Output
 import org.mulesoft.common.io.Output._
 import org.mulesoft.lexer.AstToken
 import org.yaml.lexer.YamlToken
+import org.yaml.lexer.YamlToken.{BeginComment, WhiteSpace}
 import org.yaml.model.{YDocument, _}
 
 abstract class BaseYamlRender[W: Output] {
@@ -228,7 +229,8 @@ abstract class BaseYamlRender[W: Output] {
     print("- ").render(n)
 
   private def renderComment(text: String, tks: IndexedSeq[AstToken]) = {
-    if (options.applyFormatting) printComment(text)
+    if (options.applyFormatting)
+      printComment(text)
     else if (!renderTokens(tks)) {
       printComment(text)
       println()
@@ -237,7 +239,8 @@ abstract class BaseYamlRender[W: Output] {
 
   private def printComment(text: String) = {
     if (buffer.nonEmpty && !buffer.last.isWhitespace) print(" ")
-    print("#" + (if (!text.startsWith(" ") && options.applyFormatting) " " else "") + text)
+    if (buffer.nonEmpty && buffer.last == '\n' && options.applyFormatting) renderIndent()
+    print("#" + (if (options.applyFormatting) s" ${text.trim}" else text))
   }
 
   private def renderScalar(scalar: YScalar, mustBeString: Boolean = false): Unit =
@@ -252,12 +255,12 @@ abstract class BaseYamlRender[W: Output] {
       print(str.toString)
     }
 
-  private def renderTokens(tks: IndexedSeq[AstToken]): Boolean = {
-    val hasTokens = tks.nonEmpty
-    if (hasTokens) tks foreach renderToken
-    hasTokens
-  }
-  private def renderToken(t: AstToken): Unit = print(t.text)
+  private def renderTokens(tks: IndexedSeq[AstToken]): Boolean =
+    tks.map(renderToken).nonEmpty
+
+  private def renderToken(t: AstToken): Unit =
+    if(options.applyFormatting && t.tokenType == WhiteSpace) {}
+    else print(t.text)
 
   protected def renderParts(parts: YPart): Boolean = {
     val nodes     = parts.children

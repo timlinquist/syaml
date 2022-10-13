@@ -4,9 +4,9 @@ inSequence:
   - c
 
 
-# Between comments
+  # Between comments
 
-# Comment
+  # Comment
 
 inMap: 
   key1: v
