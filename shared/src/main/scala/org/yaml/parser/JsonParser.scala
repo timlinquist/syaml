@@ -244,18 +244,49 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
     }
 
     private def parseValue(): Boolean = {
-      val r = process()
-      if (r) {
+      val hasValue = process()
+      if (hasValue) {
         current.addNonContent()
-        true
       } else {
-        discardIf(Error)
-        push()
-        current.addNullNode()
+        addNullValue()
         advanceTo(Indicator, EndMapping)
-        false
       }
+      hasValue
     }
+  }
+
+  private def addNullValue(): Unit = {
+    discardIf(Error)
+    val nullValueTokens = extractNullValueTokens()
+    push()
+    val location = if (nullValueTokens.nonEmpty) mergeLocations(nullValueTokens) else noTokensLocation()
+    current.addNullNode(location)
+  }
+
+  private def extractNullValueTokens() = {
+    current.parts.last match {
+      case nonContent: YNonContent =>
+        splitNonContent(nonContent)
+        nonContent.tokens.tail
+      case _ =>
+        val tokens = current.tokens.clone()
+        current.tokens.clear()
+        tokens
+    }
+  }
+
+  private def splitNonContent(nonContent: YNonContent): Unit = {
+    current.parts.takeRight(1)
+    val indicator = nonContent.tokens.head
+    current.addNonContent(IndexedSeq(indicator), indicator.location)
+  }
+
+  private def mergeLocations(tokens: IndexedSeq[AstToken]): SourceLocation = {
+    SourceLocation(current.location().sourceName, tokens.head.location.from, current.location().from)
+  }
+
+  private def noTokensLocation(): SourceLocation ={
+    SourceLocation(current.location().sourceName, current.location().from, current.location().from)
   }
 
   private def currentToken(): YamlToken = {
@@ -340,10 +371,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
   class JsonBuilder {
 
-    def addNullNode(): Unit = {
-      addNonContent()
-      stackParts(YNode.nullNode(current.location()))
-    }
+    def addNullNode(location: SourceLocation): Unit = stackParts(YNode.nullNode(location))
 
     var first: SourceLocation = lexer.tokenData.range
     val tokens                = new ArrayBuffer[AstToken]
@@ -367,6 +395,12 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
     def addNonContent(): Unit =
       if (tokens.nonEmpty) {
         val content = new YNonContent(location(), buildTokens())
+        parts += content
+      }
+
+    def addNonContent(tokens: IndexedSeq[AstToken], location: SourceLocation): Unit =
+      if (tokens.nonEmpty) {
+        val content = new YNonContent(location, tokens)
         parts += content
       }
 

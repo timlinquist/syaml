@@ -265,6 +265,27 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
     assert(eh.errors.size == 1)
   }
 
+  test("test null value location") {
+    val jsonFile = jsonDir / "null-value.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.location.range.equals(PositionRange(2, 8, 3, 0)))
+  }
+
+  test("test null value with no indicator location") {
+    val jsonFile = jsonDir / "null-value-no-indicator-token.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.location.range.equals(PositionRange(2, 7, 3, 0)))
+  }
+
+  test("test null value with no tokens location") {
+    val jsonFile = jsonDir / "null-value-with-no-tokens.json"
+    val eh = TestErrorHandler()
+    val parts = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.location.range.equals(PositionRange(1, 6, 1, 6)))
+  }
+
   private def doTest(source: String, msg: String, n: Int): Any = {
     val errors = getErrorsFor(source)
     assert(errors.lengthCompare(n) == 0)

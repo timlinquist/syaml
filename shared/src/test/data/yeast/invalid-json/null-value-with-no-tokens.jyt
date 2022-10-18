@@ -1,0 +1,8 @@
+BeginDocument       0,  1,  0 ''
+BeginMapping        0,  1,  0 '{'
+BeginScalar         1,  1,  1 ''
+Indicator           1,  1,  1 '\"'
+Text                2,  1,  2 'key'
+Indicator           5,  1,  5 '\"'
+EndScalar           6,  1,  6 ''
+EndMapping          6,  1,  6 '}'
