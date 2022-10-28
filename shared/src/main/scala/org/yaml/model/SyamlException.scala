@@ -15,5 +15,8 @@ case class DuplicateKeyException(key: String, cause: Exception = null)
 case class UndefinedAnchorException(anchor: String, cause: Exception = null)
   extends SyamlException(s"Undefined anchor : '$anchor'", cause)
 
+case class DepthLimitException(limit: Int, cause: Exception = null)
+  extends SyamlException(s"Reached maximum depth value of $limit", cause)
+
 abstract class SyamlException(message: String, cause: Exception)
   extends RuntimeException(message, cause) {}

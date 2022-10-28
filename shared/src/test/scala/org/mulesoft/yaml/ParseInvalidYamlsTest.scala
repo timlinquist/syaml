@@ -1,12 +1,11 @@
 package org.mulesoft.yaml
 
-import org.mulesoft.common.client.lexical.{PositionRange, SourceLocation}
+import org.mulesoft.common.client.lexical.PositionRange
 import org.mulesoft.common.io.Fs
+import org.mulesoft.test.TestErrorHandler
 import org.scalatest.funsuite.AnyFunSuite
-import org.yaml.model.{ParseErrorHandler, SyamlException, YMap}
+import org.yaml.model.YMap
 import org.yaml.parser.YamlParser
-
-import scala.collection.mutable
 
 /**
   * Test handling errors
@@ -14,16 +13,16 @@ import scala.collection.mutable
 trait ParseInvalidYamlsTest extends AnyFunSuite {
 
   private val yamlDir = Fs syncFile "shared/src/test/data/parser/invalid"
-  test("No error when ending with \\r"){
+  test("No error when ending with \\r") {
     val handler = TestErrorHandler()
-    val text = "standardHeaders:\n  headers: value\n\r"
+    val text    = "standardHeaders:\n  headers: value\n\r"
     YamlParser(text)(handler).document()
     assert(handler.errors.lengthCompare(0) == 0)
   }
 
   test("Parse duplicate key") {
     val yamlFile = yamlDir / "duplicate-key.yaml"
-    val handler = TestErrorHandler()
+    val handler  = TestErrorHandler()
 
     YamlParser(yamlFile.read())(handler).parse()
 
@@ -38,7 +37,7 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
 
   test("Parse invalid entry value as scalar and map") {
     val yamlFile = yamlDir / "invalid-entry-value.yaml"
-    val handler = TestErrorHandler()
+    val handler  = TestErrorHandler()
 
     YamlParser(yamlFile.read())(handler).parse()
 
@@ -49,7 +48,7 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
 
   test("Parse invalid alias referencing undefined anchor") {
     val yamlFile = yamlDir / "invalid-alias.yaml"
-    val handler = TestErrorHandler()
+    val handler  = TestErrorHandler()
 
     YamlParser(yamlFile.read())(handler).parse()
 
@@ -113,7 +112,7 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
         |key3:
         |""".stripMargin
     val doc = YamlParser(text)(handler).document()
-    val map  = doc.node.as[YMap]
+    val map = doc.node.as[YMap]
     assert(map.entries.length == 3)
     val secondMap = map.entries(1).value.as[YMap]
     assert(secondMap.entries.length == 1)
@@ -132,8 +131,8 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
         |  valid1: value
         |  invalid
         |  valid2: value""".stripMargin
-    val doc = YamlParser(text)(handler).document()
-    val map = doc.node.as[YMap]
+    val doc       = YamlParser(text)(handler).document()
+    val map       = doc.node.as[YMap]
     val secondMap = map.entries.head.value.as[YMap]
     assert(secondMap.entries.length == 2)
   }
@@ -145,8 +144,8 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
       """key:
         |  Unclosed key at root in middle
         |  valid1: value""".stripMargin
-    val doc = YamlParser(text)(handler).document()
-    val map = doc.node.as[YMap]
+    val doc       = YamlParser(text)(handler).document()
+    val map       = doc.node.as[YMap]
     val secondMap = map.entries.head.value.as[YMap]
     assert(secondMap.entries.length == 1)
   }
@@ -160,10 +159,10 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
         |  error
         |  - seq1""".stripMargin
     val docs = YamlParser(text)(handler).document()
-    val map = docs.node.as[YMap]
+    val map  = docs.node.as[YMap]
     assert(map.entries.length == 1)
     val seq: Seq[String] = map.entries.head.value.as[Seq[String]]
-    assert(seq.length ==  2)
+    assert(seq.length == 2)
     assert(handler.errors.lengthCompare(1) == 0)
     assert(handler.errors.head.error.getMessage.equals("Syntax error in the following text: 'error\n'"))
   }
@@ -178,10 +177,10 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
         |   error
         |  - seq2""".stripMargin
     val docs = YamlParser(text)(handler).document()
-    val map = docs.node.as[YMap]
+    val map  = docs.node.as[YMap]
     assert(map.entries.length == 1)
     val seq: Seq[String] = map.entries.head.value.as[Seq[String]]
-    assert(seq.length ==  2)
+    assert(seq.length == 2)
     assert(handler.errors.lengthCompare(1) == 0)
     assert(handler.errors.head.error.getMessage.equals("Syntax error in the following text: 'error\n'"))
   }
@@ -203,7 +202,7 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
     assert(handler.errors.last.error.getMessage.equals("Syntax error in the following text: '  map: value\n'"))
   }
 
-  test("Empty line indented"){
+  test("Empty line indented") {
     val handler = TestErrorHandler()
 
     val text = "example: |\n  a multiline string\n  "
@@ -212,36 +211,28 @@ trait ParseInvalidYamlsTest extends AnyFunSuite {
     assert(handler.errors.lengthCompare(0) == 0)
   }
 
-  test("Quoted string with flow tokens"){
+  test("Quoted string with flow tokens") {
     val handler = TestErrorHandler()
-    val text = "example:  \n  '{\"message\": \"Flight added (but not really)\"'"
+    val text    = "example:  \n  '{\"message\": \"Flight added (but not really)\"'"
 
     YamlParser(text)(handler).document()
     assert(handler.errors.lengthCompare(0) == 0)
   }
 
-  test("Array as key"){
+  test("Array as key") {
     val handler = TestErrorHandler()
-    val text = "toplevel:\n  []:\n    son: value"
+    val text    = "toplevel:\n  []:\n    son: value"
 
     YamlParser(text)(handler).document()
     assert(handler.errors.lengthCompare(0) == 0)
   }
 
-  test("Flow map as key"){
+  test("Flow map as key") {
     val handler = TestErrorHandler()
-    val text = "toplevel:\n  {}:\n    son: value"
+    val text    = "toplevel:\n  {}:\n    son: value"
 
     YamlParser(text)(handler).document()
     assert(handler.errors.lengthCompare(0) == 0)
-  }
-
-  case class TestErrorHandler() extends ParseErrorHandler {
-    val errors = new mutable.ListBuffer[ErrorContainer]()
-
-    case class ErrorContainer(error: Exception, range: PositionRange)
-
-    override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.range)
   }
 
 }

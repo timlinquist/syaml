@@ -6,23 +6,24 @@ import org.mulesoft.lexer.{BaseLexer, CharSequenceLexerInput, LexerInput}
 import org.yaml.lexer.JsonLexer._
 import org.yaml.lexer.YamlToken._
 
-/**
-  * Json Lexer
+/** Json Lexer
   */
-final class JsonLexer private (input: LexerInput, positionOffset: Position = Position.ZERO)
-    extends BaseLexer[YamlToken](input, positionOffset) {
+final class JsonLexer private (
+    input: LexerInput,
+    positionOffset: Position = Position.ZERO,
+    maxDepth: Option[Int] = None
+) extends BaseLexer[YamlToken](input, positionOffset, maxDepth.getOrElse(BaseLexer.DEFAULT_MAX_DEPTH)) {
 
   /** Init must initialize the stack and the current _tokenData (may be invoking advance) */
   override def initialize(): JsonLexer = {
-    if(currentIsBOM) consume() // For compatibility with YAML
+    if (currentIsBOM) consume() // For compatibility with YAML
     emit(BeginDocument)
     advance()
     this
   }
 
-  /**
-    * Process all pending tokens. Trivial implementation just emit the EofToken
-    * More complex ones can continue returning pending tokens until they emit the EofToken
+  /** Process all pending tokens. Trivial implementation just emit the EofToken More complex ones can continue returning
+    * pending tokens until they emit the EofToken
     */
   override protected def processPending(): Unit = emit(EndDocument)
 
@@ -62,8 +63,7 @@ final class JsonLexer private (input: LexerInput, positionOffset: Position = Pos
       consume(l)
       emit(Text)
       emit(EndScalar)
-    }
-    else
+    } else
       advanceToTokens(Set(',', ':'))
   }
 
@@ -74,8 +74,7 @@ final class JsonLexer private (input: LexerInput, positionOffset: Position = Pos
     if (!consume('0')) {
       consume()
       consumeWhile(isDigit)
-    }
-    else if (isDigit(currentChar)) {
+    } else if (isDigit(currentChar)) {
       valid = false
       advanceToTokens(Set(',', ']', '}', '"', '[', '{', ':'))
     }
@@ -107,8 +106,7 @@ final class JsonLexer private (input: LexerInput, positionOffset: Position = Pos
         if (currentChar.toChar.toUpper == 'U') consume(4)
         consumeAndEmit(MetaText)
         emit(EndEscape)
-      }
-      else {
+      } else {
         hasText = true
         consume()
       }
@@ -127,11 +125,24 @@ object JsonLexer {
   def apply(cs: CharSequence, sourceName: String): JsonLexer =
     new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName))
 
-  @deprecated("Use Position argument", "") def apply(cs: CharSequence, sourceName: String, positionOffset: (Int, Int)): JsonLexer =
-    JsonLexer(cs, sourceName, Position(positionOffset._1, positionOffset._2))
+  def apply(cs: CharSequence, maxDepth: Option[Int]): JsonLexer =
+    new JsonLexer(CharSequenceLexerInput(cs), maxDepth = maxDepth)
+
+  def apply(cs: CharSequence, sourceName: String, maxDepth: Option[Int]): JsonLexer =
+    new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), maxDepth = maxDepth)
 
   def apply(cs: CharSequence, sourceName: String, positionOffset: Position): JsonLexer =
     new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), positionOffset)
+
+  def apply(cs: CharSequence, sourceName: String, positionOffset: Position, maxDepth: Option[Int]): JsonLexer =
+    new JsonLexer(CharSequenceLexerInput(cs, sourceName = sourceName), positionOffset, maxDepth)
+
+  @deprecated("Use Position argument", "") def apply(
+      cs: CharSequence,
+      sourceName: String,
+      positionOffset: (Int, Int)
+  ): JsonLexer =
+    JsonLexer(cs, sourceName, Position(positionOffset._1, positionOffset._2))
 
   private def isWhitespace(c: Int) = c == ' ' || c == '\t' || c == '\r'
   private def isDigit(c: Int)      = c >= '0' && c <= '9'

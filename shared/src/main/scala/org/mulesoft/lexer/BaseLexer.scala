@@ -3,16 +3,23 @@ package org.mulesoft.lexer
 import org.mulesoft.common.client.lexical.{Position, SourceLocation}
 import org.mulesoft.lexer.LexerInput.EofChar
 import org.mulesoft.common.core.Chars
+import org.yaml.lexer.YamlToken
+import org.yaml.model.DepthLimitException
 
 import scala.collection.mutable.ArrayBuffer
 
-abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: Position) extends Lexer[T] {
+abstract class BaseLexer[T <: Token](
+    var input: LexerInput,
+    val positionOffset: Position,
+    val maxDepth: Int
+) extends Lexer[T] {
 
   type TD = TokenData[T]
   protected val tokenQueue             = new Queue[TD]
   protected var mark: Position         = position
   val sourceName: String               = input.sourceName
   private var _tokenData: TokenData[T] = _
+  private var depthCounter             = 0
 
   private def position = input.position + positionOffset
 
@@ -22,26 +29,39 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
   /** Init must initialize the current _tokenData (may be invoking advance) */
   def initialize(): BaseLexer[T]
 
-  /** get the current token in the input stream.  */
+  /** get the current token in the input stream. */
   override def token: T = _tokenData.token
 
-  /** All the token data.  */
+  /** All the token data. */
   override def tokenData: TD = _tokenData
 
-  /** Get the specified Token Char Sequence.  */
+  /** Get the specified Token Char Sequence. */
   def tokenText(td: TD): CharSequence = input.subSequence(td.range.offsetFrom, td.range.offsetTo)
 
-  /** Get the current Token Char Sequence.  */
+  /** Get the current Token Char Sequence. */
   override def tokenText: CharSequence = tokenText(_tokenData)
 
   /** Emit a Token */
   @failfast def emit(token: T): Boolean = {
     val newMark = position
+    depthCounterValidation(token)
     tokenQueue += TokenData(
       token,
-      SourceLocation(sourceName, mark.offset, newMark.offset, mark.line, mark.column, newMark.line, newMark.column))
+      SourceLocation(sourceName, mark.offset, newMark.offset, mark.line, mark.column, newMark.line, newMark.column)
+    )
     mark = newMark
     true
+  }
+
+  def depthCounterValidation(token: T): Unit = {
+    token match {
+      case YamlToken.BeginMapping | YamlToken.BeginSequence => depthCounter = depthCounter + 1
+      case YamlToken.EndMapping | YamlToken.EndSequence     => depthCounter = depthCounter - 1
+      case _                                                => // ignore
+    }
+    if (depthCounter > maxDepth) {
+      throw DepthLimitException(maxDepth)
+    }
   }
 
   /** Emit 2 Tokens */
@@ -62,7 +82,7 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
 
   protected def findToken(chr: Int): Unit = {}
 
-  /** Advance the lexer to the next token.  */
+  /** Advance the lexer to the next token. */
   override final def advance(): Unit = {
     while (nonTokenEmitted) {
       if (currentChar != EofChar) {
@@ -135,9 +155,8 @@ abstract class BaseLexer[T <: Token](var input: LexerInput, val positionOffset: 
 
   @inline final def beginOfLine: Boolean = input.column == 0
 
-  /**
-    * Process all pending tokens. Trivial implementation just emit the EofToken
-    * More complex ones can continue returning pending tokens until they emit the EofToken
+  /** Process all pending tokens. Trivial implementation just emit the EofToken More complex ones can continue returning
+    * pending tokens until they emit the EofToken
     */
   protected def processPending(): Unit
 
@@ -159,4 +178,8 @@ class Queue[T] {
     buffer(head - 1)
   }
   def isEmpty: Boolean = tail <= head
+}
+
+object BaseLexer {
+  final val DEFAULT_MAX_DEPTH = 1000
 }
