@@ -6,4 +6,5 @@ trait YParser {
   def parse(keepTokens: Boolean = true): IndexedSeq[YPart]
   def documents(keepTokens:Boolean = false): IndexedSeq[YDocument]
   def document(keepTokens:Boolean = false): YDocument
+
 }

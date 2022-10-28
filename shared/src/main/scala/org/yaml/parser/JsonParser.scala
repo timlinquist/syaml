@@ -9,11 +9,9 @@ import org.yaml.model.{YTag, _}
 
 import scala.collection.mutable.ArrayBuffer
 
-/**
-  * A Json Parser
+/** A Json Parser
   */
-class JsonParser private[parser] (val lexer: JsonLexer)(
-    implicit val eh: ParseErrorHandler)
+class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseErrorHandler)
     extends YParser
     with DuplicateDetection {
 
@@ -26,7 +24,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
   private var stack      = List(current)
 
   /** Parse the Json and return the list of documents */
-  def documents(keepTokens:Boolean = false): IndexedSeq[YDocument] = {
+  def documents(keepTokens: Boolean = false): IndexedSeq[YDocument] = {
     this.keepTokens = keepTokens
     Array(parseDocument())
   }
@@ -37,16 +35,21 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
     IndexedSeq(parseDocument())
   }
 
-  override def document(keepTokens:Boolean = false): YDocument = {
+  override def document(keepTokens: Boolean = false): YDocument = {
     this.keepTokens = keepTokens
     parseDocument()
   }
 
   private def parseDocument(): YDocument = {
     push()
-    if (consumeOrError(BeginDocument)) {
-      process()
-      consumeOrError(EndDocument)
+    try {
+      if (consumeOrError(BeginDocument)) {
+        process()
+        consumeOrError(EndDocument)
+      }
+    } catch {
+      case se: SyamlException => eh.handle(current.location(), se)
+      case other: Throwable   => throw other
     }
     val parts = current.buildParts()
     val sl    = current.location()
@@ -60,7 +63,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
   def expected(expected: String): Unit =
     reportError(
-      if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found")
+        if (currentText().isEmpty) s"Missing '$expected'" else s"Expecting '$expected' but '${currentText()}' found"
+    )
 
   private def expected(token: YamlToken): Boolean = {
     token match {
@@ -113,7 +117,11 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
 
   private def parseSeq(): Boolean = {
     push()
-    val r  = parseList(BeginSequence, EndSequence, SequenceValueParser()) // should check if i parse something? empty pop if not?
+    val r = parseList(
+        BeginSequence,
+        EndSequence,
+        SequenceValueParser()
+    ) // should check if i parse something? empty pop if not?
     val sl = current.location()
     if (r) consume()
     val v = YSequence(sl, current.buildParts())
@@ -204,7 +212,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       if (parseEntry()) {
         val parts = current.buildParts()
         stackParts(YMapEntry(parts))
-      } else {
+      }
+      else {
         current.buildParts()
         pop()
       }
@@ -220,19 +229,21 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
     }
 
     private def parseEntry(): Boolean = {
-      val k = parseKey()
+      val k         = parseKey()
       val indicator = currentByText(Indicator, ":")
       if (isLineBreakScalarSituation) {
         saveLineBreakScalarSituation()
         false
-      } else if (k || indicator) {
+      }
+      else if (k || indicator) {
         if (currentByTextOrError(Indicator, ":")) {
           consume()
           skipWhiteSpace()
           current.addNonContent()
         }
         k & ((parseValue() || indicator) || saveEntry())
-      } else {
+      }
+      else {
         advanceToByText((Indicator, Some(",")), (EndMapping, None))
         false
       }
@@ -247,7 +258,8 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
       val hasValue = process()
       if (hasValue) {
         current.addNonContent()
-      } else {
+      }
+      else {
         addNullValue()
         advanceTo(Indicator, EndMapping)
       }
@@ -285,7 +297,7 @@ class JsonParser private[parser] (val lexer: JsonLexer)(
     SourceLocation(current.location().sourceName, tokens.head.location.from, current.location().from)
   }
 
-  private def noTokensLocation(): SourceLocation ={
+  private def noTokensLocation(): SourceLocation = {
     SourceLocation(current.location().sourceName, current.location().from, current.location().from)
   }
 
@@ -431,15 +443,25 @@ object JsonParser {
   def apply(s: CharSequence)(implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     new JsonParser(JsonLexer(s))(eh)
 
+  def apply(s: CharSequence, maxDepth: Option[Int])(implicit eh: ParseErrorHandler): JsonParser =
+    new JsonParser(JsonLexer(s, maxDepth))(eh)
+
   def obj(s: CharSequence)(implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): YObj =
     apply(s)(eh).document().obj
 
   def withSource(s: CharSequence, sourceName: String, positionOffset: Position = Position.ZERO)(
-      implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
+      implicit
+      eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     new JsonParser(JsonLexer(s, sourceName, positionOffset))(eh)
+
+  def withSource(s: CharSequence, sourceName: String, positionOffset: Position, maxDepth: Option[Int])(
+      implicit
+      eh: ParseErrorHandler): JsonParser =
+    new JsonParser(JsonLexer(s, sourceName, positionOffset, maxDepth))(eh)
 
   @deprecated("Use Position argument", "")
   def withSourceOffset(s: CharSequence, sourceName: String, offset: (Int, Int))(
-      implicit eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
+      implicit
+      eh: ParseErrorHandler = DefaultJsonErrorHandler()): JsonParser =
     withSource(s, sourceName, Position(offset._1, offset._2))
 }
