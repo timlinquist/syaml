@@ -46,14 +46,14 @@ abstract class BaseLexer[T <: Token](
     val newMark = position
     depthCounterValidation(token)
     tokenQueue += TokenData(
-      token,
-      SourceLocation(sourceName, mark.offset, newMark.offset, mark.line, mark.column, newMark.line, newMark.column)
+        token,
+        SourceLocation(sourceName, mark.offset, newMark.offset, mark.line, mark.column, newMark.line, newMark.column)
     )
     mark = newMark
     true
   }
 
-  def depthCounterValidation(token: T): Unit = {
+  private def depthCounterValidation(token: T): Unit = {
     token match {
       case YamlToken.BeginMapping | YamlToken.BeginSequence => depthCounter = depthCounter + 1
       case YamlToken.EndMapping | YamlToken.EndSequence     => depthCounter = depthCounter - 1
@@ -63,6 +63,9 @@ abstract class BaseLexer[T <: Token](
       throw DepthLimitException(maxDepth)
     }
   }
+
+  protected def getDepthCounter: Int = depthCounter
+  protected def setDepthCounter(value: Int): Unit = depthCounter = value
 
   /** Emit 2 Tokens */
   @failfast def emit(t1: T, t2: T): Boolean = {
@@ -92,7 +95,8 @@ abstract class BaseLexer[T <: Token](
           advance()
         }
 
-      } else processPending()
+      }
+      else processPending()
     }
     _tokenData = tokenQueue.dequeue
   }

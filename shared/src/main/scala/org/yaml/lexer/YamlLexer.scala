@@ -640,7 +640,7 @@ final class YamlLexer private (
     */
   def flowSequence(n: Int, ctx: YamlContext): Boolean = currentChar == '[' && matches {
     emit(BeginSequence) && emitIndicator() &&
-    optional(separateFlow(n: Int, ctx)) &&
+    optional(separateFlow(n, ctx)) &&
     optional(flowSequenceEntries(n, inFlow(ctx))) &&
     currentChar == ']' && emitIndicator() && emit(EndSequence)
   }
@@ -1501,13 +1501,14 @@ final class YamlLexer private (
     !beginOfLine || !isDocumentEnd && !isDirectivesEnd
   }
 
-  private def restoreState(s: (Int, Position, Mark)): Unit = {
+  private def restoreState(s: (Int, Position, Mark, Int)): Unit = {
     tokenQueue.reduceTo(s._1)
     mark = s._2
     input.reset(s._3)
+    setDepthCounter(s._4)
   }
 
-  private def saveState: (Int, Position, Mark) = (tokenQueue.size, mark, input.createMark())
+  private def saveState: (Int, Position, Mark, Int) = (tokenQueue.size, mark, input.createMark(), getDepthCounter)
 
   private def matches(p: => Boolean): Boolean = {
     val s      = saveState
