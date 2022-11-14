@@ -275,9 +275,9 @@ class JsonParser private[parser] (val lexer: JsonLexer)(implicit val eh: ParseEr
     current.addNullNode(location)
   }
 
-  private def extractNullValueTokens() = {
-    current.parts.last match {
-      case nonContent: YNonContent =>
+  private def extractNullValueTokens(): IndexedSeq[AstToken] = {
+    current.parts.lastOption match {
+      case Some(nonContent: YNonContent) =>
         splitNonContent(nonContent)
         nonContent.tokens.tail
       case _ =>

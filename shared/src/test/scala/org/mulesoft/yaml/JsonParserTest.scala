@@ -37,7 +37,9 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
     val errors = getErrorsFor(jsonDir / "scalar-in-map-entry.json")
 
     assert(errors.lengthCompare(1) == 0)
-    assert(errors.head.error.getMessage.equals("Syntax error : Expecting '\"' but '#an invalid json comment only to check the raw render' found"))
+    assert(
+        errors.head.error.getMessage
+          .equals("Syntax error : Expecting '\"' but '#an invalid json comment only to check the raw render' found"))
     assert(errors.head.range.equals(PositionRange(5, 4, 5, 57)))
   }
 
@@ -70,9 +72,9 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
   }
 
   test("Test map in map closing range") { // todo: move to another test
-    val jsonFile = jsonDir / "map-in-map.json"
-    val parts = JsonParser(jsonFile.read()).parse()
-    val restEntry = parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.head.value.as[YMap].entries.head
+    val jsonFile  = jsonDir / "map-in-map.json"
+    val parts     = JsonParser(jsonFile.read()).parse()
+    val restEntry = parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.as[YMap].entries.head
     assert(restEntry.key.as[YScalar].text == "RestEntity")
     val map = restEntry.value.as[YMap]
     assert(map.range.lineTo == 7)
@@ -142,7 +144,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
   }
 
   test("Duplicate keys don't throw exception with default error handler") {
-    val source = """{"a": "aValue", "b": 1, "a": "anotherValue"}"""
+    val source           = """{"a": "aValue", "b": 1, "a": "anotherValue"}"""
     val testErrorHandler = TestErrorHandler()
     val handler = new DefaultJsonErrorHandler {
       override val errorHandler: ParseErrorHandler = testErrorHandler
@@ -152,138 +154,176 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
   }
 
   test("JsonErrorHandler notifies of Duplicate Keys in JSON") {
-    val source = """{"a": "aValue", "b": 1, "a": "anotherValue"}"""
+    val source           = """{"a": "aValue", "b": 1, "a": "anotherValue"}"""
     val testErrorHandler = TestErrorHandler()
     val handler = new DefaultJsonErrorHandler {
-      override protected def onIgnoredException(location: SourceLocation, e: SyamlException): Unit = testErrorHandler.handle(location, e)
+      override protected def onIgnoredException(location: SourceLocation, e: SyamlException): Unit =
+        testErrorHandler.handle(location, e)
     }
     JsonParser(source)(handler).parse()
     testErrorHandler.errors.head.error.getMessage shouldBe "Duplicate key : 'a'"
   }
 
-  test("test recovery bad entry 1"){
+  test("test recovery bad entry 1") {
     val jsonFile = jsonDir / "incomplete-entry-1.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
     assert(eh.errors.size == 1)
   }
 
-  test("test recovery bad entry 2"){
+  test("test recovery bad entry 2") {
     val jsonFile = jsonDir / "incomplete-entry-2.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 3)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 3)
     assert(eh.errors.size == 1)
   }
 
-  test("test recovery bad entry 3"){
+  test("test recovery bad entry 3") {
     val jsonFile = jsonDir / "incomplete-entry-3.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
     assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
     assert(eh.errors.size == 3)
   }
 
-  test("test recovery bad entry 4"){
+  test("test recovery bad entry 4") {
     val jsonFile = jsonDir / "incomplete-entry-4.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
     assert(eh.errors.size == 5)
   }
 
-  test("test recovery bad entry 5"){
+  test("test recovery bad entry 5") {
     val jsonFile = jsonDir / "incomplete-entry-5.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
     assert(eh.errors.size == 3)
   }
 
-  test("test recovery bad entry 6"){
+  test("test recovery bad entry 6") {
     val jsonFile = jsonDir / "incomplete-entry-6.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
     assert(eh.errors.size == 1)
   }
 
-  test("test recovery bad entry 7"){
+  test("test recovery bad entry 7") {
     val jsonFile = jsonDir / "incomplete-entry-7.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
     assert(eh.errors.size == 3)
   }
 
-  test("test recovery bad value in seq 1"){
+  test("test recovery bad value in seq 1") {
     val jsonFile = jsonDir / "incomplete-value-seq-1.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YSequence].nodes.length == 3)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YSequence].nodes.length == 3)
     assert(eh.errors.size == 3)
   }
 
-  test("test recovery bad map 1"){
+  test("test recovery bad map 1") {
     val jsonFile = jsonDir / "incomplete-map-1.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
     assert(eh.errors.size == 1)
   }
 
-  test("test recovery bad map 2"){
+  test("test recovery bad map 2") {
     val jsonFile = jsonDir / "incomplete-map-2.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
     assert(eh.errors.size == 1)
   }
 
-  test("test recovery bad seq 1"){
+  test("test recovery bad seq 1") {
     val jsonFile = jsonDir / "incomplete-seq-1.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
     assert(eh.errors.size == 5)
   }
 
-  test("test recovery bad seq 2"){
+  test("test recovery bad seq 2") {
     val jsonFile = jsonDir / "incomplete-seq-2.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 2)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 2)
     assert(eh.errors.size == 11)
   }
 
-  test("test recovery bad seq 3"){
+  test("test recovery bad seq 3") {
     val jsonFile = jsonDir / "incomplete-seq-3.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({case d:YDocument => d}).get.as[YMap].entries.length == 1)
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.length == 1)
     assert(eh.errors.size == 1)
   }
 
   test("test null value location") {
     val jsonFile = jsonDir / "null-value.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.location.range.equals(PositionRange(2, 8, 3, 0)))
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(
+        parts
+          .collectFirst({ case d: YDocument => d })
+          .get
+          .as[YMap]
+          .entries
+          .head
+          .value
+          .location
+          .range
+          .equals(PositionRange(2, 8, 3, 0)))
   }
 
   test("test null value with no indicator location") {
     val jsonFile = jsonDir / "null-value-no-indicator-token.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.location.range.equals(PositionRange(2, 7, 3, 0)))
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(
+        parts
+          .collectFirst({ case d: YDocument => d })
+          .get
+          .as[YMap]
+          .entries
+          .head
+          .value
+          .location
+          .range
+          .equals(PositionRange(2, 7, 3, 0)))
   }
 
   test("test null value with no tokens location") {
     val jsonFile = jsonDir / "null-value-with-no-tokens.json"
-    val eh = TestErrorHandler()
-    val parts = JsonParser(jsonFile.read())(eh).parse()
-    assert(parts.collectFirst({ case d: YDocument => d }).get.as[YMap].entries.head.value.location.range.equals(PositionRange(1, 6, 1, 6)))
+    val eh       = TestErrorHandler()
+    val parts    = JsonParser(jsonFile.read())(eh).parse()
+    assert(
+        parts
+          .collectFirst({ case d: YDocument => d })
+          .get
+          .as[YMap]
+          .entries
+          .head
+          .value
+          .location
+          .range
+          .equals(PositionRange(1, 6, 1, 6)))
+  }
+
+  test("test null no valid content") {
+    val jsonFile = jsonDir / "null-invalid-content.json"
+    val eh       = TestErrorHandler()
+    val document = JsonParser(jsonFile.read())(eh).document()
+    assert(document.as[YMap].entries.isEmpty)
   }
 
   private def doTest(source: String, msg: String, n: Int): Any = {
@@ -292,7 +332,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
     assert(errors.head.error.getMessage.startsWith(msg))
   }
 
-  private def getErrorsFor(jsonFile:SyncFile): Seq[ErrorContainer] = {
+  private def getErrorsFor(jsonFile: SyncFile): Seq[ErrorContainer] = {
     val handler = TestErrorHandler()
 
     JsonParser(jsonFile.read())(handler).parse()
@@ -307,7 +347,7 @@ trait JsonParserTest extends AnyFunSuite with Matchers {
   }
 
   case class TestErrorHandler() extends ParseErrorHandler {
-    val errors = new mutable.ListBuffer[ErrorContainer]()
+    val errors                                                        = new mutable.ListBuffer[ErrorContainer]()
     override def handle(loc: SourceLocation, e: SyamlException): Unit = errors += ErrorContainer(e, loc.range)
   }
   case class ErrorContainer(error: Exception, range: PositionRange)
