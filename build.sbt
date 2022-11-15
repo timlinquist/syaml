@@ -2,8 +2,6 @@ import org.scalajs.core.tools.linker.ModuleKind
 import sbt.Keys.{libraryDependencies, resolvers, scalacOptions}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-name := "syaml"
-
 ThisBuild / version := getVersion(1, 2)
 ThisBuild / scalaVersion := "2.12.13"
 
@@ -11,7 +9,7 @@ val settings = Common.settings ++ Common.publish ++ Seq(
     organization := "org.mule.syaml",
     name := "syaml",
     libraryDependencies ++= Seq(
-        "org.mule.common" %%% "scala-common-test" % "0.0.10" % Test
+        "org.mule.common" %%% "scala-common-test" % "0.1.12" % Test
     ),
     resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
     credentials ++= Common.credentials()
@@ -23,7 +21,7 @@ lazy val workspaceDirectory: File =
     case _       => Path.userHome / "mulesoft"
   }
 
-val scalaCommonVersion = "1.0.94"
+val scalaCommonVersion = "1.1.95"
 
 lazy val scalaCommonJVMRef = ProjectRef(workspaceDirectory / "scala-common", "commonJVM")
 lazy val scalaCommonJSRef  = ProjectRef(workspaceDirectory / "scala-common", "commonJS")

@@ -1,6 +1,8 @@
 #!groovy
 @Library('amf-jenkins-library') _
 
+import groovy.transform.Field
+
 def SLACK_CHANNEL = '#amf-jenkins'
 def PRODUCT_NAME = "syaml"
 def lastStage = ""
@@ -14,22 +16,27 @@ pipeline {
     }
     agent {
         dockerfile {
-            filename 'Dockerfile'
+            registryCredentialsId 'dockerhub-pro-credentials'
             registryCredentialsId 'github-salt'
             registryUrl 'https://ghcr.io'
         }
     }
     environment {
         NEXUS = credentials('exchange-nexus')
+        NEXUSIQ = credentials('nexus-iq')
         GITHUB_ORG = 'aml-org'
         GITHUB_REPO = 'syaml'
+        BUILD_NUMBER = "${env.BUILD_NUMBER}"
+        BRANCH_NAME = "${env.BRANCH_NAME}"
+        NPM_TOKEN = credentials('npm-mulesoft')
+        CURRENT_VERSION = sh(script: "cat dependencies.properties | grep \"version\" | cut -d '=' -f 2", returnStdout: true)
     }
     stages {
         stage('Test') {
             steps {
                 script {
                     lastStage = env.STAGE_NAME
-                    sh 'sbt clean coverage test coverageAggregate'
+                    sh 'sbt -mem 4096 -Dfile.encoding=UTF-8 clean coverage test coverageAggregate'
                 }
             }
         }
@@ -55,22 +62,22 @@ pipeline {
                 }
             }
             steps {
-                wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm']) {
-                    script {
-                        lastStage = env.STAGE_NAME
-                        sh '''
+                script {
+                    lastStage = env.STAGE_NAME
+                    sh '''
                                echo "about to publish in sbt"
                                sbt syamlJS/publish
                                sbt syamlJVM/publish
                                echo "sbt publishing successful"
                            '''
-                    }
                 }
             }
         }
         stage('Tag version') {
             when {
-                branch 'master'
+                anyOf {
+                    branch 'master'
+                }
             }
             steps {
                 withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'github-salt', passwordVariable: 'GITHUB_PASS', usernameVariable: 'GITHUB_USER']]) {
@@ -85,53 +92,10 @@ pipeline {
     }
     post {
         unsuccessful {
-            script {
-                if (isMaster() || isDevelop()) {
-                    sendBuildErrorSlackMessage(lastStage, SLACK_CHANNEL, PRODUCT_NAME)
-                } else {
-                    echo "Unsuccessful build: skipping slack message notification as branch is not master or develop"
-                }
-            }
+            failureSlackNotify(lastStage, SLACK_CHANNEL, PRODUCT_NAME)
         }
         success {
-            script {
-                echo "SUCCESSFUL BUILD"
-                if (isMaster()) {
-                    sendSuccessfulSlackMessage(SLACK_CHANNEL, PRODUCT_NAME)
-                } else {
-                    echo "Successful build: skipping slack message notification as branch is not master"
-                }
-            }
+            successSlackNotify(SLACK_CHANNEL, PRODUCT_NAME)
         }
     }
 }
-
-Boolean isDevelop() {
-    env.BRANCH_NAME == "develop"
-}
-
-Boolean isMaster() {
-    env.BRANCH_NAME == "master"
-}
-
-def sendBuildErrorSlackMessage(String lastStage, String slackChannel, String productName) {
-    def color = '#FF8C00'
-    def headerFlavour = 'WARNING'
-    if (isMaster()) {
-        color = '#FF0000'
-        headerFlavour = "RED ALERT"
-    } else if (isDevelop()) {
-        color = '#FFD700'
-    }
-    def message = """:alert: ${headerFlavour}! :alert: Build failed!.
-                  |Branch: ${env.BRANCH_NAME}
-                  |Stage: ${lastStage}
-                  |Product: ${productName}
-                  |Build URL: ${env.BUILD_URL}""".stripMargin().stripIndent()
-    slackSend color: color, channel: "${slackChannel}", message: message
-}
-
-def sendSuccessfulSlackMessage(String slackChannel, String productName) {
-    slackSend color: '#00FF00', channel: "${slackChannel}", message: ":ok_hand: ${productName} Master Publish OK! :ok_hand:"
-}
-
