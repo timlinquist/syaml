@@ -36,7 +36,7 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
       val n = dump(YamlParser(yamlFile.read()).parse(), writer, "")
       writer println s"$n tokens dumped."
       writer.close()
-      ytsFile.write(cw.toCharArray)
+      ytsFile.write(cw.toString)
 
       if (!goldenFile.exists) goldenFile.write("")
 
@@ -66,7 +66,7 @@ class ParseAndDumpTokensTest extends GoldenSuite with IgnoreParseErrorTest {
       val n = dump(offsetParts, writer, "")
       writer println s"$n tokens dumped."
       writer.close()
-      ytsFile.write(cw.toCharArray)
+      ytsFile.write(cw.toString)
 
       if (!goldenFile.exists) goldenFile.write("")
 
