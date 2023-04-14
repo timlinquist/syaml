@@ -59,6 +59,7 @@ pipeline {
             when {
                 anyOf {
                     branch 'master'
+                    branch 'chore/bump-ci-image'
                 }
             }
             steps {

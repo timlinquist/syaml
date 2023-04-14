@@ -2,7 +2,7 @@ import org.scalajs.core.tools.linker.ModuleKind
 import sbt.Keys.{libraryDependencies, resolvers, scalacOptions}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-ThisBuild / version := getVersion(1, 2)
+ThisBuild / version := "1.3.0-JDK-17-SNAPSHOT"
 ThisBuild / scalaVersion := "2.12.13"
 
 val settings = Common.settings ++ Common.publish ++ Seq(
@@ -21,7 +21,7 @@ lazy val workspaceDirectory: File =
     case _       => Path.userHome / "mulesoft"
   }
 
-val scalaCommonVersion = "1.1.95"
+val scalaCommonVersion = "1.2.0-JDK-17-SNAPSHOT"
 
 lazy val scalaCommonJVMRef = ProjectRef(workspaceDirectory / "scala-common", "commonJVM")
 lazy val scalaCommonJSRef  = ProjectRef(workspaceDirectory / "scala-common", "commonJS")
