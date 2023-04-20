@@ -18,6 +18,7 @@ class CharSequenceLexerInput private (val data: CharSequence,
                                       override val sourceName: String)
     extends LexerInput {
 
+  private val stringData = data.toString
   private var state = InputState(offset = startOffset, nextOffset = startOffset).init(data, endOffset)
 
   /** The index of the character relative to the beginning of the line, as a 16 bit java character. (0 based) */
@@ -80,7 +81,7 @@ class CharSequenceLexerInput private (val data: CharSequence,
     var off = state.nextOffset + offset - 1
     if (off < 0) return 0
     while (i < max && off < endOffset) {
-      if (data.charAt(off)!= ' ') return i
+      if (stringData.charAt(off) != ' ') return i
       i = i + 1
       off += 1
     }
