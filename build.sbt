@@ -1,15 +1,14 @@
-import org.scalajs.core.tools.linker.ModuleKind
-import sbt.Keys.{libraryDependencies, resolvers, scalacOptions}
+import sbt.Keys.{libraryDependencies, resolvers}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 ThisBuild / version := getVersion(1, 2)
-ThisBuild / scalaVersion := "2.12.13"
+ThisBuild / scalaVersion := "2.12.15"
 
 val settings = Common.settings ++ Common.publish ++ Seq(
     organization := "org.mule.syaml",
     name := "syaml",
     libraryDependencies ++= Seq(
-        "org.mule.common" %%% "scala-common-test" % "0.1.12" % Test
+        "org.mule.common" %%% "scala-common-test" % "0.1.13" % Test
     ),
     resolvers ++= List(Common.releases, Common.snapshots, Resolver.mavenLocal),
     credentials ++= Common.credentials()
@@ -21,24 +20,22 @@ lazy val workspaceDirectory: File =
     case _       => Path.userHome / "mulesoft"
   }
 
-val scalaCommonVersion = "1.1.95"
+val scalaCommonVersion = "2.0.98"
 
 lazy val scalaCommonJVMRef = ProjectRef(workspaceDirectory / "scala-common", "commonJVM")
 lazy val scalaCommonJSRef  = ProjectRef(workspaceDirectory / "scala-common", "commonJS")
 lazy val scalaCommonLibJVM = "org.mule.common" %% "scala-common" % scalaCommonVersion
-lazy val scalaCommonLibJS  = "org.mule.common" %% "scala-common_sjs0.6" % scalaCommonVersion
+lazy val scalaCommonLibJS  = "org.mule.common" %% "scala-common_sjs1" % scalaCommonVersion
 
 lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
   .settings(settings: _*)
   .jvmSettings(
       // JVM-specific settings here
-      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
+      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided"
   )
   .jsSettings(
-      // JS-specific settings here
-      scalaJSModuleKind := ModuleKind.CommonJSModule,
-      scalacOptions += "-P:scalajs:suppressExportDeprecations"
+      scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) }
   )
 
 lazy val syamlJVM = syaml.jvm.in(file("./jvm")).sourceDependency(scalaCommonJVMRef, scalaCommonLibJVM)
