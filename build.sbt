@@ -1,7 +1,7 @@
 import sbt.Keys.{libraryDependencies, resolvers}
 import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-ThisBuild / version := getVersion(1, 2)
+ThisBuild / version := getVersion(2, 0)
 ThisBuild / scalaVersion := "2.12.15"
 
 val settings = Common.settings ++ Common.publish ++ Seq(
