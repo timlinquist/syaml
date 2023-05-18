@@ -7,7 +7,7 @@ import scala.scalajs.js.Dynamic
 import scala.scalajs.js.annotation.{JSExportAll, JSExportTopLevel}
 
 @JSExportAll
-@JSExportTopLevel("org.yaml.builder.JsOutputBuilder")
+@JSExportTopLevel("JsOutputBuilder")
 class JsOutputBuilder extends DocBuilder[js.Any] {
 
   private var obj: js.Any         = _
@@ -54,7 +54,7 @@ class JsOutputBuilder extends DocBuilder[js.Any] {
     case Str   => scalar.value.toString
     case Bool  => scalar.value.asInstanceOf[Boolean]
     case Float => scalar.value.asInstanceOf[Double]
-    case Int   => scalar.value.asInstanceOf[Long]
+    case Int => scalar.value.asInstanceOf[Long].toDouble
     case Null   => null
   }
 
