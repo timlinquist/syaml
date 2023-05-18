@@ -54,7 +54,7 @@ class JsOutputBuilder extends DocBuilder[js.Any] {
     case Str   => scalar.value.toString
     case Bool  => scalar.value.asInstanceOf[Boolean]
     case Float => scalar.value.asInstanceOf[Double]
-    case Int => scalar.value.asInstanceOf[Long].toInt
+    case Int => scalar.value.asInstanceOf[Long].toDouble
     case Null   => null
   }
 
