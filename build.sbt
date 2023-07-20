@@ -20,7 +20,7 @@ lazy val workspaceDirectory: File =
     case _       => Path.userHome / "mulesoft"
   }
 
-val scalaCommonVersion = "2.0.98"
+val scalaCommonVersion = "2.0.99"
 
 lazy val scalaCommonJVMRef = ProjectRef(workspaceDirectory / "scala-common", "commonJVM")
 lazy val scalaCommonJSRef  = ProjectRef(workspaceDirectory / "scala-common", "commonJS")
@@ -30,6 +30,7 @@ lazy val scalaCommonLibJS  = "org.mule.common" %% "scala-common_sjs1" % scalaCom
 lazy val syaml = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
   .settings(settings: _*)
+  .settings(AutomaticModuleName.settings("org.syaml"))
   .jvmSettings(
       // JVM-specific settings here
       libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided"
