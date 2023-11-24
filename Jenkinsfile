@@ -44,6 +44,7 @@ pipeline {
             when {
                 anyOf {
                     branch 'master'
+                    branch 'bump-java-21'
                 }
             }
             steps {
@@ -59,6 +60,7 @@ pipeline {
             when {
                 anyOf {
                     branch 'master'
+                    branch 'bump-java-21'
                 }
             }
             steps {
