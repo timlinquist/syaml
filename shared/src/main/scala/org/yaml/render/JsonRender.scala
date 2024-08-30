@@ -11,12 +11,13 @@ import org.yaml.lexer.YamlToken
 import org.yaml.model.YType._
 import org.yaml.model._
 
-/**
-  * Json Render
+/** Json Render
   */
-class JsonRender[W: Output] private (private val writer: W,
-                                     initialIndentation: Int = 0,
-                                     options: JsonRenderOptions = JsonRenderOptions()) {
+class JsonRender[W: Output] private (
+    private val writer: W,
+    initialIndentation: Int = 0,
+    options: JsonRenderOptions = JsonRenderOptions()
+) {
   override def toString: String = writer.toString
 
   private var indentation    = initialIndentation
@@ -115,7 +116,9 @@ class JsonRender[W: Output] private (private val writer: W,
             renderIndent().renderEntry(entry).render(if (c < total - 1) ",\n" else "\n")
             c += 1
             linebreakSkips += 1
-          case nc: YNonContent if options.applyFormatting => linebreakSkips -= renderLinebreaks(nc, linebreakSkips)
+          case nc: YNonContent if options.applyFormatting =>
+            linebreakSkips -= renderLinebreaks(nc, linebreakSkips)
+          case _                                          =>
         }
         i += 1
       }
