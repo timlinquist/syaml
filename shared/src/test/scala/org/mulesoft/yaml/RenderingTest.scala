@@ -444,6 +444,33 @@ trait RenderingTest extends AnyFunSuite with Matchers {
 
   }
 
+  test("Json render - non pretty JSON") {
+    val text =
+      """{"aKey": {
+        |    "anotherKey": [
+        |      "scalar"
+        |    ]
+        |  }
+        |}""".stripMargin
+
+
+    val expected =
+      """{
+        |  "aKey": {
+        |    "anotherKey": [
+        |      "scalar"
+        |    ]
+        |  }
+        |}
+        |""".stripMargin
+
+    val parts = JsonParser(text).parse()
+    val doc:YDocument = parts.collectFirst({case d:YDocument => d}).get
+
+    val output = JsonRender.render(doc, 0)
+    output shouldBe expected
+  }
+
   private def testDoc(text: String, jsonText: String): Unit = {
     val parts = YamlParser(text).parse()
     val str   = YamlRender.render(parts)
