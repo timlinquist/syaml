@@ -44,7 +44,6 @@ pipeline {
             when {
                 anyOf {
                     branch 'master'
-                    branch 'java21-2024'
                 }
             }
             steps {
@@ -60,7 +59,6 @@ pipeline {
             when {
                 anyOf {
                     branch 'master'
-                    branch 'java21-2024'
                 }
             }
             steps {
